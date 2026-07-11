@@ -1,0 +1,35 @@
+# Node / Next.js
+node_modules/
+.next/
+out/
+.vercel/
+*.tsbuildinfo
+next-env.d.ts
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.ipynb_checkpoints/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Large rasters (GeoJSON snapshots in data/ ARE committed; raw rasters are not)
+*.tif
+*.tiff
+pipeline/outputs/
+
+# Supabase local
+supabase/.temp/
+supabase/.branches/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+
+# Local planning (personal schedule data — never commit)
+BUILD-PLAN.md
