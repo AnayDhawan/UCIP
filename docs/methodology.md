@@ -7,7 +7,7 @@
 - Mumbai only. Grid compute (1 km), rolled up to 24 BMC wards. Architecture city-agnostic (stated, not built).
 
 ## 2. Prior art & how UCIP differs
-- (Pre-sprint item #8) IIHS, WRI India, C40, IIT-B UHI studies, Ahmedabad HAP, Mumbai Climate Action Plan 2022.
+- Prior-art scan done (pre-sprint item #8): 5 cited studies + "how UCIP differs" in `docs/prior-art.md`. Covers MCAP 2022, RAND/Azhar India HVI, IIT-B Mumbai SUHI, C40 Urban Cooling Toolbox, Ahmedabad HAP (+ IIHS governance, Rathi four-city HVI).
 - UCIP's difference: transparent literature-weighted index + NBS engine + ecological plantability filter + budget layer, vs static vulnerability assessments.
 
 ## 3. Indicators
