@@ -13,6 +13,12 @@ __pycache__/
 *.egg-info/
 .ipynb_checkpoints/
 
+# osmnx HTTP response cache (regenerable, not source data)
+pipeline/cache/
+
+# ad-hoc debug dumps
+*_debug.csv
+
 # Env / secrets
 .env
 .env.*
