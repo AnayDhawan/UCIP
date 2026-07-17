@@ -30,7 +30,7 @@ Full plan + council verdict: EA plan file (`.claude/plans/i-m-building-ucip-here
 
 ## Anay-side — Day 2 (data + research)
 
-- [x] **7. Ward boundaries.** Done 2026-07-12 → `data/bmc_wards.geojson`, from `datameet/Municipal_Spatial_Data` (Mumbai/BMC_Wards.geojson, not the `maps` repo). Validated: 24 features, all valid geometry, CRS EPSG:4326, bounds match Mumbai (72.78-72.98°E, 18.89-19.27°N), ward names are real BMC split-ward codes (F/N, F/S, G/N, G/S, H/E, H/W, K/E, K/W, M/E, M/W, P/N, P/S, R/C, R/N, R/S + A-E, L, N, S, T). Bonus: same folder has `slumClusters.geojson` — not downloaded yet, but worth pulling later for the slum-index proxy layer instead of GHS-SMOD.
+- [x] **7. Ward boundaries.** Done 2026-07-12 → `data/bmc_wards.geojson`, from `datameet/Municipal_Spatial_Data` (Mumbai/BMC_Wards.geojson, not the `maps` repo). Validated: 24 features, all valid geometry, CRS EPSG:4326, bounds match Mumbai (72.78-72.98°E, 18.89-19.27°N), ward names are real BMC split-ward codes (F/N, F/S, G/N, G/S, H/E, H/W, K/E, K/W, M/E, M/W, P/N, P/S, R/C, R/N, R/S + A-E, L, N, S, T). Bonus: same folder has `slumClusters.geojson` — pulled 2026-07-18 (2542 polygons, validated within Mumbai bounds), used directly as the slum_pct signal in `03_vectors.py` instead of the originally planned GHS-SMOD proxy (real mapped boundaries beat a modeled proxy).
 - [x] **8. WorldPop access path.** Done 2026-07-12 → **live GEE, no fallback needed.** `WorldPop/GP/100m/pop_age_sex` has 1 India image, 37 age/sex bands, all 10 elderly brackets present (`M_60..M_80`, `F_60..F_80`). Queried over Mumbai bbox, returned plausible sums (e.g. `M_60` ≈ 235,534). Elderly-% proxy layer is unblocked.
 - [x] **9. Prior-art scan.** Done 2026-07-12 → `docs/prior-art.md`. 6 closest tools (RAND/IIHS HVI, WRI India, C40 Cool Cities, IIT-B UHI studies, Ahmedabad HAP, MCAP 2022 heat chapter) + differentiation paragraph.
 - [x] **10. Citation collection.** Done 2026-07-12 → `docs/references.md` updated. All 6 core DOIs verified live. Locked Ziter et al. 2019 PNAS for canopy cooling coefficients. Found a cool-roof candidate (Santamouris et al., IOP 2014) — DOI needs final confirm before sprint, flagged in the table.
@@ -41,13 +41,22 @@ Full plan + council verdict: EA plan file (`.claude/plans/i-m-building-ucip-here
 
 ## Sprint calendar (Aug 1–7)
 
+🔴 **Pre-sprint head start, 2026-07-18:** M1-M5's core pipeline + F1 (choropleth) built two weeks
+early — Anay's explicit call, since GEE cleared 20 days early and every remaining script had zero
+open judgment calls left. Data pipeline (grid → GEE layers → vectors → zonal → HVI → NBS → Supabase
+snapshot → sensitivity check) all run end-to-end with real Mumbai data; Leaflet choropleth renders
+live. Decision + full rundown: `decisions/log.md` (2026-07-18 entry). Aug 1-7 below is now
+refinement/deck/hardening time, not first-build time — table kept as-is for reference on what still
+needs doing (ward cards, methodology page UI, NDVI-change layer, deck assembly, Supabase migration
+apply, deploy).
+
 | M | Date | Deliverable | Features |
 |---|------|-------------|----------|
-| M1 | Sat Aug 1 | Setup finalized. **GEE gate already cleared 2026-07-12 (GO)** — M1 becomes buffer/other-infra day | infra |
-| M2 | Sun Aug 2 | Full data pipeline → Supabase + GeoJSON snapshot | data |
-| M3 | Mon Aug 3 | HVI computed (PCA weights) + Leaflet choropleth. **Capture choropleth screenshot for deck** | F1 |
-| M4 | Tue Aug 4 | Factor breakdown, NBS engine + plantability filter, ward rollup + cards. **Capture ward-card + NBS screenshots** | F2 F3 F4 F7 |
-| M5 | Wed Aug 5 | 🔴 **PITCH DECK DUE**: assemble deck from `docs/pitch-brief.md` + captured screenshots. Also: Vercel deploy, methodology page, sensitivity chart, README | F5 + deck |
+| M1 | Sat Aug 1 | Setup finalized. **GEE gate already cleared 2026-07-12 (GO)**; **data pipeline + HVI + NBS engine + sensitivity check already built 2026-07-18** — M1 becomes buffer/other-infra day | infra |
+| M2 | Sun Aug 2 | ~~Full data pipeline → Supabase + GeoJSON snapshot~~ done 2026-07-18 (Supabase migration still needs applying via SQL editor — no DB credentials on machine) | data |
+| M3 | Mon Aug 3 | ~~HVI computed (PCA weights) + Leaflet choropleth~~ done 2026-07-18. **Capture choropleth screenshot for deck** | F1 |
+| M4 | Tue Aug 4 | ~~Factor breakdown, NBS engine + plantability filter~~ done 2026-07-18; ward rollup + cards UI still needed. **Capture ward-card + NBS screenshots** | F2 F3 F4 F7 |
+| M5 | Wed Aug 5 | 🔴 **PITCH DECK DUE**: assemble deck from `docs/pitch-brief.md` + captured screenshots. Also: Vercel deploy, methodology page, ~~sensitivity chart~~ (chart done 2026-07-18, `data/sensitivity_chart.png`), README | F5 + deck |
 | M6 | Thu Aug 6 | NDVI change (F6), demo-safe static mode + video backup; F8/F9 only if green | F6 (+F8/F9) |
 | M7 | Fri Aug 7 | 3-min narrative rehearsed, prototype hardening, deploy freeze | packaging |
 | M8 | Sat Aug 8 | 🔴 **PROTOTYPE SUBMISSION** (event day 1) | ship |
