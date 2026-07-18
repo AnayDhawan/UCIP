@@ -15,6 +15,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "UCIP: Urban Climate Intelligence Platform",
   description: "Mumbai ward-level heat vulnerability decision-support prototype",
+  openGraph: {
+    title: "UCIP: Urban Climate Intelligence Platform",
+    description: "Mumbai ward-level heat vulnerability decision-support prototype",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function RootLayout({
