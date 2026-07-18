@@ -1,8 +1,8 @@
 import fs from "fs";
 import path from "path";
-import Link from "next/link";
 import Image from "next/image";
-import Logo from "../components/Logo";
+import SiteHeader from "../components/SiteHeader";
+import SiteFooter from "../components/SiteFooter";
 
 type PcaLog = {
   explained_variance_pc1: number;
@@ -48,15 +48,19 @@ export default function MethodologyPage() {
   const sensitivity = readJson<Sensitivity>("sensitivity.json");
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-10 text-black dark:text-zinc-50">
-      <div className="flex items-center justify-between">
-        <Logo />
-        <Link href="/" className="text-sm text-zinc-600 hover:underline dark:text-zinc-400">
-          ← Back to map
-        </Link>
-      </div>
-      <h1 className="mt-4 text-2xl font-semibold">Methodology</h1>
-      <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+    <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-zinc-950">
+      <SiteHeader />
+      <div className="mx-auto w-full max-w-3xl flex-1 px-6 py-10 text-zinc-900 dark:text-zinc-50">
+      <h1 className="text-2xl font-semibold">How it works</h1>
+      <p className="mt-2 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
+        In plain terms: satellites measure how hot each square kilometre of Mumbai gets and how
+        green it is. Public data adds how many people live there, how many are elderly, how much
+        housing is informal, and how far the nearest hospital is. Those seven factors combine into
+        one vulnerability score per ward, and rules grounded in published research turn each score
+        into a concrete recommendation. Everything below documents that process exactly, including
+        its limitations.
+      </p>
+      <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
         UCIP is a decision-support tool, not another heat map: which Mumbai ward to cool first, why,
         what intervention, where the budget goes. Scoped to Mumbai's 24 BMC wards on a 1km grid;
         architecture is city-agnostic (stated, not built).
@@ -174,6 +178,8 @@ export default function MethodologyPage() {
           <li>The ecological plantability layer is coarse-resolution.</li>
         </ul>
       </section>
+      </div>
+      <SiteFooter />
     </div>
   );
 }
