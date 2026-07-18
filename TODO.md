@@ -41,23 +41,22 @@ Full plan + council verdict: EA plan file (`.claude/plans/i-m-building-ucip-here
 
 ## Sprint calendar (Aug 1–7)
 
-🔴 **Pre-sprint head start, 2026-07-18:** M1-M5's core pipeline + F1 (choropleth) built two weeks
-early — Anay's explicit call, since GEE cleared 20 days early and every remaining script had zero
-open judgment calls left. Data pipeline (grid → GEE layers → vectors → zonal → HVI → NBS → Supabase
-snapshot → sensitivity check) all run end-to-end with real Mumbai data; Leaflet choropleth renders
-live. Decision + full rundown: `decisions/log.md` (2026-07-18 entry). Aug 1-7 below is now
-refinement/deck/hardening time, not first-build time — table kept as-is for reference on what still
-needs doing (ward cards, methodology page UI, NDVI-change layer, deck assembly, Supabase migration
-apply, deploy).
+🔴 **Pre-sprint head start, 2026-07-18 (two passes):** first pass built M1-M5's core pipeline + F1
+(choropleth); second pass same day closed the remaining P0 UI gaps (ward cards, plantability +
+NDVI-change map layers, methodology page) plus the pitch deck. Anay's explicit call both times, since
+GEE cleared 20 days early and every remaining piece had zero open judgment calls left. Supabase
+migration applied by Anay mid-session and loaded (24 wards, 541 grid_cells, 81 nbs_recommendations, 5
+interventions, 8 methodology_refs — all live). Decision + full rundown: `decisions/log.md` (2026-07-18
+entries). Aug 1-7 below is now deploy/hardening/rehearsal time, not first-build time.
 
 | M | Date | Deliverable | Features |
 |---|------|-------------|----------|
 | M1 | Sat Aug 1 | Setup finalized. **GEE gate already cleared 2026-07-12 (GO)**; **data pipeline + HVI + NBS engine + sensitivity check already built 2026-07-18** — M1 becomes buffer/other-infra day | infra |
-| M2 | Sun Aug 2 | ~~Full data pipeline → Supabase + GeoJSON snapshot~~ done 2026-07-18 (Supabase migration still needs applying via SQL editor — no DB credentials on machine) | data |
-| M3 | Mon Aug 3 | ~~HVI computed (PCA weights) + Leaflet choropleth~~ done 2026-07-18. **Capture choropleth screenshot for deck** | F1 |
-| M4 | Tue Aug 4 | ~~Factor breakdown, NBS engine + plantability filter~~ done 2026-07-18; ward rollup + cards UI still needed. **Capture ward-card + NBS screenshots** | F2 F3 F4 F7 |
-| M5 | Wed Aug 5 | 🔴 **PITCH DECK DUE**: assemble deck from `docs/pitch-brief.md` + captured screenshots. Also: Vercel deploy, methodology page, ~~sensitivity chart~~ (chart done 2026-07-18, `data/sensitivity_chart.png`), README | F5 + deck |
-| M6 | Thu Aug 6 | NDVI change (F6), demo-safe static mode + video backup; F8/F9 only if green | F6 (+F8/F9) |
+| M2 | Sun Aug 2 | ~~Full data pipeline → Supabase + GeoJSON snapshot~~ done 2026-07-18, Supabase migration applied and loaded same day | data |
+| M3 | Mon Aug 3 | ~~HVI computed (PCA weights) + Leaflet choropleth~~ done 2026-07-18. ~~Capture choropleth screenshot~~ done, in `docs/media/` | F1 |
+| M4 | Tue Aug 4 | ~~Factor breakdown, NBS engine + plantability filter, ward cards~~ done 2026-07-18 (`WardCards.tsx`, plantability map layer). ~~Capture ward-card + NBS screenshots~~ done | F2 F3 F4 F7 |
+| M5 | Wed Aug 5 | 🔴 **PITCH DECK DUE**: ~~assemble deck~~ done 2026-07-18 (`docs/UCIP-Pitch-Deck.pdf`, school-name field still flagged for Anay). Also: Vercel deploy (not done), ~~methodology page~~ done, ~~sensitivity chart~~ done, README | F5 + deck |
+| M6 | Thu Aug 6 | ~~NDVI change (F6)~~ done 2026-07-18 (`09_ndvi_change.py`, map layer); demo-safe static mode + video backup still needed; F8/F9 only if green | F6 (+F8/F9) |
 | M7 | Fri Aug 7 | 3-min narrative rehearsed, prototype hardening, deploy freeze | packaging |
 | M8 | Sat Aug 8 | 🔴 **PROTOTYPE SUBMISSION** (event day 1) | ship |
 
