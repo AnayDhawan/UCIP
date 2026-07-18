@@ -112,11 +112,87 @@ function onEachNdviChange(feature: Feature<Geometry, CellNdviProps>, layer: Laye
   );
 }
 
-const LAYER_META: Record<LayerId, { label: string; url: string }> = {
-  hvi: { label: "HVI", url: "/wards_hvi.geojson" },
-  plantability: { label: "Plantability", url: "/cells_nbs.geojson" },
-  ndvi_change: { label: "Green-cover change", url: "/cells_ndvi_change.geojson" },
+const LAYER_META: Record<LayerId, { label: string; url: string; caption: string }> = {
+  hvi: {
+    label: "Heat vulnerability",
+    url: "/wards_hvi.geojson",
+    caption: "How urgently each ward needs cooling, combining heat, people, and access to help.",
+  },
+  plantability: {
+    label: "Plantability",
+    url: "/cells_nbs.geojson",
+    caption: "Where planting trees makes ecological sense, and where cool roofs work better.",
+  },
+  ndvi_change: {
+    label: "Green-cover change",
+    url: "/cells_ndvi_change.geojson",
+    caption: "Where vegetation has grown or been lost since the 2016-17 dry season.",
+  },
 };
+
+const HVI_LEGEND_BINS = [
+  { color: "#ffffb2", label: "Under 20" },
+  { color: "#fed976", label: "20-35" },
+  { color: "#feb24c", label: "35-50" },
+  { color: "#fd8d3c", label: "50-65" },
+  { color: "#f03b20", label: "65-80" },
+  { color: "#bd0026", label: "80+" },
+];
+
+function Legend({ layer }: { layer: LayerId }) {
+  return (
+    <div className="absolute bottom-6 left-2 z-[1000] max-w-[240px] rounded bg-white/95 p-3 text-xs shadow dark:bg-zinc-900/95 dark:text-zinc-200">
+      {layer === "hvi" && (
+        <>
+          <p className="mb-1.5 font-semibold">Heat Vulnerability Index (0-100)</p>
+          <div className="flex overflow-hidden rounded-sm">
+            {HVI_LEGEND_BINS.map((b) => (
+              <div key={b.color} className="h-3 flex-1" style={{ background: b.color }} />
+            ))}
+          </div>
+          <div className="mt-1 flex justify-between text-[10px] text-zinc-500 dark:text-zinc-400">
+            <span>Less vulnerable</span>
+            <span>Most vulnerable</span>
+          </div>
+        </>
+      )}
+      {layer === "plantability" && (
+        <>
+          <p className="mb-1.5 font-semibold">Can trees go here?</p>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="h-3 w-3 rounded-sm" style={{ background: "#4ade80" }} />
+              <span>Yes, suitable for planting</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="h-3 w-3 rounded-sm" style={{ background: "#f87171" }} />
+              <span>No, cool roofs instead</span>
+            </div>
+          </div>
+        </>
+      )}
+      {layer === "ndvi_change" && (
+        <>
+          <p className="mb-1.5 font-semibold">Green cover since 2016-17</p>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="h-3 w-3 rounded-sm" style={{ background: "#4ade80" }} />
+              <span>Gained vegetation</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="h-3 w-3 rounded-sm border border-zinc-300 dark:border-zinc-600" style={{ background: "#d4d4d8" }} />
+              <span>Stable</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="h-3 w-3 rounded-sm" style={{ background: "#f87171" }} />
+              <span>Lost vegetation</span>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 export default function WardChoropleth() {
   const [activeLayer, setActiveLayer] = useState<LayerId>("hvi");
@@ -138,21 +214,30 @@ export default function WardChoropleth() {
 
   return (
     <div className="absolute inset-0">
-      <div className="absolute right-2 top-2 z-[1000] flex gap-1 rounded bg-white p-1 shadow dark:bg-zinc-900">
-        {(Object.keys(LAYER_META) as LayerId[]).map((id) => (
-          <button
-            key={id}
-            onClick={() => setActiveLayer(id)}
-            className={`rounded px-2 py-1 text-xs font-medium ${
-              activeLayer === id
-                ? "bg-zinc-800 text-white dark:bg-zinc-200 dark:text-black"
-                : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
-            }`}
-          >
-            {LAYER_META[id].label}
-          </button>
-        ))}
+      <div className="absolute right-2 top-2 z-[1000] max-w-[300px] rounded bg-white/95 p-1.5 shadow dark:bg-zinc-900/95">
+        <div className="flex gap-1" role="tablist" aria-label="Map layer">
+          {(Object.keys(LAYER_META) as LayerId[]).map((id) => (
+            <button
+              key={id}
+              role="tab"
+              aria-selected={activeLayer === id}
+              onClick={() => setActiveLayer(id)}
+              className={`rounded px-2 py-1 text-xs font-medium ${
+                activeLayer === id
+                  ? "bg-zinc-800 text-zinc-50 dark:bg-zinc-200 dark:text-zinc-900"
+                  : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              }`}
+            >
+              {LAYER_META[id].label}
+            </button>
+          ))}
+        </div>
+        <p className="px-1 pb-0.5 pt-1.5 text-[11px] leading-snug text-zinc-600 dark:text-zinc-400">
+          {LAYER_META[activeLayer].caption}
+        </p>
       </div>
+
+      <Legend layer={activeLayer} />
 
       {error && (
         <div className="absolute inset-x-0 top-12 z-[1000] mx-auto w-fit rounded bg-red-100 px-3 py-1 text-sm text-red-700">

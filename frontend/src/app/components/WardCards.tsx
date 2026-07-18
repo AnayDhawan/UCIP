@@ -84,7 +84,17 @@ export default function WardCards() {
   if (!wards || !recs) return <div className="p-4 text-sm text-zinc-500">Loading ward cards…</div>;
 
   return (
-    <div className="h-full overflow-y-auto divide-y divide-zinc-200 dark:divide-zinc-800">
+    <div className="flex h-full flex-col">
+      <div className="border-b border-zinc-900/10 px-4 py-3 dark:border-white/10">
+        <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+          24 wards, ranked by heat vulnerability
+        </h2>
+        <p className="mt-1 text-xs leading-snug text-zinc-600 dark:text-zinc-400">
+          Bars show what pushes a ward&apos;s score up (red) or down (green) compared to the city
+          average. Each card ends with the top recommended intervention. Scroll for all 24.
+        </p>
+      </div>
+      <div className="flex-1 overflow-y-auto divide-y divide-zinc-200 dark:divide-zinc-800">
       {wards.map((f) => {
         const p = f.properties;
         const wardRecs = recs
@@ -117,6 +127,7 @@ export default function WardCards() {
           </div>
         );
       })}
+      </div>
     </div>
   );
 }
