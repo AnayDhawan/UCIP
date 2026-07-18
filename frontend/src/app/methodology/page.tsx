@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import Link from "next/link";
 import Image from "next/image";
+import Logo from "../components/Logo";
 
 type PcaLog = {
   explained_variance_pc1: number;
@@ -48,10 +49,13 @@ export default function MethodologyPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-10 text-black dark:text-zinc-50">
-      <Link href="/" className="text-sm text-zinc-600 hover:underline dark:text-zinc-400">
-        ← Back to map
-      </Link>
-      <h1 className="mt-2 text-2xl font-semibold">Methodology</h1>
+      <div className="flex items-center justify-between">
+        <Logo />
+        <Link href="/" className="text-sm text-zinc-600 hover:underline dark:text-zinc-400">
+          ← Back to map
+        </Link>
+      </div>
+      <h1 className="mt-4 text-2xl font-semibold">Methodology</h1>
       <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
         UCIP is a decision-support tool, not another heat map: which Mumbai ward to cool first, why,
         what intervention, where the budget goes. Scoped to Mumbai's 24 BMC wards on a 1km grid;
