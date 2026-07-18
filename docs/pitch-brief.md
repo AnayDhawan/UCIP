@@ -1,4 +1,4 @@
-# UCIP — Pitch Deck Text Briefs
+# UCIP: Pitch Deck Text Briefs
 
 Deck due **Aug 5** (organizer requirement, confirmed 2026-07-16). Prototype submission **Aug 8**.
 One brief per required section (organizer's 6-block structure). Text is deck-ready: copy each
@@ -6,9 +6,9 @@ block into a slide, trim to taste. Section 05 screenshots get captured Aug 3-5 d
 
 ---
 
-## 01 — Project Overview & Participant Details
+## 01: Project Overview & Participant Details
 
-- **Project title:** UCIP — Urban Climate Intelligence Platform
+- **Project title:** UCIP: Urban Climate Intelligence Platform
 - **Student name:** Anay Dhawan
 - **School name:** [fill in]
 - **Grade:** 11 (IBDP Year 1)
@@ -21,7 +21,7 @@ One-liner (use as the slide subtitle):
 
 ---
 
-## 02 — Problem Understanding
+## 02: Problem Understanding
 
 **What problem are you solving?**
 Mumbai is heating unevenly. Heat pockets form over slums, barren land, and impervious concrete,
@@ -46,11 +46,11 @@ housing (Mehrotra, Bardhan & Ramamritham 2018).
 
 ---
 
-## 03 — Research & Insights
+## 03: Research & Insights
 
 **Data, facts, observations:**
 - Live satellite pipeline over Mumbai (Google Earth Engine): 12 Landsat 8/9 dry-season scenes,
-  mean land-surface temperature 33.6 °C, mean NDVI 0.305 — computed, not copied.
+  mean land-surface temperature 33.6 °C, mean NDVI 0.305, computed, not copied.
 - WorldPop age-sex rasters give elderly population per ward (e.g. ~235,000 men aged 60+ across
   the metro bbox); OSM gives hospital locations; GHS-SMOD/OSM proxy the slum index.
 - Tree canopy cooling is nonlinear: below ~40% canopy, daytime cooling is negligible; 40→80%
@@ -58,12 +58,12 @@ housing (Mehrotra, Bardhan & Ramamritham 2018).
   conservative end of the published range (Santamouris 2014).
 
 **Existing solutions explored (5 closest):**
-1. Mumbai Climate Action Plan 2022 — strategy document, no per-ward ranking method
-2. RAND / Azhar et al. 2017 India HVI — district-level (640 districts), too coarse for one city;
+1. Mumbai Climate Action Plan 2022: strategy document, no per-ward ranking method
+2. RAND / Azhar et al. 2017 India HVI: district-level (640 districts), too coarse for one city;
    maps vulnerability then stops
-3. IIT Bombay Mumbai UHI studies — rigorous heat maps, but diagnostic only
-4. C40 Urban Cooling Toolbox — real decision-support, but global/generic, no Mumbai data under it
-5. Ahmedabad Heat Action Plan — temporal early-warning (when heat strikes), not spatial
+3. IIT Bombay Mumbai UHI studies: rigorous heat maps, but diagnostic only
+4. C40 Urban Cooling Toolbox: real decision-support, but global/generic, no Mumbai data under it
+5. Ahmedabad Heat Action Plan: temporal early-warning (when heat strikes), not spatial
    investment targeting (where to build)
 
 **Gaps / limitations discovered:**
@@ -73,7 +73,7 @@ tools overstate certainty; none openly discloses proxy-data limitations.
 
 ---
 
-## 04 — Proposed Solution
+## 04: Proposed Solution
 
 **The idea:**
 UCIP computes a Heat Vulnerability Index (HVI) for each of Mumbai's 24 wards from satellite +
@@ -97,7 +97,7 @@ everywhere" map.
 
 ---
 
-## 05 — Prototype / Solution Design (evidence to capture Aug 3-5)
+## 05: Prototype / Solution Design (evidence to capture Aug 3-5)
 
 Screenshot checklist for this slide (capture during sprint, in this order):
 - [ ] Leaflet choropleth of the 24-ward HVI ranking (M3, Aug 3)
@@ -105,15 +105,15 @@ Screenshot checklist for this slide (capture during sprint, in this order):
 - [ ] NBS engine output with plantability filter visibly blocking a grassland cell (M4)
 - [ ] Sensitivity chart: ranking stability under ±20% weight perturbation (M5, Aug 5)
 - [ ] Methodology page: citations table + limitations section (M5)
-- [ ] Pipeline evidence: GEE spike thumbnails (spike_lst.png / spike_ndvi.png — already exist)
-- [ ] Architecture diagram: GEE → Python pipeline → Supabase/PostGIS → Next.js + Leaflet
+- [ ] Pipeline evidence: GEE spike thumbnails (spike_lst.png / spike_ndvi.png, already exist)
+- [ ] Architecture diagram: GEE -> Python pipeline -> Supabase/PostGIS -> Next.js + Leaflet
 
-Stack line for the slide: Google Earth Engine (Landsat 8/9, WorldPop, WorldCover) → Python
-(geopandas, scikit-learn PCA) → Supabase + PostGIS → Next.js + Leaflet, deployed on Vercel.
+Stack line for the slide: Google Earth Engine (Landsat 8/9, WorldPop, WorldCover) -> Python
+(geopandas, scikit-learn PCA) -> Supabase + PostGIS -> Next.js + Leaflet, deployed on Vercel.
 
 ---
 
-## 06 — Impact & Future Scope
+## 06: Impact & Future Scope
 
 **Expected impact:**
 Turns Mumbai's existing heat diagnosis into an operational bridge: which ward first, why, what

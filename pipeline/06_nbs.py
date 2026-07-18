@@ -95,7 +95,7 @@ def fire_rules(row, thresholds) -> list[dict]:
     elif hvi_high and canopy_low and not row.plantable:
         recs.append({
             "intervention": "Cool roofs + reflective pavements + cooling centres",
-            "rationale": "High vulnerability, low canopy, but native-grassland/built-up cell — "
+            "rationale": "High vulnerability, low canopy, but native-grassland/built-up cell: "
                          "afforestation would backfire ecologically",
             "citation": "Veldman et al. 2019, Science (response to Bastin 2019)",
             "priority": 1,
@@ -103,7 +103,7 @@ def fire_rules(row, thresholds) -> list[dict]:
     if impervious_high and flood_prone:
         recs.append({
             "intervention": "Rain gardens + water-sensitive urban design (WSUD)",
-            "rationale": "Highly impervious cell near mapped water/wetland — runoff + heat compound risk",
+            "rationale": "Highly impervious cell near mapped water/wetland: runoff and heat compound risk",
             "citation": "Methodology proxy: WorldCover water-distance < 500m (no dedicated hydrology layer in P0)",
             "priority": 2,
         })

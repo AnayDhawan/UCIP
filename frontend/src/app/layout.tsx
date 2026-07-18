@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "UCIP — Urban Climate Intelligence Platform",
+  title: "UCIP: Urban Climate Intelligence Platform",
   description: "Mumbai ward-level heat vulnerability decision-support prototype",
 };
 
