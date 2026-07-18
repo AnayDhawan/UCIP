@@ -22,6 +22,8 @@ arbitrary weights.
 > methodology page) are built and running end-to-end on real Mumbai data. See
 > [docs/UCIP-Pitch-Deck.pdf](docs/UCIP-Pitch-Deck.pdf) for the full write-up.
 
+![Demo](docs/media/demo.gif)
+
 ## What it does
 
 1. **Heat Vulnerability Index (HVI)** - grid-level (1 km) choropleth over Mumbai, rolled up to the
