@@ -22,10 +22,10 @@ or text colors; charcoal `#111827` and near-white tinted paper stand in.
 
 ## Typography
 
-- UI: Geist Sans (already wired via `next/font` in layout.tsx), Inter is the brand-sheet reference
-  face; Geist is the acceptable in-app equivalent, do not add a second body face.
-- Mono (Geist Mono) for computed figures where separation from prose helps (HVI scores, weights,
-  DOIs).
+- UI: Inter (wired via `next/font` in layout.tsx), the brand-sheet face (SemiBold for headings /
+  wordmark). Single body face, do not add a second.
+- Mono (JetBrains Mono) for computed figures where separation from prose helps (HVI scores,
+  weights, DOIs); matches the sibling studentsuite/portfolio ecosystem.
 - Hierarchy by size + weight, scale ratio at least 1.25 between steps.
 
 ## Theme

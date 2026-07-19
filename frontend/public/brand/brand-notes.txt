@@ -1,0 +1,62 @@
+UCIP BRAND ASSETS — README
+===========================
+Mark: a grid-built leaf (ovate silhouette, single vertical vein, short stem),
+symbolizing nature-based urban cooling/greening intelligence.
+
+Color reference
+  Teal      #0EA5B3
+  Emerald   #22C55E
+  Charcoal  #111827
+  Off-white #FAFAFA
+
+Note on typography: production files specify Inter (SemiBold for the
+wordmark/headings, Regular for body/tagline). SVG masters reference the
+Inter font family directly; the flat-raster files in /png (og-image.png,
+style-guide.png) were rendered in a sandboxed environment without network
+font loading, so they fall back to the system sans-serif. Swap in Inter
+when producing final production renders of those two files.
+
+SVG MASTERS  (/svg — transparent backgrounds)
+  logo.svg          Full-color mark. Teal→emerald 45° gradient (lower-left
+                     to upper-right), per-square flat-sampled.
+  logo-dark.svg      Same geometry, gradient brightened ~10% for dark surfaces.
+  logo-mono.svg       Single flat charcoal (#111827), one-color contexts.
+  logo-small.svg     Simplified coarser-grid master, vein removed, flat
+                     emerald. Source for all favicon/small-size exports.
+  wordmark.svg        Gradient mark + "UCIP" (Inter SemiBold, charcoal),
+                     mark left / wordmark right.
+  lockup.svg          Stacked: mark, "UCIP", tagline "Urban Climate
+                     Intelligence Platform" (40% gray).
+
+RASTER EXPORTS  (/png — transparent RGBA unless noted)
+  logo-64.png, logo-128.png, logo-256.png, logo-512.png
+                      From logo.svg — general-purpose full-color mark.
+  icon-192.png, icon-512.png
+                      From logo.svg — PWA / app-icon sizes.
+  logo-dark-128.png, logo-dark-512.png
+                      From logo-dark.svg — for dark UI surfaces.
+  favicon-16.png, favicon-32.png, logo-48.png
+                      From logo-small.svg — flat emerald, small sizes.
+  apple-touch-icon.png (180x180)
+                      Gradient mark on solid white rounded square
+                      (iOS does not allow transparency here).
+  og-image.png (1200x630)
+                      Left third: mark + wordmark + tagline. Right two-
+                      thirds: "Mumbai ward-level heat vulnerability
+                      decision-support platform." Off-white background,
+                      teal→emerald gradient bar along the bottom edge.
+
+FAVICON
+  favicon.ico          True multi-resolution icon containing 16, 32, and
+                     48 px frames (PNG-embedded ICO), built from logo-small.svg.
+
+STYLE GUIDE
+  style-guide.png      One page: all four mark variants, color swatches
+                     with hex values, "UCIP" type specimen, clear-space
+                     diagram (1 grid unit on all sides), minimum-size note
+                     (never below 48px — use logo-small.svg under that).
+
+USAGE RULES
+  - Never use the full gradient mark at 32px or below — use logo-small.svg.
+  - Keep clear space of at least one grid unit around the mark.
+  - Amber/other hues are not part of this system — teal/emerald/charcoal only.

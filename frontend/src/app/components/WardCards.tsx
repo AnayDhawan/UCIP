@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import type { Feature, FeatureCollection, Geometry } from "geojson";
+import CoefficientSparkline from "./CoefficientSparkline";
+import Citation from "./Citation";
+import { matchCitationFromText } from "@/lib/citations";
 
 type WardProps = {
   ward_id: string;
@@ -38,29 +41,7 @@ const FACTORS: { key: keyof WardProps; label: string }[] = [
   { key: "contrib_impervious_pct", label: "Impervious / built-up" },
 ];
 
-const BAR_SCALE = 0.3; // contribution values (weight x z-score) mostly fall in [-0.3, 0.3]
-
-function ContribBar({ label, value }: { label: string; value: number | null }) {
-  const v = value ?? 0;
-  const pct = Math.min(Math.abs(v) / BAR_SCALE, 1) * 50;
-  const positive = v >= 0;
-  return (
-    <div className="flex items-center gap-2 text-xs">
-      <span className="w-32 shrink-0 text-zinc-600 dark:text-zinc-400">{label}</span>
-      <div className="relative h-3 flex-1 bg-zinc-100 dark:bg-zinc-800">
-        <div className="absolute inset-y-0 left-1/2 w-px bg-zinc-400" />
-        <div
-          className={`absolute inset-y-0 ${positive ? "bg-red-400" : "bg-emerald-400"}`}
-          style={
-            positive
-              ? { left: "50%", width: `${pct}%` }
-              : { right: "50%", width: `${pct}%` }
-          }
-        />
-      </div>
-    </div>
-  );
-}
+const CONTRIB_BAR_MAX = 0.3; // contribution values (weight x z-score) mostly fall in [-0.3, 0.3]
 
 export default function WardCards() {
   const [wards, setWards] = useState<Feature<Geometry, WardProps>[] | null>(null);
@@ -80,53 +61,63 @@ export default function WardCards() {
       .catch((err) => setError(String(err)));
   }, []);
 
-  if (error) return <div className="p-4 text-sm text-red-600">Failed to load ward data: {error}</div>;
-  if (!wards || !recs) return <div className="p-4 text-sm text-zinc-500">Loading ward cards…</div>;
+  if (error) return <div className="p-4 text-sm text-red-500">Failed to load ward data: {error}</div>;
+  if (!wards || !recs) return <div className="p-4 text-sm text-muted-foreground">Loading ward cards…</div>;
 
   return (
     <div className="flex h-full flex-col">
-      <div className="border-b border-zinc-900/10 px-4 py-3 dark:border-white/10">
-        <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
-          24 wards, ranked by heat vulnerability
-        </h2>
-        <p className="mt-1 text-xs leading-snug text-zinc-600 dark:text-zinc-400">
+      <div className="border-b border-border px-4 py-3">
+        <h2 className="text-sm font-semibold text-foreground">24 wards, ranked by heat vulnerability</h2>
+        <p className="mt-1 text-xs leading-snug text-muted-foreground">
           Bars show what pushes a ward&apos;s score up (red) or down (green) compared to the city
           average. Each card ends with the top recommended intervention. Scroll for all 24.
         </p>
       </div>
-      <div className="flex-1 overflow-y-auto divide-y divide-zinc-200 dark:divide-zinc-800">
-      {wards.map((f) => {
-        const p = f.properties;
-        const wardRecs = recs
-          .filter((r) => r.ward_id === p.ward_id)
-          .sort((a, b) => a.priority - b.priority);
-        const topRec = wardRecs[0];
-        return (
-          <div key={p.ward_id} className="p-4">
-            <div className="flex items-baseline justify-between">
-              <div className="flex items-center gap-2">
-                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-zinc-800 text-xs font-medium text-white dark:bg-zinc-200 dark:text-black">
-                  {p.rank}
-                </span>
-                <span className="font-semibold text-black dark:text-zinc-50">Ward {p.ward_id}</span>
+      <div className="flex-1 overflow-y-auto divide-y divide-border">
+        {wards.map((f) => {
+          const p = f.properties;
+          const wardRecs = recs
+            .filter((r) => r.ward_id === p.ward_id)
+            .sort((a, b) => a.priority - b.priority);
+          const topRec = wardRecs[0];
+          const matchedCitation = topRec ? matchCitationFromText(topRec.citation) : undefined;
+          return (
+            <div key={p.ward_id} className="p-4">
+              <div className="flex items-baseline justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-brand-teal text-xs font-medium text-white">
+                    {p.rank}
+                  </span>
+                  <span className="font-semibold text-foreground">Ward {p.ward_id}</span>
+                </div>
+                <span className="text-sm text-muted-foreground">HVI {p.HVI?.toFixed(1)}</span>
               </div>
-              <span className="text-sm text-zinc-600 dark:text-zinc-400">HVI {p.HVI?.toFixed(1)}</span>
-            </div>
-            <div className="mt-2 space-y-1">
-              {FACTORS.map((f2) => (
-                <ContribBar key={String(f2.key)} label={f2.label} value={p[f2.key] as number | null} />
-              ))}
-            </div>
-            {topRec && (
-              <div className="mt-2 rounded bg-zinc-50 p-2 text-xs dark:bg-zinc-900">
-                <span className="font-medium text-black dark:text-zinc-50">{topRec.intervention}</span>
-                <p className="mt-0.5 text-zinc-600 dark:text-zinc-400">{topRec.rationale}</p>
-                <p className="mt-0.5 italic text-zinc-500">{topRec.citation}</p>
+              <div className="mt-2 space-y-1">
+                {FACTORS.map((f2) => (
+                  <CoefficientSparkline
+                    key={String(f2.key)}
+                    label={f2.label}
+                    value={(p[f2.key] as number | null) ?? 0}
+                    max={CONTRIB_BAR_MAX}
+                  />
+                ))}
               </div>
-            )}
-          </div>
-        );
-      })}
+              {topRec && (
+                <div className="mt-2 rounded bg-muted p-2 text-xs">
+                  <span className="font-medium text-foreground">{topRec.intervention}</span>
+                  <p className="mt-0.5 text-muted-foreground">{topRec.rationale}</p>
+                  {matchedCitation ? (
+                    <div className="mt-1.5">
+                      <Citation mode="chip" entry={matchedCitation} />
+                    </div>
+                  ) : (
+                    <p className="mt-0.5 italic text-muted-foreground">{topRec.citation}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

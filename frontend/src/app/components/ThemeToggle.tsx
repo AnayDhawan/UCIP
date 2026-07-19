@@ -1,44 +1,56 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
+import { Monitor, Moon, Sun } from "lucide-react";
 
 const MODES = [
-  { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" },
-  { value: "system", label: "Auto" },
+  { value: "light", label: "Light", Icon: Sun },
+  { value: "dark", label: "Dark", Icon: Moon },
+  { value: "system", label: "Auto", Icon: Monitor },
 ] as const;
+
+const noopSubscribe = () => () => {};
+
+/** True once hydrated on the client — avoids a light/dark mismatch flash. */
+function useMounted(): boolean {
+  return useSyncExternalStore(
+    noopSubscribe,
+    () => true,
+    () => false
+  );
+}
 
 export default function ThemeToggle() {
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
+  const mounted = useMounted();
 
   if (!mounted) {
     // Reserve space to avoid layout shift before hydration
-    return <div className="h-8 w-[132px]" aria-hidden />;
+    return <div className="h-8 w-[108px]" aria-hidden />;
   }
 
   return (
     <div
       role="radiogroup"
       aria-label="Color theme"
-      className="flex items-center rounded-full border border-zinc-900/10 p-0.5 dark:border-white/15"
+      className="flex items-center rounded-full border border-border p-0.5"
     >
-      {MODES.map((m) => (
+      {MODES.map(({ value, label, Icon }) => (
         <button
-          key={m.value}
+          key={value}
           role="radio"
-          aria-checked={theme === m.value}
-          onClick={() => setTheme(m.value)}
-          className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
-            theme === m.value
-              ? "bg-zinc-900 text-zinc-50 dark:bg-zinc-100 dark:text-zinc-900"
-              : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+          aria-checked={theme === value}
+          aria-label={label}
+          title={label}
+          onClick={() => setTheme(value)}
+          className={`rounded-full p-1.5 transition-colors ${
+            theme === value
+              ? "bg-brand-teal text-white"
+              : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          {m.label}
+          <Icon className="h-3.5 w-3.5" />
         </button>
       ))}
     </div>
