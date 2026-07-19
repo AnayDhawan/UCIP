@@ -130,7 +130,7 @@ export default function Home() {
               rasters, OpenStreetMap, and municipal ward boundaries. The method, its weights, and
               its limitations are documented on the{" "}
               <Link href="/methodology" className="text-brand-teal hover:underline">
-                how it works
+                methodology
               </Link>{" "}
               page, including the parts that are proxies or estimates. This is a research prototype,
               not an official BMC tool.

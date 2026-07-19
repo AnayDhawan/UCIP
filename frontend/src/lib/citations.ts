@@ -1,6 +1,6 @@
 /**
  * Single source of truth for UCIP's citations, transcribed from `docs/references.md`
- * (verified 2026-07-12). `Citation.tsx` and `WardCards.tsx` both read from this file
+ * (verified 2026-07-12). `Citation.tsx` and `WardPanel.tsx` both read from this file
  * so the methodology table, the landing page's citation wall, and inline ward-card
  * citations never drift out of sync again.
  */
@@ -142,7 +142,7 @@ export function doiUrl(doi: string): string {
 /**
  * `pipeline/06_nbs.py` emits free-text citation strings on each NBS recommendation
  * (e.g. "Veldman et al. 2019, Science (response to Bastin 2019)"), not a stable id.
- * This crosswalk lets WardCards render a proper Citation chip from that text without
+ * This crosswalk lets WardPanel render a proper Citation chip from that text without
  * changing the pipeline. It's intentionally a small, explicit map, not fuzzy matching —
  * a durable fix belongs in the pipeline (see plan's "what's left" notes), this is a
  * frontend-only bridge.

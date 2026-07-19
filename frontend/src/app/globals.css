@@ -109,6 +109,18 @@ html {
   background: color-mix(in oklab, var(--background) 38%, transparent);
 }
 
+/* Text sitting directly on the animated mesh needs a legibility floor only in
+   dark mode: the gradient's darker stops can dip close to the near-white
+   dark-theme foreground color. In light mode the dark-charcoal foreground
+   already reads clearly against this gradient on its own; adding any glow
+   there just blurs otherwise-crisp text, so light mode gets none. */
+.hero-text-shadow {
+  text-shadow: none;
+}
+.dark .hero-text-shadow {
+  text-shadow: 0 2px 18px rgb(0 0 0 / 45%), 0 1px 3px rgb(0 0 0 / 55%);
+}
+
 @keyframes fade-up {
   from {
     opacity: 0;

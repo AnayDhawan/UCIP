@@ -21,7 +21,7 @@ type CoefficientSparklineProps = BidirectionalProps | UnidirectionalProps;
  * Small inline data bar, generalized from the dashboard's original per-ward
  * `ContribBar`. Two modes:
  * - `bidirectional` (default): centered, positive/negative around zero — for
- *   factor contributions (WardCards) where sign carries meaning.
+ *   factor contributions (WardPanel) where sign carries meaning.
  * - `unidirectional`: left-to-right fill against `max` — for PCA weights and
  *   /simulate's coefficient results, where only magnitude matters.
  */

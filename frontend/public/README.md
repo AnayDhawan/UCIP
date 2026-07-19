@@ -12,7 +12,6 @@ Off-white `#FAFAFA`. Teal/emerald/charcoal only, no other hues. Full provenance 
 | `logo.svg` | Full-color gradient mark (light surfaces, 48px and up) |
 | `logo-dark.svg` | Same mark, brightened for dark surfaces |
 | `logo-mono.svg` | Flat charcoal, one-color contexts |
-| `logo-small.svg` | Simplified flat-emerald master, in-app header and any size under 48px |
 | `wordmark.svg` | Mark + "UCIP" horizontal lockup |
 | `lockup.svg` | Stacked mark + wordmark + tagline |
 | `og-image.png` | 1200x630 social card |
@@ -38,4 +37,6 @@ and `brand-notes.txt` (the source brand sheet). For docs and large-format use.
 `wards_hvi.geojson`, `cells_nbs.geojson`, `cells_ndvi_change.geojson`,
 `nbs_recommendations.json`, `hvi_pca_log.json`, `sensitivity.json`, `sensitivity_chart.png`.
 
-Full gradient mark is brand-restricted to 48px and up. Below that use `logo-small.svg`.
+Full gradient mark (`logo.svg`/`logo-dark.svg`) is brand-restricted to 48px and up and is not
+square (492x654). At nav/footer size, use `icon-192.png`/`icon-512.png` instead: a square,
+padded export of the same mark that doesn't distort when boxed to a small square.

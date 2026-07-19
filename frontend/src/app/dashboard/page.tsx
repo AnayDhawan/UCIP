@@ -1,9 +1,9 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import WardCards from "../components/WardCards";
+import WardPanel from "../components/WardPanel";
 import SiteHeader from "../components/SiteHeader";
 
 const WardChoropleth = dynamic(() => import("../components/WardChoropleth"), {
@@ -44,10 +44,10 @@ function FirstVisitHint() {
   return (
     <div className="flex items-center justify-between gap-4 border-b border-brand-teal/20 bg-brand-teal/10 px-6 py-2 text-sm text-foreground">
       <p>
-        Colors rank Mumbai&apos;s 24 wards by heat vulnerability. Click any ward for details, switch
-        layers top-right, or read{" "}
+        Colors rank Mumbai&apos;s 24 wards by heat vulnerability. Click any ward, on the map or in
+        the list, to see its breakdown and recommendation. Switch layers top-right, or read the{" "}
         <Link href="/methodology" className="font-medium underline">
-          how it works
+          methodology
         </Link>
         .
       </p>
@@ -63,16 +63,18 @@ function FirstVisitHint() {
 }
 
 export default function Dashboard() {
+  const [selectedWardId, setSelectedWardId] = useState<string | null>(null);
+
   return (
     <div className="flex h-screen flex-col bg-background">
       <SiteHeader compact />
       <FirstVisitHint />
       <main className="relative flex flex-1 overflow-hidden">
         <div className="relative flex-1">
-          <WardChoropleth />
+          <WardChoropleth selectedWardId={selectedWardId} onSelectWard={setSelectedWardId} />
         </div>
         <aside className="hidden w-96 shrink-0 border-l border-border bg-background md:block">
-          <WardCards />
+          <WardPanel selectedWardId={selectedWardId} onSelectWard={setSelectedWardId} />
         </aside>
       </main>
     </div>

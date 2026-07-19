@@ -9,7 +9,7 @@ import { CitationList } from "../components/Citation";
 import CoefficientSparkline from "../components/CoefficientSparkline";
 
 export const metadata: Metadata = {
-  title: "How it works | UCIP",
+  title: "Methodology | UCIP",
   description: "Methodology, citations, and stated limitations behind UCIP's heat vulnerability index",
 };
 
@@ -51,7 +51,7 @@ export default function MethodologyPage() {
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
       <div className="mx-auto w-full max-w-3xl flex-1 px-6 py-10">
-        <h1 className="text-2xl font-semibold text-foreground">How it works</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Methodology</h1>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           In plain terms: satellites measure how hot each square kilometre of Mumbai gets and how
           green it is. Public data adds how many people live there, how many are elderly, how much
@@ -61,9 +61,10 @@ export default function MethodologyPage() {
           its limitations.
         </p>
         <p className="mt-3 text-sm text-muted-foreground">
-          UCIP is a decision-support tool, not another heat map: which Mumbai ward to cool first, why,
-          what intervention, where the budget goes. Scoped to Mumbai&apos;s 24 BMC wards on a 1km
-          grid; architecture is city-agnostic (stated, not built).
+          UCIP is meant to be a decision-support tool, not just another heat map. It tells you which
+          Mumbai ward to cool first, why, and what to build there. Right now it&apos;s scoped to the
+          city&apos;s 24 BMC wards on a 1km grid, though the approach itself isn&apos;t tied to Mumbai
+          specifically, we just haven&apos;t built out other cities yet.
         </p>
 
         <div className="mt-8 space-y-6">

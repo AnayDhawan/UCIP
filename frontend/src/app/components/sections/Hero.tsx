@@ -2,41 +2,19 @@ import Link from "next/link";
 import HeroGradient from "../HeroGradient";
 import LiveTempStrip from "../LiveTempStrip";
 
-/** Flowing wavy-line motif echoing the brand OG card, kept faint over the mesh. */
-function WavyMotif() {
-  return (
-    <svg
-      aria-hidden
-      className="pointer-events-none absolute -right-10 -top-10 hidden h-72 w-[36rem] text-brand-teal/25 md:block"
-      viewBox="0 0 600 300"
-      fill="none"
-    >
-      {[0, 26, 52, 78, 104, 130].map((offset) => (
-        <path
-          key={offset}
-          d={`M0 ${60 + offset} C 150 ${10 + offset}, 300 ${110 + offset}, 600 ${30 + offset}`}
-          stroke="currentColor"
-          strokeWidth="1.5"
-        />
-      ))}
-    </svg>
-  );
-}
-
 export default function Hero() {
   return (
     <section className="relative overflow-hidden border-b border-border">
       <HeroGradient />
-      <WavyMotif />
       <div className="relative mx-auto max-w-5xl px-6 py-20 md:py-28">
         <div className="max-w-3xl animate-fade-up">
-          <p className="kicker">Urban Climate Intelligence Platform</p>
-          <h1 className="mt-4 text-4xl font-bold leading-[1.08] tracking-tight text-foreground sm:text-5xl md:text-6xl">
+          <p className="hero-text-shadow kicker text-foreground/80">Urban Climate Intelligence Platform</p>
+          <h1 className="hero-text-shadow mt-4 text-4xl font-bold leading-[1.08] tracking-tight text-foreground sm:text-5xl md:text-6xl">
             Mumbai ward-level heat vulnerability,{" "}
-            <span className="text-brand-teal">decision-support you can act on.</span>
+            <span className="font-black">decision-support you can act on.</span>
           </h1>
           <div className="mt-6 h-1.5 w-44 rounded-full bg-gradient-to-r from-brand-teal to-brand-emerald" />
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
+          <p className="hero-text-shadow mt-6 max-w-xl text-lg leading-relaxed text-foreground/75">
             UCIP scores heat vulnerability across all 24 city wards from satellite and population
             data, then recommends what to build where: trees, cool roofs, shaded cooling centres.
             Every number is computed, every claim cites its source.
@@ -52,7 +30,7 @@ export default function Hero() {
               href="/methodology"
               className="rounded-lg border border-border bg-surface/60 px-5 py-2.5 text-sm font-semibold text-foreground backdrop-blur-sm transition-colors hover:bg-surface-hover"
             >
-              How it works
+              Methodology
             </Link>
           </div>
           <div className="mt-6">
