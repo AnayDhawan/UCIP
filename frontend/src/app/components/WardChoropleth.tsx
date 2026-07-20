@@ -356,25 +356,25 @@ export default function WardChoropleth({
     const cited = rec ? matchCitationFromText(rec.citation) : undefined;
 
     const hviLine = p
-      ? `<div style="font-size:12px;color:#52525b;margin-top:2px;">HVI ${p.HVI !== null ? p.HVI.toFixed(1) : "n/a"} &middot; priority ${p.rank ?? "n/a"} of 24</div>`
+      ? `<div style="font-size:12px;color:var(--muted-foreground);margin-top:2px;">HVI ${p.HVI !== null ? p.HVI.toFixed(1) : "n/a"} &middot; priority ${p.rank ?? "n/a"} of 24</div>`
       : "";
     const areasLine = areas.length
-      ? `<div style="font-size:11px;color:#71717a;margin-top:4px;">${areas.join(", ")}</div>`
+      ? `<div style="font-size:11px;color:var(--muted-foreground);margin-top:4px;">${areas.join(", ")}</div>`
       : "";
     const sourceHtml = cited
-      ? `<a href="https://doi.org/${cited.doi}" target="_blank" rel="noopener noreferrer" style="color:#0EA5B3;">${cited.authors}</a> &middot; ${cited.year}`
+      ? `<a href="https://doi.org/${cited.doi}" target="_blank" rel="noopener noreferrer" style="color:var(--brand-teal);">${cited.authors}</a> &middot; ${cited.year}`
       : rec
         ? `<span style="font-style:italic;">${rec.citation}</span>`
         : "";
     const recBlock = rec
-      ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid #e4e4e7;">
-           <div style="font-size:12px;font-weight:600;color:#18181b;">${rec.intervention}</div>
-           <div style="font-size:11px;color:#52525b;margin-top:2px;">${rec.rationale}</div>
-           <div style="font-size:11px;color:#71717a;margin-top:4px;">${sourceHtml}</div>
+      ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">
+           <div style="font-size:12px;font-weight:600;color:var(--foreground);">${rec.intervention}</div>
+           <div style="font-size:11px;color:var(--muted-foreground);margin-top:2px;">${rec.rationale}</div>
+           <div style="font-size:11px;color:var(--muted-foreground);margin-top:4px;">${sourceHtml}</div>
          </div>`
       : "";
 
-    return `<div style="min-width:200px;"><div style="font-size:14px;font-weight:700;color:#18181b;">Ward ${wardId}</div>${hviLine}${areasLine}${recBlock}</div>`;
+    return `<div style="min-width:200px;"><div style="font-size:14px;font-weight:700;color:var(--foreground);">Ward ${wardId}</div>${hviLine}${areasLine}${recBlock}</div>`;
   }
 
   function selectFrom<P extends { ward_id: string }>(feature: Feature<Geometry, P>, layer: Layer) {

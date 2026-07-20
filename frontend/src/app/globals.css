@@ -191,27 +191,50 @@ html {
 }
 
 /* Legibility scrim over HeroGradient's animated backdrop, opacity-only (no blur).
-   Kept light so the gradient reads as a real, visible presence, not a tint. */
+   Kept light so the gradient reads as a real, visible presence, not a tint.
+   Light mode gets a bit more than dark mode: since light-mode text is solid
+   ink-black with no shadow/outline crutch, it needs a calmer backdrop to
+   stay clearly distinct; dark mode's near-white text already has its own
+   shadow doing that work, so it can keep a livelier, thinner scrim. */
 .mesh-hero-scrim {
+  background: color-mix(in oklab, var(--background) 50%, transparent);
+}
+.dark .mesh-hero-scrim {
   background: color-mix(in oklab, var(--background) 38%, transparent);
 }
 
-/* Text sitting directly on the animated mesh needs a legibility floor that
-   doesn't read as a blurred halo. Light mode's dark-charcoal text already has
-   fine base contrast against the gradient, so it gets a tight, zero-blur
-   4-direction outline (a hairline lift, not a glow) rather than a soft
-   drop-shadow, which just muddies already-crisp text. Dark mode's near-white
-   text genuinely needs a real shadow, since the gradient's darker stops can
-   get close to that foreground color. */
+/* Light mode: no shadow/outline trick at all. Text stays solid ink-black,
+   distinctiveness comes from the scrim underneath it plus a slightly
+   stronger local scrim (see .mesh-hero-scrim), not from decorating the
+   text itself. Dark mode's near-white text still needs a real shadow,
+   since the gradient's darker stops can get close to that foreground
+   color. */
 .hero-text-shadow {
-  text-shadow:
-    1px 1px 0 rgb(255 255 255 / 65%),
-    -1px -1px 0 rgb(255 255 255 / 65%),
-    1px -1px 0 rgb(255 255 255 / 65%),
-    -1px 1px 0 rgb(255 255 255 / 65%);
+  text-shadow: none;
 }
 .dark .hero-text-shadow {
   text-shadow: 0 2px 18px rgb(0 0 0 / 45%), 0 1px 3px rgb(0 0 0 / 55%);
+}
+
+/* Leaflet's own stylesheet (imported inside WardChoropleth.tsx, so it lands
+   after this file in the bundle) hardcodes white/black popup chrome at equal
+   selector specificity — !important is the only way to win that source-order
+   tie and theme the fullscreen ward popup to dark mode. Content itself uses
+   var(--foreground)/var(--muted-foreground) inline. */
+.leaflet-popup-content-wrapper {
+  background: var(--surface) !important;
+  color: var(--foreground) !important;
+  border: 1px solid var(--border) !important;
+}
+.leaflet-popup-tip {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+}
+.leaflet-popup-close-button {
+  color: var(--muted-foreground) !important;
+}
+.leaflet-popup-close-button:hover {
+  color: var(--foreground) !important;
 }
 
 @keyframes fade-up {

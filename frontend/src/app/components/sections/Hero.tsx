@@ -8,16 +8,16 @@ export default function Hero() {
       <HeroGradient />
       <div className="relative mx-auto max-w-5xl px-6 py-20 md:py-28">
         <div className="max-w-3xl animate-fade-up">
-          <p className="hero-text-shadow kicker text-foreground/80">Urban Climate Intelligence Platform</p>
+          <p className="hero-text-shadow kicker !text-foreground">Urban Climate Intelligence Platform</p>
           <h1 className="hero-text-shadow mt-4 text-4xl font-bold leading-[1.08] tracking-tight text-foreground sm:text-5xl md:text-6xl">
-            Mumbai ward-level heat vulnerability,{" "}
-            <span className="font-black">decision-support you can act on.</span>
+            Mumbai&apos;s ward-level heat vulnerability,{" "}
+            <span className="font-black">turned into decisions you can act on.</span>
           </h1>
           <div className="mt-6 h-1.5 w-44 rounded-full bg-gradient-to-r from-brand-teal to-brand-emerald" />
-          <p className="hero-text-shadow mt-6 max-w-xl text-lg leading-relaxed text-foreground/75">
-            UCIP scores heat vulnerability across all 24 city wards from satellite and population
-            data, then recommends what to build where: trees, cool roofs, shaded cooling centres.
-            Every number is computed, every claim cites its source.
+          <p className="hero-text-shadow mt-6 max-w-xl text-lg leading-relaxed text-foreground">
+            UCIP scores heat vulnerability across all 24 city wards using satellite and population
+            data, then recommends what to build where: trees, cool roofs, or shaded cooling centres.
+            Every number is computed. Every claim cites its source.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Link
