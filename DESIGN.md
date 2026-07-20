@@ -31,25 +31,60 @@ or text colors; charcoal `#111827` and near-white tinted paper stand in.
 ## Theme
 
 Class-based dark mode (`.dark` on `<html>` via next-themes), three states: light, dark, system.
-Physical scene: residents check this on phones outdoors in daylight (light default matters);
-planners and judges on desktops, either mode. System default respects both.
+Physical scene: desktop use, either theme, in whatever ambient light the user's own room has;
+this is not a mobile product (see PRODUCT.md), so "checked on a phone outdoors" is not the
+governing scenario. Light stays the default because it reads as the more neutral/credible choice
+for a civic tool, not because of a specific outdoor-glare use case.
 
 ## Brand assets
 
-- `frontend/public/logo-icon.png`: transparent grid-leaf icon (in-app header use)
-- `docs/brand/wordmark-horizontal.png`: icon + UCIP wordmark (README, large lockups)
-- `docs/brand/lockup-vertical-tagline.png`: stacked lockup with tagline
-- `frontend/public/og-image.png`: 1200x630 social card
-- favicon/icon/apple-icon: served from `frontend/src/app/`
+Full inventory and usage rules live in `frontend/public/README.md` (the authoritative source,
+generated from the current vector brand kit). Summary:
+
+- `frontend/public/logo.svg` / `logo-dark.svg`: full gradient mark, 492x654 (not square), 48px+
+  only.
+- `frontend/public/icon-192.png` / `icon-512.png`: square, safely-padded exports of the same mark.
+  Use these (not `logo.svg`) anywhere the mark needs to sit in a small square box (nav, footer) —
+  the raw mark's aspect ratio distorts if forced square below 48px.
+- `frontend/src/app/{favicon.ico,icon.png,apple-icon.png}`: regenerated from `icon-512.png` (not
+  from a "logo-small" variant; that asset was retired).
+- `frontend/public/og-image.png`, `site.webmanifest`.
+- `docs/brand/`: an earlier raster-only brand pass (wordmark-horizontal.png,
+  lockup-vertical-tagline.png, style-guide.png). Superseded by the vector kit above for in-app use;
+  kept for historical/large-format reference only.
 
 ## Components inventory
 
-- `Logo.tsx`: icon + "UCIP" text lockup, used in every header
-- `WardChoropleth.tsx`: Leaflet map, 3-layer switcher, CartoDB Positron tiles
-- `WardCards.tsx`: ranked 24-ward sidebar with contribution bars
+- `Logo.tsx`: icon (`icon-192.png`) + "UCIP" text lockup, used in every header/footer.
+- `HeroGradient.tsx`: animated teal/emerald mesh gradient (@paper-design/shaders-react) for the
+  landing hero only. Respects `prefers-reduced-motion` and no-WebGL by falling back to a static CSS
+  gradient; SSR-safe via `useSyncExternalStore`, no dynamic-import wrapper needed.
+- `WardChoropleth.tsx`: Leaflet map, 3-layer switcher (shadcn Tabs), CartoDB Positron tiles,
+  click-to-select with a teal selection outline, `fitBounds()` to the ward extent on first load,
+  fullscreen mode (hides site chrome, keeps the layer box + legend + exit button, Escape to close),
+  and a Leaflet popup shown only in fullscreen (ward summary + top cited intervention + year) since
+  fullscreen hides the sidebar detail panel that would otherwise show it.
+- `WardPanel.tsx` (replaces the old `WardCards.tsx`): master-detail sidebar, not 24 stacked cards.
+  Default view is a compact searchable ranked list (search matches ward code or locality name, via
+  `lib/wardAreas.ts`); selecting a ward (list or map) shows a single rich detail panel. Selection is
+  synced through the URL (`?ward=`) via `dashboard/page.tsx`'s `useSearchParams`, not local state
+  alone, so browser Back steps back through selections instead of leaving the dashboard.
+- `Citation.tsx`, `lib/citations.ts`: single source of truth for all citations (from
+  `docs/references.md`), three render modes (chip/full/marker) reused across methodology, the
+  landing citation wall, and ward-card recommendations.
+- `src/components/ui/*`: shadcn/ui primitives (Tabs, Card, Badge, Input, Button, ScrollArea),
+  scoped to the dashboard's chrome. **Gotcha:** re-running `npx shadcn add` regenerates
+  `globals.css` with shadcn's own generic gray token scheme, overwriting the brand OKLCH tokens
+  above (including `--background` going pure white, breaking the never-pure-white rule) and can
+  reintroduce Geist as a font import. Always diff and reconcile `globals.css`/`layout.tsx` after.
 - Layout gotchas (documented, do not regress): map wrapper needs `absolute inset-0` inside
   `position:relative` parent; page root needs a hard `h-screen` anchor; raw OSM tile server is
-  blocked, use CartoDB.
+  blocked, use CartoDB; Leaflet doesn't notice layout-driven container resizes (e.g. fullscreen
+  toggle) without an explicit `map.invalidateSize()` call; don't put `selectedWardId` in a
+  `<GeoJSON key={...}>` — remounting the layer on every ward click destroys any popup Leaflet was
+  mid-way through opening on that same click, use a `ref` + `.setStyle()` for selection restyling
+  instead and reserve `key` for changes that genuinely need `onEachFeature` to rebind (like
+  fullscreen toggling, which needs popups bound only in fullscreen).
 
 ## Banned (per impeccable + this repo)
 

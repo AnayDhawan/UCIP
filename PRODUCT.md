@@ -6,7 +6,7 @@ UCIP (Urban Climate Intelligence Platform) is a decision-support tool for Mumbai
 problem. It computes a Heat Vulnerability Index (HVI) for each of the 24 BMC wards from satellite
 and demographic data, explains every score with a transparent per-factor breakdown, and recommends
 cited nature-based cooling interventions gated by an ecological plantability filter. Built solo as
-an independent research prototype.
+an independent research prototype. Code is Apache License 2.0.
 
 ## Users, in priority order
 
@@ -20,9 +20,18 @@ an independent research prototype.
 
 ## Register
 
-- **Brand register:** landing page `/`, `/support`, `/contact`, `/legal`. Design carries identity.
-- **Product register:** `/dashboard` and `/methodology`. Design serves the data; clarity beats
-  flair. The map's data colors (HVI ramp, plantability, NDVI change) are semantic and untouchable.
+- **Brand register:** `/`, `/mission`, `/contribute`, `/contact`, `/legal`. Design carries identity;
+  the landing hero runs an animated teal/emerald mesh gradient (@paper-design/shaders-react) with
+  real motion, a deliberate exception to the generic-SaaS anti-reference below on the visual-polish
+  axis specifically (not the banned patterns, those still hold everywhere).
+- **Product register:** `/dashboard`, `/methodology`, `/simulate`. Design serves the data; clarity
+  beats flair. The map's data colors (HVI ramp, plantability, NDVI change) are semantic and
+  untouchable. The dashboard is master-detail: a compact searchable 24-ward list drives a single
+  rich detail panel, synced with map click-to-select and the URL (`?ward=`), not 24 stacked cards.
+- **Desktop-only.** No responsive/mobile breakpoint work; the product is not meant to be used on a
+  phone.
+
+There is no `/support` page; it was a near-duplicate of `/contribute` and was removed.
 
 ## Tone
 
