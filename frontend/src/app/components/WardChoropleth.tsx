@@ -238,10 +238,28 @@ function FlyToSelection({
  */
 function InvalidateSizeOnChange({ dep }: { dep: unknown }) {
   const map = useMap();
+
+  // Primary mechanism: react to the container's actual pixel size changing,
+  // whatever the cause (fullscreen toggle, sidebar mount/unmount, a CSS
+  // transition settling, OS/browser chrome changing). This is more reliable
+  // than guessing a fixed delay, since it fires exactly when the size is
+  // actually different rather than assuming a transition duration.
   useEffect(() => {
-    const id = window.setTimeout(() => map.invalidateSize(), 260);
-    return () => window.clearTimeout(id);
+    const el = map.getContainer();
+    const observer = new ResizeObserver(() => map.invalidateSize());
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [map]);
+
+  // Redundant safety net tied to the fullscreen toggle itself, in case a
+  // resize happens to report the same size mid-transition before settling
+  // (e.g. a layout that overshoots then corrects).
+  useEffect(() => {
+    map.invalidateSize();
+    const ids = [60, 260].map((ms) => window.setTimeout(() => map.invalidateSize(), ms));
+    return () => ids.forEach(window.clearTimeout);
   }, [dep, map]);
+
   return null;
 }
 
