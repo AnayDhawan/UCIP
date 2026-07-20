@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { Suspense, useEffect, useState, useSyncExternalStore } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import WardPanel from "../components/WardPanel";
 import SiteHeader from "../components/SiteHeader";
 
@@ -62,9 +63,30 @@ function FirstVisitHint() {
   );
 }
 
-export default function Dashboard() {
-  const [selectedWardId, setSelectedWardId] = useState<string | null>(null);
+function DashboardContent() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const selectedWardId = searchParams.get("ward");
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  /**
+   * The URL is the source of truth for ward selection, not local state.
+   * Selecting a ward pushes a new history entry (so browser Back steps back
+   * to the list instead of leaving the dashboard entirely); clearing the
+   * selection replaces the current entry instead of adding another one.
+   */
+  function selectWard(wardId: string | null) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (wardId) {
+      params.set("ward", wardId);
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    } else {
+      params.delete("ward");
+      const qs = params.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    }
+  }
 
   useEffect(() => {
     if (!isFullscreen) return;
@@ -83,17 +105,25 @@ export default function Dashboard() {
         <div className="relative flex-1">
           <WardChoropleth
             selectedWardId={selectedWardId}
-            onSelectWard={setSelectedWardId}
+            onSelectWard={selectWard}
             isFullscreen={isFullscreen}
             onToggleFullscreen={() => setIsFullscreen((v) => !v)}
           />
         </div>
         {!isFullscreen && (
           <aside className="hidden w-96 shrink-0 border-l border-border bg-background md:block">
-            <WardPanel selectedWardId={selectedWardId} onSelectWard={setSelectedWardId} />
+            <WardPanel selectedWardId={selectedWardId} onSelectWard={selectWard} />
           </aside>
         )}
       </main>
     </div>
+  );
+}
+
+export default function Dashboard() {
+  return (
+    <Suspense fallback={<div className="flex h-screen items-center justify-center text-muted-foreground">Loading…</div>}>
+      <DashboardContent />
+    </Suspense>
   );
 }

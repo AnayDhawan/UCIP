@@ -1,14 +1,25 @@
 "use client";
 
 import "leaflet/dist/leaflet.css";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { GeoJSON, MapContainer, TileLayer, useMap } from "react-leaflet";
+import { geoJSON as leafletGeoJSON } from "leaflet";
 import type { Feature, FeatureCollection, Geometry, Position } from "geojson";
-import type { LatLngBoundsExpression, Layer, PathOptions } from "leaflet";
+import type { GeoJSON as LeafletGeoJSONLayer, LatLngBoundsExpression, Layer, PathOptions } from "leaflet";
 import { Maximize2, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { matchCitationFromText } from "@/lib/citations";
+import { areasForWard } from "@/lib/wardAreas";
+
+type NbsRec = {
+  ward_id: string;
+  intervention: string;
+  rationale: string;
+  citation: string;
+  priority: number;
+};
 
 type WardProps = {
   ward_id: string;
@@ -234,6 +245,38 @@ function InvalidateSizeOnChange({ dep }: { dep: unknown }) {
   return null;
 }
 
+/**
+ * Frames the map to the 24 wards' actual extent once their geometry loads,
+ * instead of a fixed center/zoom that leaves most of the view as surrounding
+ * Thane/Panvel/ocean. Runs once (a ref guard, not state) so it never fights
+ * a user's own pan/zoom or the ward-selection FlyToSelection above.
+ */
+function FitToWardExtent({ wardsGeo }: { wardsGeo: FeatureCollection<Geometry, WardProps> | null }) {
+  const map = useMap();
+  const fitted = useRef(false);
+  useEffect(() => {
+    if (fitted.current || !wardsGeo) return;
+    const bounds = leafletGeoJSON(wardsGeo as GeoJSON.GeoJsonObject).getBounds();
+    if (bounds.isValid()) {
+      map.fitBounds(bounds, { padding: [24, 24] });
+      fitted.current = true;
+    }
+  }, [wardsGeo, map]);
+  return null;
+}
+
+/** react-leaflet's MapContainer doesn't forward aria-label to the underlying
+ *  container div, so screen readers otherwise announce only the zoom
+ *  buttons/attribution text with no indication this is a heat-vulnerability
+ *  map. Set it imperatively on the real DOM node instead. */
+function MapAccessibleName() {
+  const map = useMap();
+  useEffect(() => {
+    map.getContainer().setAttribute("aria-label", "Mumbai ward heat vulnerability map");
+  }, [map]);
+  return null;
+}
+
 export default function WardChoropleth({
   selectedWardId = null,
   onSelectWard,
@@ -248,6 +291,7 @@ export default function WardChoropleth({
   const [activeLayer, setActiveLayer] = useState<LayerId>("hvi");
   const [cache, setCache] = useState<Partial<Record<LayerId, FeatureCollection>>>({});
   const [error, setError] = useState<string | null>(null);
+  const [nbsRecs, setNbsRecs] = useState<NbsRec[]>([]);
 
   useEffect(() => {
     if (cache[activeLayer]) return;
@@ -260,11 +304,67 @@ export default function WardChoropleth({
       .catch((err) => setError(String(err)));
   }, [activeLayer, cache]);
 
+  useEffect(() => {
+    fetch("/nbs_recommendations.json")
+      .then((res) => res.json())
+      .then(setNbsRecs)
+      .catch(() => setNbsRecs([]));
+  }, []);
+
   const data = cache[activeLayer];
   const wardsGeo = (cache.hvi as FeatureCollection<Geometry, WardProps> | undefined) ?? null;
 
+  // Only isFullscreen forces a remount (it needs onEachFeature to rebind
+  // popups). Selection changes restyle the already-mounted layer in place via
+  // the ref below — remounting on every ward click would tear down and
+  // recreate the layer mid-click, which silently kills any popup Leaflet was
+  // about to open on that same click.
+  const layerRef = useRef<LeafletGeoJSONLayer | null>(null);
+  useEffect(() => {
+    if (!layerRef.current) return;
+    if (activeLayer === "hvi") layerRef.current.setStyle(styleHvi(selectedWardId) as (f?: Feature<Geometry>) => PathOptions);
+    else if (activeLayer === "plantability")
+      layerRef.current.setStyle(stylePlantability(selectedWardId) as (f?: Feature<Geometry>) => PathOptions);
+    else layerRef.current.setStyle(styleNdviChange(selectedWardId) as (f?: Feature<Geometry>) => PathOptions);
+  }, [selectedWardId, activeLayer]);
+
+  /** Ward summary + top cited intervention (with source and year), for the
+   *  fullscreen popup — fullscreen hides the sidebar detail panel, so this is
+   *  the only place that information is otherwise reachable from there. */
+  function popupHtml(wardId: string): string {
+    const p = wardsGeo?.features.find((f) => f.properties.ward_id === wardId)?.properties;
+    const areas = areasForWard(wardId);
+    const rec = nbsRecs.filter((r) => r.ward_id === wardId).sort((a, b) => a.priority - b.priority)[0];
+    const cited = rec ? matchCitationFromText(rec.citation) : undefined;
+
+    const hviLine = p
+      ? `<div style="font-size:12px;color:#52525b;margin-top:2px;">HVI ${p.HVI !== null ? p.HVI.toFixed(1) : "n/a"} &middot; priority ${p.rank ?? "n/a"} of 24</div>`
+      : "";
+    const areasLine = areas.length
+      ? `<div style="font-size:11px;color:#71717a;margin-top:4px;">${areas.join(", ")}</div>`
+      : "";
+    const sourceHtml = cited
+      ? `<a href="https://doi.org/${cited.doi}" target="_blank" rel="noopener noreferrer" style="color:#0EA5B3;">${cited.authors}</a> &middot; ${cited.year}`
+      : rec
+        ? `<span style="font-style:italic;">${rec.citation}</span>`
+        : "";
+    const recBlock = rec
+      ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid #e4e4e7;">
+           <div style="font-size:12px;font-weight:600;color:#18181b;">${rec.intervention}</div>
+           <div style="font-size:11px;color:#52525b;margin-top:2px;">${rec.rationale}</div>
+           <div style="font-size:11px;color:#71717a;margin-top:4px;">${sourceHtml}</div>
+         </div>`
+      : "";
+
+    return `<div style="min-width:200px;"><div style="font-size:14px;font-weight:700;color:#18181b;">Ward ${wardId}</div>${hviLine}${areasLine}${recBlock}</div>`;
+  }
+
   function selectFrom<P extends { ward_id: string }>(feature: Feature<Geometry, P>, layer: Layer) {
-    layer.on("click", () => onSelectWard?.(feature.properties.ward_id));
+    const wardId = feature.properties.ward_id;
+    layer.on("click", () => onSelectWard?.(wardId));
+    if (isFullscreen) {
+      layer.bindPopup(popupHtml(wardId));
+    }
   }
 
   return (
@@ -318,7 +418,8 @@ export default function WardChoropleth({
         />
         {data && activeLayer === "hvi" && (
           <GeoJSON
-            key={`hvi-${selectedWardId ?? "none"}`}
+            key={`hvi-${isFullscreen}`}
+            ref={layerRef}
             data={data as FeatureCollection<Geometry, WardProps>}
             style={styleHvi(selectedWardId) as (f?: Feature<Geometry>) => PathOptions}
             onEachFeature={selectFrom as (f: Feature<Geometry>, l: Layer) => void}
@@ -326,7 +427,8 @@ export default function WardChoropleth({
         )}
         {data && activeLayer === "plantability" && (
           <GeoJSON
-            key={`plantability-${selectedWardId ?? "none"}`}
+            key={`plantability-${isFullscreen}`}
+            ref={layerRef}
             data={data as FeatureCollection<Geometry, CellNbsProps>}
             style={stylePlantability(selectedWardId) as (f?: Feature<Geometry>) => PathOptions}
             onEachFeature={selectFrom as (f: Feature<Geometry>, l: Layer) => void}
@@ -334,7 +436,8 @@ export default function WardChoropleth({
         )}
         {data && activeLayer === "ndvi_change" && (
           <GeoJSON
-            key={`ndvi_change-${selectedWardId ?? "none"}`}
+            key={`ndvi_change-${isFullscreen}`}
+            ref={layerRef}
             data={data as FeatureCollection<Geometry, CellNdviProps>}
             style={styleNdviChange(selectedWardId) as (f?: Feature<Geometry>) => PathOptions}
             onEachFeature={selectFrom as (f: Feature<Geometry>, l: Layer) => void}
@@ -342,6 +445,8 @@ export default function WardChoropleth({
         )}
         <FlyToSelection selectedWardId={selectedWardId} wardsGeo={wardsGeo} />
         <InvalidateSizeOnChange dep={isFullscreen} />
+        <FitToWardExtent wardsGeo={wardsGeo} />
+        <MapAccessibleName />
       </MapContainer>
     </div>
   );

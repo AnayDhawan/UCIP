@@ -89,7 +89,11 @@ export default function WardPanel({
     if (!wards) return [];
     const q = search.trim().toLowerCase();
     if (!q) return wards;
-    return wards.filter((f) => f.properties.ward_id.toLowerCase().includes(q));
+    return wards.filter((f) => {
+      const wardId = f.properties.ward_id.toLowerCase();
+      const areas = areasForWard(f.properties.ward_id).join(" ").toLowerCase();
+      return wardId.includes(q) || areas.includes(q);
+    });
   }, [wards, search]);
 
   const selected = wards?.find((f) => f.properties.ward_id === selectedWardId) ?? null;
@@ -195,7 +199,7 @@ export default function WardPanel({
             name="ward-search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Find a ward…"
+            placeholder="Find a ward or area…"
             className="pl-8"
           />
         </div>
