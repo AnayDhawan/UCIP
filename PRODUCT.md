@@ -5,8 +5,8 @@
 UCIP (Urban Climate Intelligence Platform) is a decision-support tool for Mumbai's urban heat
 problem. It computes a Heat Vulnerability Index (HVI) for each of the 24 BMC wards from satellite
 and demographic data, explains every score with a transparent per-factor breakdown, and recommends
-cited nature-based cooling interventions gated by an ecological plantability filter. Built solo for
-the TIS x IHFC "Now or Never Hack 2026" (Domain: PLANET); prototype submission Aug 8, 2026.
+cited nature-based cooling interventions gated by an ecological plantability filter. Built solo as
+an independent research prototype.
 
 ## Users, in priority order
 
@@ -15,7 +15,7 @@ the TIS x IHFC "Now or Never Hack 2026" (Domain: PLANET); prototype submission A
    arrive at the landing page, not the dashboard.
 2. **City planners / BMC-adjacent professionals.** Comfortable with dashboards. Want the ranked
    ward list, the intervention recommendations, and the reasoning behind them.
-3. **Researcher judges (hackathon).** Evaluate methodology rigor: PCA weights, sensitivity check,
+3. **Researchers and domain reviewers.** Evaluate methodology rigor: PCA weights, sensitivity check,
    citations, stated limitations. They read /methodology closely.
 
 ## Register
@@ -28,7 +28,7 @@ the TIS x IHFC "Now or Never Hack 2026" (Domain: PLANET); prototype submission A
 
 Credible, plain-language, direct. A trustworthy civic tool, not a consumer eco-app. Numbers are
 real (computed by the pipeline, never invented); when something is a proxy or a limitation, it is
-said openly. That honesty is a product feature, judges and residents both get the same candor.
+said openly. That honesty is a product feature, reviewers and residents both get the same candor.
 
 ## Anti-references
 

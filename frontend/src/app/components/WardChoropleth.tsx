@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { GeoJSON, MapContainer, TileLayer, useMap } from "react-leaflet";
 import type { Feature, FeatureCollection, Geometry, Position } from "geojson";
 import type { LatLngBoundsExpression, Layer, PathOptions } from "leaflet";
+import { Maximize2, Minimize2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -217,12 +219,31 @@ function FlyToSelection({
   return null;
 }
 
+/**
+ * Leaflet caches its container's pixel size at creation time and doesn't notice
+ * layout-driven resizes (e.g. toggling fullscreen, which changes the container's
+ * width instantly via React state, not a window resize event). Without this the
+ * map keeps its old framing and leaves the newly-available space blank.
+ */
+function InvalidateSizeOnChange({ dep }: { dep: unknown }) {
+  const map = useMap();
+  useEffect(() => {
+    const id = window.setTimeout(() => map.invalidateSize(), 260);
+    return () => window.clearTimeout(id);
+  }, [dep, map]);
+  return null;
+}
+
 export default function WardChoropleth({
   selectedWardId = null,
   onSelectWard,
+  isFullscreen = false,
+  onToggleFullscreen,
 }: {
   selectedWardId?: string | null;
   onSelectWard?: (wardId: string) => void;
+  isFullscreen?: boolean;
+  onToggleFullscreen?: () => void;
 }) {
   const [activeLayer, setActiveLayer] = useState<LayerId>("hvi");
   const [cache, setCache] = useState<Partial<Record<LayerId, FeatureCollection>>>({});
@@ -248,19 +269,38 @@ export default function WardChoropleth({
 
   return (
     <div className="absolute inset-0">
-      <Card className="absolute right-2 top-2 z-[1000] w-fit max-w-[360px] gap-0 bg-background/95 p-1.5 backdrop-blur-sm">
-        <Tabs value={activeLayer} onValueChange={(v: string) => setActiveLayer(v as LayerId)}>
-          <TabsList aria-label="Map layer" className="w-full">
-            {(Object.keys(LAYER_META) as LayerId[]).map((id) => (
-              <TabsTrigger key={id} value={id} className="whitespace-nowrap px-2">
-                {LAYER_META[id].label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-        <p className="px-1 pb-0.5 pt-1.5 text-[11px] leading-snug text-muted-foreground">
-          {LAYER_META[activeLayer].caption}
-        </p>
+      <Card className="absolute right-2 top-2 z-[1000] w-fit gap-0 bg-background/95 p-1.5 backdrop-blur-sm">
+        <div className="flex items-center gap-1">
+          <Tabs value={activeLayer} onValueChange={(v: string) => setActiveLayer(v as LayerId)}>
+            <TabsList aria-label="Map layer">
+              {(Object.keys(LAYER_META) as LayerId[]).map((id) => (
+                <TabsTrigger
+                  key={id}
+                  value={id}
+                  title={LAYER_META[id].caption}
+                  className="whitespace-nowrap px-2"
+                >
+                  {LAYER_META[id].label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+          {onToggleFullscreen && (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={onToggleFullscreen}
+              aria-label={isFullscreen ? "Exit fullscreen" : "View map fullscreen"}
+              title={isFullscreen ? "Exit fullscreen (Esc)" : "View fullscreen"}
+            >
+              {isFullscreen ? (
+                <Minimize2 className="h-3.5 w-3.5" />
+              ) : (
+                <Maximize2 className="h-3.5 w-3.5" />
+              )}
+            </Button>
+          )}
+        </div>
       </Card>
 
       <Legend layer={activeLayer} />
@@ -301,6 +341,7 @@ export default function WardChoropleth({
           />
         )}
         <FlyToSelection selectedWardId={selectedWardId} wardsGeo={wardsGeo} />
+        <InvalidateSizeOnChange dep={isFullscreen} />
       </MapContainer>
     </div>
   );

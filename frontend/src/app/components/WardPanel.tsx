@@ -11,6 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import CoefficientSparkline from "./CoefficientSparkline";
 import Citation from "./Citation";
 import { matchCitationFromText } from "@/lib/citations";
+import { areasForWard } from "@/lib/wardAreas";
 
 type WardProps = {
   ward_id: string;
@@ -101,15 +102,16 @@ export default function WardPanel({
 
   if (selected) {
     const p = selected.properties;
+    const areas = areasForWard(p.ward_id);
     return (
-      <div className="flex h-full flex-col">
+      <div className="flex h-full min-h-0 flex-col">
         <div className="border-b border-border px-4 py-3">
           <Button variant="ghost" size="sm" onClick={() => onSelectWard(null)} className="-ml-2 text-muted-foreground">
             <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
             All 24 wards
           </Button>
         </div>
-        <ScrollArea className="flex-1">
+        <ScrollArea className="min-h-0 flex-1">
           <div className="p-4">
             <div className="flex items-baseline justify-between">
               <div className="flex items-center gap-2">
@@ -127,6 +129,11 @@ export default function WardPanel({
             <p className="mt-1 text-xs text-muted-foreground">
               Priority {p.rank} of 24 &middot; {p.n_cells ?? "n/a"} grid cells
             </p>
+            {areas.length > 0 && (
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                <span className="text-foreground/80">Areas:</span> {areas.join(", ")}
+              </p>
+            )}
 
             <div className="mt-4 space-y-2">
               {FACTORS.map((f2) => (
@@ -174,7 +181,7 @@ export default function WardPanel({
   }
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full min-h-0 flex-col">
       <div className="border-b border-border px-4 py-3">
         <h2 className="text-sm font-semibold text-foreground">24 wards, ranked by heat vulnerability</h2>
         <p className="mt-1 text-xs leading-snug text-muted-foreground">
@@ -193,7 +200,7 @@ export default function WardPanel({
           />
         </div>
       </div>
-      <ScrollArea className="flex-1">
+      <ScrollArea className="min-h-0 flex-1">
         <div className="divide-y divide-border">
           {filtered.map((f) => {
             const p = f.properties;
@@ -201,6 +208,7 @@ export default function WardPanel({
               <button
                 key={p.ward_id}
                 onClick={() => onSelectWard(p.ward_id)}
+                title={areasForWard(p.ward_id).join(", ")}
                 className="flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left transition-colors hover:bg-accent"
               >
                 <div className="flex min-w-0 items-center gap-2.5">

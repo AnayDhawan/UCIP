@@ -69,12 +69,16 @@ export default function MissionPage() {
           <section className="mt-12">
             <h2 className="text-xl font-semibold text-foreground">Honesty is a feature</h2>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              Most city heat tools present outputs as more certain than their inputs. UCIP does the
-              opposite. Land-surface temperature is not air temperature, and we say so. Slum and
-              elderly layers are proxies, and we name them. Cooling coefficients are transferred from
-              other cities, not Mumbai-calibrated, and that sits next to every estimate. It is a
-              research prototype, not an official BMC tool. That candor is the point: residents,
-              planners, and researchers all get the same undiluted picture.
+              Most city heat tools present their outputs as more certain than they really are. UCIP
+              tries not to. The heat map shows land-surface temperature, which is a real but
+              imperfect stand-in for how hot it actually feels outside, and we say so plainly. The
+              slum and elderly layers are proxies built from public data, not census-grade counts,
+              and we name them as proxies rather than let them pass for something more precise. The
+              cooling coefficients come from studies in other cities and haven&apos;t been calibrated
+              for Mumbai specifically, so that caveat sits right next to every estimate instead of
+              buried in a footnote. This is a research prototype, and treating it as more authoritative
+              than that would be dishonest. Residents, planners, and researchers all see the same
+              picture, warts included.
             </p>
           </section>
         </Reveal>

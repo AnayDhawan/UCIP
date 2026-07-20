@@ -20,8 +20,9 @@ export default function LegalPage() {
           License
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          UCIP&apos;s code is released under the MIT License. You are free to use, modify, and
-          redistribute it, including commercially, as long as the license notice is preserved.
+          UCIP&apos;s code is released under the Apache License 2.0. You are free to use, modify,
+          and redistribute it, including commercially, as long as the license and attribution
+          notices are preserved.
         </p>
 
         <h2 id="data-sources" className="mt-8 text-lg font-semibold text-foreground">
@@ -38,7 +39,7 @@ export default function LegalPage() {
         </h2>
         <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed text-muted-foreground">
           <li>
-            UCIP is a research prototype built for a hackathon. It is not an official tool of the
+            UCIP is a research prototype, built independently. It is not an official tool of the
             Brihanmumbai Municipal Corporation or any government body, and no decision should rest
             on it alone.
           </li>

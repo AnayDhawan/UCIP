@@ -31,7 +31,7 @@ export default function ContactPage() {
           <li>Spotted a data error? Name the ward and what looks wrong.</li>
           <li>Methodology question? Point at the section on the how-it-works page.</li>
           <li>Want to adapt UCIP for another city? Say which one, the pipeline is city-agnostic.</li>
-          <li>Press or hackathon queries: anything goes.</li>
+          <li>Press or general questions: anything goes.</li>
         </ul>
       </main>
       <SiteFooter />

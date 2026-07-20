@@ -4,7 +4,7 @@
 
 **A research-backed decision-support platform for Mumbai's ward-level heat vulnerability.**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 ![Stack](https://img.shields.io/badge/stack-Next.js%20%2B%20Python%20%2B%20Supabase-38bdf8)
 ![Status](https://img.shields.io/badge/status-prototype--live-brightgreen)
 
@@ -16,8 +16,7 @@ UCIP tells a city planner **which Mumbai wards to cool first, why, what interven
 where to spend a fixed budget**, grounded in published climate and ecology literature, not
 arbitrary weights.
 
-> **Status: prototype live.** Built for the TIS x IHFC Delhi "Now or Never Hack 2026" (Domain: The
-> Planet, sprint Aug 1-7, 2026). The full data pipeline, HVI computation, NBS engine, and a working
+> **Status: prototype live.** The full data pipeline, HVI computation, NBS engine, and a working
 > Leaflet frontend (choropleth, plantability layer, green-cover-change layer, ward cards,
 > methodology page) are built and running end-to-end on real Mumbai data. See
 > [docs/UCIP-Pitch-Deck.pdf](docs/UCIP-Pitch-Deck.pdf) for the full write-up.

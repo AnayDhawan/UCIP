@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import WardPanel from "../components/WardPanel";
@@ -64,18 +64,35 @@ function FirstVisitHint() {
 
 export default function Dashboard() {
   const [selectedWardId, setSelectedWardId] = useState<string | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    if (!isFullscreen) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setIsFullscreen(false);
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isFullscreen]);
 
   return (
     <div className="flex h-screen flex-col bg-background">
-      <SiteHeader compact />
-      <FirstVisitHint />
+      {!isFullscreen && <SiteHeader compact />}
+      {!isFullscreen && <FirstVisitHint />}
       <main className="relative flex flex-1 overflow-hidden">
         <div className="relative flex-1">
-          <WardChoropleth selectedWardId={selectedWardId} onSelectWard={setSelectedWardId} />
+          <WardChoropleth
+            selectedWardId={selectedWardId}
+            onSelectWard={setSelectedWardId}
+            isFullscreen={isFullscreen}
+            onToggleFullscreen={() => setIsFullscreen((v) => !v)}
+          />
         </div>
-        <aside className="hidden w-96 shrink-0 border-l border-border bg-background md:block">
-          <WardPanel selectedWardId={selectedWardId} onSelectWard={setSelectedWardId} />
-        </aside>
+        {!isFullscreen && (
+          <aside className="hidden w-96 shrink-0 border-l border-border bg-background md:block">
+            <WardPanel selectedWardId={selectedWardId} onSelectWard={setSelectedWardId} />
+          </aside>
+        )}
       </main>
     </div>
   );

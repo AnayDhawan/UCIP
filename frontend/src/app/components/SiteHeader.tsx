@@ -21,7 +21,7 @@ export default function SiteHeader({ compact = false }: { compact?: boolean }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="border-b border-border bg-background">
+    <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-sm">
       <div
         className={`mx-auto flex items-center justify-between gap-4 px-6 ${
           compact ? "py-2" : "max-w-5xl py-3"

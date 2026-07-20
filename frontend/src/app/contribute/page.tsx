@@ -16,7 +16,7 @@ const WAYS = [
   {
     Icon: Star,
     title: "Star and share the code",
-    body: "UCIP is free and MIT-licensed. Stars help other people find open civic tooling. Send the dashboard to anyone working on urban heat, climate adaptation, or civic data.",
+    body: "UCIP is free and Apache 2.0 licensed. Stars help other people find open civic tooling. Send the dashboard to anyone working on urban heat, climate adaptation, or civic data.",
   },
   {
     Icon: MapPin,

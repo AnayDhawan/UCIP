@@ -90,15 +90,15 @@ export default function SiteFooter() {
 
         <div className="mt-10 border-t border-border pt-6 text-xs text-muted-foreground">
           <p>
-            UCIP is a research prototype built for the Now or Never Hack 2026. It is not an official
-            tool of the BMC or any government body.
+            UCIP is a research prototype, built independently. It is not an official tool of the
+            BMC or any government body.
           </p>
           <p className="mt-2">
             Data: Landsat (USGS), WorldPop, ESA WorldCover via Google Earth Engine; OpenStreetMap
             contributors; Datameet ward boundaries. Basemap by CARTO.
           </p>
           <p className="mt-4">
-            © {new Date().getFullYear()} UCIP. Code released under the MIT License.
+            © {new Date().getFullYear()} UCIP. Code released under the Apache License 2.0.
           </p>
         </div>
       </div>
