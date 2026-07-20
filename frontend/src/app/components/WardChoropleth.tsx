@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { GeoJSON, MapContainer, TileLayer, useMap } from "react-leaflet";
 import type { Feature, FeatureCollection, Geometry, Position } from "geojson";
 import type { LatLngBoundsExpression, Layer, PathOptions } from "leaflet";
+import { Card } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type WardProps = {
   ward_id: string;
@@ -125,16 +127,16 @@ const HVI_LEGEND_BINS = [
 
 function Legend({ layer }: { layer: LayerId }) {
   return (
-    <div className="absolute bottom-6 left-2 z-[1000] max-w-[240px] rounded bg-white/95 p-3 text-xs shadow dark:bg-zinc-900/95 dark:text-zinc-200">
+    <Card className="absolute bottom-6 left-2 z-[1000] max-w-[240px] gap-0 bg-background/95 p-3 text-xs backdrop-blur-sm">
       {layer === "hvi" && (
         <>
-          <p className="mb-1.5 font-semibold">Heat Vulnerability Index (0-100)</p>
+          <p className="mb-1.5 font-semibold text-foreground">Heat Vulnerability Index (0-100)</p>
           <div className="flex overflow-hidden rounded-sm">
             {HVI_LEGEND_BINS.map((b) => (
               <div key={b.color} className="h-3 flex-1" style={{ background: b.color }} />
             ))}
           </div>
-          <div className="mt-1 flex justify-between text-[10px] text-zinc-500 dark:text-zinc-400">
+          <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
             <span>Less vulnerable</span>
             <span>Most vulnerable</span>
           </div>
@@ -142,8 +144,8 @@ function Legend({ layer }: { layer: LayerId }) {
       )}
       {layer === "plantability" && (
         <>
-          <p className="mb-1.5 font-semibold">Can trees go here?</p>
-          <div className="space-y-1">
+          <p className="mb-1.5 font-semibold text-foreground">Can trees go here?</p>
+          <div className="space-y-1 text-foreground">
             <div className="flex items-center gap-2">
               <span className="h-3 w-3 rounded-sm" style={{ background: "#4ade80" }} />
               <span>Yes, suitable for planting</span>
@@ -157,14 +159,14 @@ function Legend({ layer }: { layer: LayerId }) {
       )}
       {layer === "ndvi_change" && (
         <>
-          <p className="mb-1.5 font-semibold">Green cover since 2016-17</p>
-          <div className="space-y-1">
+          <p className="mb-1.5 font-semibold text-foreground">Green cover since 2016-17</p>
+          <div className="space-y-1 text-foreground">
             <div className="flex items-center gap-2">
               <span className="h-3 w-3 rounded-sm" style={{ background: "#4ade80" }} />
               <span>Gained vegetation</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="h-3 w-3 rounded-sm border border-zinc-300 dark:border-zinc-600" style={{ background: "#d4d4d8" }} />
+              <span className="h-3 w-3 rounded-sm border border-border" style={{ background: "#d4d4d8" }} />
               <span>Stable</span>
             </div>
             <div className="flex items-center gap-2">
@@ -174,7 +176,7 @@ function Legend({ layer }: { layer: LayerId }) {
           </div>
         </>
       )}
-    </div>
+    </Card>
   );
 }
 
@@ -246,33 +248,25 @@ export default function WardChoropleth({
 
   return (
     <div className="absolute inset-0">
-      <div className="absolute right-2 top-2 z-[1000] max-w-[300px] rounded bg-white/95 p-1.5 shadow dark:bg-zinc-900/95">
-        <div className="flex gap-1" role="tablist" aria-label="Map layer">
-          {(Object.keys(LAYER_META) as LayerId[]).map((id) => (
-            <button
-              key={id}
-              role="tab"
-              aria-selected={activeLayer === id}
-              onClick={() => setActiveLayer(id)}
-              className={`rounded px-2 py-1 text-xs font-medium ${
-                activeLayer === id
-                  ? "bg-zinc-800 text-zinc-50 dark:bg-zinc-200 dark:text-zinc-900"
-                  : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
-              }`}
-            >
-              {LAYER_META[id].label}
-            </button>
-          ))}
-        </div>
-        <p className="px-1 pb-0.5 pt-1.5 text-[11px] leading-snug text-zinc-600 dark:text-zinc-400">
+      <Card className="absolute right-2 top-2 z-[1000] w-fit max-w-[360px] gap-0 bg-background/95 p-1.5 backdrop-blur-sm">
+        <Tabs value={activeLayer} onValueChange={(v: string) => setActiveLayer(v as LayerId)}>
+          <TabsList aria-label="Map layer" className="w-full">
+            {(Object.keys(LAYER_META) as LayerId[]).map((id) => (
+              <TabsTrigger key={id} value={id} className="whitespace-nowrap px-2">
+                {LAYER_META[id].label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+        <p className="px-1 pb-0.5 pt-1.5 text-[11px] leading-snug text-muted-foreground">
           {LAYER_META[activeLayer].caption}
         </p>
-      </div>
+      </Card>
 
       <Legend layer={activeLayer} />
 
       {error && (
-        <div className="absolute inset-x-0 top-12 z-[1000] mx-auto w-fit rounded bg-red-100 px-3 py-1 text-sm text-red-700">
+        <div className="absolute inset-x-0 top-12 z-[1000] mx-auto w-fit rounded bg-destructive/10 px-3 py-1 text-sm text-destructive">
           Failed to load layer: {error}
         </div>
       )}

@@ -3,6 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Feature, FeatureCollection, Geometry } from "geojson";
 import { ArrowLeft, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import CoefficientSparkline from "./CoefficientSparkline";
 import Citation from "./Citation";
 import { matchCitationFromText } from "@/lib/citations";
@@ -91,7 +96,7 @@ export default function WardPanel({
     ? (recs ?? []).filter((r) => r.ward_id === selected.properties.ward_id).sort((a, b) => a.priority - b.priority)
     : [];
 
-  if (error) return <div className="p-4 text-sm text-red-500">Failed to load ward data: {error}</div>;
+  if (error) return <div className="p-4 text-sm text-destructive">Failed to load ward data: {error}</div>;
   if (!wards || !recs) return <div className="p-4 text-sm text-muted-foreground">Loading wards…</div>;
 
   if (selected) {
@@ -99,70 +104,71 @@ export default function WardPanel({
     return (
       <div className="flex h-full flex-col">
         <div className="border-b border-border px-4 py-3">
-          <button
-            onClick={() => onSelectWard(null)}
-            className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
+          <Button variant="ghost" size="sm" onClick={() => onSelectWard(null)} className="-ml-2 text-muted-foreground">
             <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
             All 24 wards
-          </button>
+          </Button>
         </div>
-        <div className="flex-1 overflow-y-auto p-4">
-          <div className="flex items-baseline justify-between">
-            <div className="flex items-center gap-2">
-              <span
-                className="inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold text-black/80"
-                style={{ background: hviBandColor(p.HVI) }}
-              >
-                {p.rank}
-              </span>
-              <span className="text-lg font-semibold text-foreground">Ward {p.ward_id}</span>
-            </div>
-            <span className="font-mono text-sm text-muted-foreground">HVI {p.HVI?.toFixed(1)}</span>
-          </div>
-
-          <p className="mt-1 text-xs text-muted-foreground">
-            Priority {p.rank} of 24 &middot; {p.n_cells ?? "n/a"} grid cells
-          </p>
-
-          <div className="mt-4 space-y-2">
-            {FACTORS.map((f2) => (
-              <CoefficientSparkline
-                key={String(f2.key)}
-                label={f2.label}
-                value={(p[f2.key] as number | null) ?? 0}
-                max={CONTRIB_BAR_MAX}
-              />
-            ))}
-          </div>
-          <p className="mt-1.5 text-[11px] text-muted-foreground">
-            Red pushes this ward&apos;s score up, green pushes it down, compared to the city average.
-          </p>
-
-          {selectedRecs.length > 0 && (
-            <div className="mt-5">
-              <p className="kicker">Recommended interventions</p>
-              <div className="mt-2 space-y-2">
-                {selectedRecs.map((rec) => {
-                  const cited = matchCitationFromText(rec.citation);
-                  return (
-                    <div key={rec.intervention + rec.priority} className="rounded bg-muted p-2.5 text-xs">
-                      <span className="font-medium text-foreground">{rec.intervention}</span>
-                      <p className="mt-0.5 text-muted-foreground">{rec.rationale}</p>
-                      {cited ? (
-                        <div className="mt-1.5">
-                          <Citation mode="chip" entry={cited} />
-                        </div>
-                      ) : (
-                        <p className="mt-0.5 italic text-muted-foreground">{rec.citation}</p>
-                      )}
-                    </div>
-                  );
-                })}
+        <ScrollArea className="flex-1">
+          <div className="p-4">
+            <div className="flex items-baseline justify-between">
+              <div className="flex items-center gap-2">
+                <Badge
+                  className="h-7 w-7 justify-center rounded-full p-0 text-xs font-semibold text-black/80"
+                  style={{ background: hviBandColor(p.HVI) }}
+                >
+                  {p.rank}
+                </Badge>
+                <span className="text-lg font-semibold text-foreground">Ward {p.ward_id}</span>
               </div>
+              <span className="font-mono text-sm text-muted-foreground">HVI {p.HVI?.toFixed(1)}</span>
             </div>
-          )}
-        </div>
+
+            <p className="mt-1 text-xs text-muted-foreground">
+              Priority {p.rank} of 24 &middot; {p.n_cells ?? "n/a"} grid cells
+            </p>
+
+            <div className="mt-4 space-y-2">
+              {FACTORS.map((f2) => (
+                <CoefficientSparkline
+                  key={String(f2.key)}
+                  label={f2.label}
+                  value={(p[f2.key] as number | null) ?? 0}
+                  max={CONTRIB_BAR_MAX}
+                />
+              ))}
+            </div>
+            <p className="mt-1.5 text-[11px] text-muted-foreground">
+              Red pushes this ward&apos;s score up, green pushes it down, compared to the city average.
+            </p>
+
+            {selectedRecs.length > 0 && (
+              <div className="mt-5">
+                <p className="kicker">Recommended interventions</p>
+                <div className="mt-2 space-y-2">
+                  {selectedRecs.map((rec) => {
+                    const cited = matchCitationFromText(rec.citation);
+                    return (
+                      <Card key={rec.intervention + rec.priority} size="sm">
+                        <CardContent className="text-xs">
+                          <span className="font-medium text-foreground">{rec.intervention}</span>
+                          <p className="mt-0.5 text-muted-foreground">{rec.rationale}</p>
+                          {cited ? (
+                            <div className="mt-1.5">
+                              <Citation mode="chip" entry={cited} />
+                            </div>
+                          ) : (
+                            <p className="mt-0.5 italic text-muted-foreground">{rec.citation}</p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
       </div>
     );
   }
@@ -176,43 +182,45 @@ export default function WardPanel({
         </p>
         <div className="relative mt-2">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" aria-hidden />
-          <input
+          <Input
             type="text"
             id="ward-search"
             name="ward-search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Find a ward…"
-            className="w-full rounded border border-border bg-background py-1.5 pl-8 pr-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-brand-teal"
+            className="pl-8"
           />
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto divide-y divide-border">
-        {filtered.map((f) => {
-          const p = f.properties;
-          return (
-            <button
-              key={p.ward_id}
-              onClick={() => onSelectWard(p.ward_id)}
-              className="flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left transition-colors hover:bg-surface-hover"
-            >
-              <div className="flex min-w-0 items-center gap-2.5">
-                <span className="w-5 shrink-0 text-right font-mono text-xs text-muted-foreground">{p.rank}</span>
-                <span
-                  className="h-2.5 w-2.5 shrink-0 rounded-sm"
-                  style={{ background: hviBandColor(p.HVI) }}
-                  aria-hidden
-                />
-                <span className="truncate text-sm font-medium text-foreground">Ward {p.ward_id}</span>
-              </div>
-              <span className="shrink-0 font-mono text-xs text-muted-foreground">{p.HVI?.toFixed(1)}</span>
-            </button>
-          );
-        })}
-        {filtered.length === 0 && (
-          <p className="p-4 text-sm text-muted-foreground">No ward matches &quot;{search}&quot;.</p>
-        )}
-      </div>
+      <ScrollArea className="flex-1">
+        <div className="divide-y divide-border">
+          {filtered.map((f) => {
+            const p = f.properties;
+            return (
+              <button
+                key={p.ward_id}
+                onClick={() => onSelectWard(p.ward_id)}
+                className="flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left transition-colors hover:bg-accent"
+              >
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <span className="w-5 shrink-0 text-right font-mono text-xs text-muted-foreground">{p.rank}</span>
+                  <span
+                    className="h-2.5 w-2.5 shrink-0 rounded-sm"
+                    style={{ background: hviBandColor(p.HVI) }}
+                    aria-hidden
+                  />
+                  <span className="truncate text-sm font-medium text-foreground">Ward {p.ward_id}</span>
+                </div>
+                <span className="shrink-0 font-mono text-xs text-muted-foreground">{p.HVI?.toFixed(1)}</span>
+              </button>
+            );
+          })}
+          {filtered.length === 0 && (
+            <p className="p-4 text-sm text-muted-foreground">No ward matches &quot;{search}&quot;.</p>
+          )}
+        </div>
+      </ScrollArea>
     </div>
   );
 }
