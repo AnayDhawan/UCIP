@@ -196,13 +196,19 @@ html {
   background: color-mix(in oklab, var(--background) 38%, transparent);
 }
 
-/* Text sitting directly on the animated mesh needs a legibility floor only in
-   dark mode: the gradient's darker stops can dip close to the near-white
-   dark-theme foreground color. In light mode the dark-charcoal foreground
-   already reads clearly against this gradient on its own; adding any glow
-   there just blurs otherwise-crisp text, so light mode gets none. */
+/* Text sitting directly on the animated mesh needs a legibility floor that
+   doesn't read as a blurred halo. Light mode's dark-charcoal text already has
+   fine base contrast against the gradient, so it gets a tight, zero-blur
+   4-direction outline (a hairline lift, not a glow) rather than a soft
+   drop-shadow, which just muddies already-crisp text. Dark mode's near-white
+   text genuinely needs a real shadow, since the gradient's darker stops can
+   get close to that foreground color. */
 .hero-text-shadow {
-  text-shadow: none;
+  text-shadow:
+    1px 1px 0 rgb(255 255 255 / 65%),
+    -1px -1px 0 rgb(255 255 255 / 65%),
+    1px -1px 0 rgb(255 255 255 / 65%),
+    -1px 1px 0 rgb(255 255 255 / 65%);
 }
 .dark .hero-text-shadow {
   text-shadow: 0 2px 18px rgb(0 0 0 / 45%), 0 1px 3px rgb(0 0 0 / 55%);
