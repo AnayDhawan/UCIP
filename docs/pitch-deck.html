@@ -12,16 +12,19 @@
   :root {
     --teal: #0EA5B3;
     --emerald: #22C55E;
-    --ink: #111827;
-    --muted: #52525b;
-    --border: #e4e4e7;
-    --surface: #F7FAFB;
+    --ink: #E6EAF2;
+    --muted: #9aa3b2;
+    --border: rgba(255,255,255,0.12);
+    --panel: rgba(255,255,255,0.05);
+    --panel-solid: #151A24;
+    --bg0: #0B0E14;
+    --bg1: #11151F;
   }
   body {
     margin: 0;
     font-family: "Inter", Arial, Helvetica, sans-serif;
     color: var(--ink);
-    background: #ffffff;
+    background: var(--bg0);
   }
   section.slide {
     width: 297mm;
@@ -29,7 +32,9 @@
     padding: 16mm 18mm;
     page-break-after: always;
     position: relative;
-    background: var(--surface);
+    background: radial-gradient(ellipse 90% 70% at 15% 0%, rgba(14,165,179,0.14) 0%, transparent 55%),
+                radial-gradient(ellipse 80% 70% at 100% 100%, rgba(34,197,94,0.12) 0%, transparent 55%),
+                var(--bg0);
     overflow: hidden;
   }
   section.slide:last-child { page-break-after: auto; }
@@ -51,7 +56,7 @@
     font-family: "JetBrains Mono", monospace;
     font-size: 12px;
     font-weight: 700;
-    color: var(--muted);
+    color: rgba(230,234,242,0.55);
     letter-spacing: 0.06em;
   }
   .brand-lockup img { width: 20px; height: 20px; }
@@ -61,14 +66,14 @@
     right: 18mm;
     font-family: "JetBrains Mono", monospace;
     font-size: 11px;
-    color: #9aa0aa;
+    color: rgba(230,234,242,0.32);
   }
   h1 {
     font-size: 30px;
     font-weight: 800;
     letter-spacing: -0.01em;
     margin: 0 0 4px 0;
-    color: var(--ink);
+    color: #ffffff;
   }
   h2.kicker {
     font-family: "JetBrains Mono", monospace;
@@ -82,9 +87,13 @@
   h3 {
     font-size: 15px;
     font-weight: 700;
-    margin: 14px 0 4px 0;
-    color: var(--ink);
+    margin: 0 0 6px 0;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
+  h3 .dot { width: 7px; height: 7px; border-radius: 4px; background: var(--emerald); flex-shrink: 0; }
   p, li {
     font-size: 13px;
     line-height: 1.55;
@@ -92,78 +101,95 @@
   }
   .subtitle {
     font-size: 15px;
-    color: #3f3f46;
+    color: rgba(230,234,242,0.8);
     max-width: 720px;
   }
-  table {
-    border-collapse: collapse;
-    width: 100%;
-    font-size: 12px;
-    margin-top: 6px;
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
   }
-  th, td {
-    text-align: left;
-    padding: 5px 8px;
-    border-bottom: 1px solid var(--border);
+  .two-col { display: flex; gap: 20px; }
+  .two-col > div { flex: 1; display: flex; flex-direction: column; gap: 14px; }
+
+  .chip-row { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+  .chip {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 14px;
   }
-  th { color: var(--muted); font-weight: 700; }
-  .meta-table td:first-child {
-    color: var(--muted);
-    width: 140px;
-    font-family: "JetBrains Mono", monospace;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-  .fill-in { color: #c02626; font-weight: 600; }
-  .two-col { display: flex; gap: 28px; }
-  .two-col > div { flex: 1; }
+  .chip .tool { font-weight: 700; color: #ffffff; font-size: 12.5px; min-width: 220px; }
+  .chip .gap { font-size: 12.5px; color: var(--muted); }
+
   .img-grid {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 10px;
-    margin-top: 10px;
+    margin-top: 8px;
   }
   .img-grid figure { margin: 0; }
-  .img-grid img {
-    width: 100%;
+  .img-grid .frame {
+    border-radius: 10px;
+    overflow: hidden;
     border: 1px solid var(--border);
-    border-radius: 8px;
-    display: block;
+    background: #000;
   }
+  .img-grid .frame .chrome {
+    height: 16px;
+    background: #1a1f2b;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 8px;
+  }
+  .img-grid .frame .chrome span { width: 6px; height: 6px; border-radius: 50%; background: #333; }
+  .img-grid img { width: 100%; display: block; }
   .img-grid figcaption {
     font-size: 10px;
     color: var(--muted);
     text-align: center;
-    margin-top: 4px;
+    margin-top: 5px;
   }
   .stack-line {
     font-family: "JetBrains Mono", monospace;
     font-size: 11px;
     color: var(--muted);
-    background: #ffffff;
+    background: var(--panel);
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 10px 14px;
     margin-top: 10px;
   }
-  .card {
-    background: #ffffff;
+  .pill-list { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+  .pill-list li {
+    padding: 7px 12px;
+    background: var(--panel);
     border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px 16px;
+    border-radius: 8px;
+    font-size: 12.5px;
+  }
+  .meta-table { border-collapse: collapse; width: 100%; }
+  .meta-table td { padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.1); color: var(--ink); font-size: 13px; }
+  .meta-table td:first-child {
+    color: rgba(230,234,242,0.5);
+    width: 150px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
 
-  /* ---- Cover slide (01), hero-inspired ----
-     section.slide.cover (not just .cover) so this beats section.slide's own
-     background/color rules on specificity, not just source order. */
+  /* ---- Cover slide (01) ---- */
   section.slide.cover {
     background: radial-gradient(ellipse 70% 60% at 18% 15%, rgba(14,165,179,0.55) 0%, transparent 55%),
                 radial-gradient(ellipse 70% 60% at 85% 85%, rgba(34,197,94,0.45) 0%, transparent 55%),
-                var(--ink);
-    color: #E6EAF2;
+                var(--bg0);
   }
-  .cover .brand-lockup { color: rgba(230,234,242,0.7); }
   .cover .kicker-mono {
     font-family: "JetBrains Mono", monospace;
     font-size: 13px;
@@ -187,29 +213,12 @@
     font-weight: 900;
     letter-spacing: -0.02em;
     line-height: 1.08;
-    color: #ffffff;
     max-width: 780px;
     margin: 0 0 18px 0;
   }
   .cover .gradient-bar { width: 120px; height: 7px; margin: 8px 0 24px 0; }
-  .cover .subtitle {
-    color: rgba(230,234,242,0.82);
-    font-size: 17px;
-    max-width: 620px;
-    margin-bottom: 34px;
-  }
-  .cover .meta-card {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.14);
-    border-radius: 14px;
-    padding: 18px 22px;
-    max-width: 520px;
-    backdrop-filter: blur(6px);
-  }
-  .cover .meta-table td { border-bottom: 1px solid rgba(255,255,255,0.1); color: #E6EAF2; }
-  .cover .meta-table td:first-child { color: rgba(230,234,242,0.55); }
-  .cover .fill-in { color: #ff8a8a; }
-  .cover .slide-number { color: rgba(230,234,242,0.4); }
+  .cover .subtitle { font-size: 17px; max-width: 620px; margin-bottom: 34px; }
+  .cover .meta-card { max-width: 520px; padding: 18px 22px; }
 </style>
 </head>
 <body>
@@ -223,9 +232,9 @@
   <div class="kicker-mono">Urban Climate Intelligence Platform</div>
   <h1>Mumbai's ward-level heat vulnerability, turned into decisions you can act on.</h1>
   <div class="gradient-bar"></div>
-  <p class="subtitle">A decision-support tool that tells Mumbai's city planners which of the 24 BMC wards to cool
-  first, why, with what intervention, and where a fixed budget goes.</p>
-  <div class="meta-card">
+  <p class="subtitle">Tells Mumbai's city planners which of the 24 BMC wards to cool first, why, with what
+  intervention, and where a fixed budget goes.</p>
+  <div class="card meta-card">
     <table class="meta-table">
       <tr><td>Student name</td><td>Anay Dhawan</td></tr>
       <tr><td>School name</td><td>NES International School Mumbai</td></tr>
@@ -243,25 +252,32 @@
   <h2 class="kicker">02. Problem Understanding</h2>
   <div class="two-col">
     <div>
-      <h3>What problem are you solving?</h3>
-      <p>Mumbai is heating unevenly. Heat pockets form over slums, barren land, and impervious
-      concrete, but the city has no ward-level, evidence-based way to decide where to invest
-      cooling infrastructure first. Current plans set city-wide goals without per-ward targeting.</p>
-      <h3>Who is affected?</h3>
-      <p>The most heat-vulnerable residents: slum households (heat-trapping roofs, low cooling
-      access), the elderly, and wards far from hospitals. Vulnerability is highest exactly where
-      data is scarcest.</p>
+      <div class="card">
+        <h3><span class="dot"></span>What's the problem?</h3>
+        <p>Mumbai heats unevenly. Slums, bare land, and concrete trap the most heat, but the city
+        has no ward-by-ward, evidence-based way to decide where cooling money goes first. Existing
+        plans set city-wide goals and stop there.</p>
+      </div>
+      <div class="card">
+        <h3><span class="dot"></span>Who's affected?</h3>
+        <p>Slum households in heat-trapping housing, the elderly, and anyone far from a hospital.
+        The people most at risk live exactly where the data is thinnest.</p>
+      </div>
     </div>
     <div>
-      <h3>Why does this problem matter?</h3>
-      <p>Heat is India's deadliest weather hazard, and Ahmedabad's Heat Action Plan proved
-      targeted city action saves roughly 1,190 lives a year (Knowlton et al. 2014). Mumbai's own
-      climate plan (MCAP 2022) names heat as a priority pillar but stops at city-level strategy:
-      goals without a reproducible method for choosing which ward gets cooled first.</p>
-      <h3>Where does this problem exist?</h3>
-      <p>Every dense tropical city; UCIP scopes it tightly to Mumbai's 24 BMC wards, where IIT
-      Bombay remote-sensing studies already show strong surface urban-heat-island effects over
-      informal housing (Mehrotra, Bardhan and Ramamritham 2018).</p>
+      <div class="card">
+        <h3><span class="dot"></span>Why it matters</h3>
+        <p>Heat kills more people in India than any other weather hazard. Ahmedabad's Heat Action
+        Plan saves an estimated 1,190 lives a year by targeting action locally (Knowlton et al.
+        2014). Mumbai's own climate plan names heat as a priority but never gets past city-level
+        strategy to a method for picking which ward first.</p>
+      </div>
+      <div class="card">
+        <h3><span class="dot"></span>Where it happens</h3>
+        <p>Every dense tropical city faces this. UCIP starts with Mumbai's 24 BMC wards, where IIT
+        Bombay's remote-sensing work already shows sharp heat-island effects over informal housing
+        (Mehrotra, Bardhan and Ramamritham 2018).</p>
+      </div>
     </div>
   </div>
   <div class="slide-number">2 / 6</div>
@@ -271,25 +287,36 @@
   <div class="brand-lockup"><img src="media/icon-512.png" alt=""> UCIP</div>
   <div class="gradient-bar"></div>
   <h2 class="kicker">03. Research and Insights</h2>
-  <h3>Data, facts, observations</h3>
-  <ul>
-    <li>Live satellite pipeline over Mumbai (Google Earth Engine): 12 Landsat 8/9 dry-season scenes, mean land-surface temperature 33.6 &deg;C, mean NDVI 0.305, computed, not copied.</li>
-    <li>WorldPop age-sex rasters (2020, most recent year available for India) give elderly population per ward; OSM gives hospital locations; mapped Datameet slum-cluster boundaries proxy the slum index.</li>
-    <li>Tree canopy cooling is nonlinear: below ~40% canopy, daytime cooling is negligible; 40 to 80% gives approximately 1 &deg;C (Ziter et al. 2019, PNAS). Cool roofs cut peak temperature ~0.6 K per +0.1 albedo, conservative end of the published range (Santamouris 2014).</li>
-  </ul>
-  <h3>Existing solutions explored (5 closest)</h3>
-  <table>
-    <tr><th>Tool</th><th>Gap</th></tr>
-    <tr><td>Mumbai Climate Action Plan 2022</td><td>Strategy document, no per-ward ranking method</td></tr>
-    <tr><td>RAND / Azhar et al. 2017 India HVI</td><td>District-level (640 districts), too coarse for one city; maps vulnerability then stops</td></tr>
-    <tr><td>IIT Bombay Mumbai UHI studies</td><td>Rigorous heat maps, but diagnostic only</td></tr>
-    <tr><td>C40 Urban Cooling Toolbox</td><td>Real decision-support, but global/generic, no Mumbai data under it</td></tr>
-    <tr><td>Ahmedabad Heat Action Plan</td><td>Temporal early-warning (when heat strikes), not spatial investment targeting (where to build)</td></tr>
-  </table>
-  <h3>Gaps discovered</h3>
-  <p>Every prior tool does at most two of five things: ward-level ranking, per-factor explainability,
-  an intervention engine, an ecological guardrail, a budget layer. None does all five. Most tools also
-  overstate certainty; none openly discloses proxy-data limitations.</p>
+  <div class="card">
+    <h3><span class="dot"></span>What the data shows</h3>
+    <ul>
+      <li>A live satellite pipeline over Mumbai (Google Earth Engine, 12 Landsat 8/9 dry-season
+      scenes) puts mean land-surface temperature at 33.6&deg;C and mean NDVI at 0.305, computed
+      directly, not looked up.</li>
+      <li>WorldPop's 2020 age-sex rasters (the most recent year for India) give elderly population
+      per ward; OpenStreetMap gives hospital locations; Datameet's mapped slum clusters stand in
+      for a slum index.</li>
+      <li>Tree-canopy cooling is nonlinear: below ~40% canopy, daytime cooling is negligible; 40 to
+      80% delivers about 1&deg;C (Ziter et al. 2019). Cool roofs cut peak temperature roughly 0.6K
+      per +0.1 albedo, the conservative end of the published range (Santamouris 2014).</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3><span class="dot"></span>What's already out there</h3>
+    <div class="chip-row">
+      <div class="chip"><span class="tool">Mumbai Climate Action Plan 2022</span><span class="gap">Sets city-wide goals, no per-ward ranking method</span></div>
+      <div class="chip"><span class="tool">RAND / Azhar et al. 2017 India HVI</span><span class="gap">District-level across 640 districts, too coarse for one city</span></div>
+      <div class="chip"><span class="tool">IIT Bombay Mumbai UHI studies</span><span class="gap">Rigorous heat maps, diagnostic only</span></div>
+      <div class="chip"><span class="tool">C40 Urban Cooling Toolbox</span><span class="gap">Real decision-support, but generic, no Mumbai data underneath</span></div>
+      <div class="chip"><span class="tool">Ahmedabad Heat Action Plan</span><span class="gap">Warns when heat strikes, doesn't say where to build</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <h3><span class="dot"></span>The gap</h3>
+    <p>No existing tool does all five things a planner actually needs: ward-level ranking,
+    per-factor explanations, an intervention engine, an ecological check, and a budget layer.
+    Most also overstate their own certainty and stay quiet about where their data is a proxy.</p>
+  </div>
   <div class="slide-number">3 / 6</div>
 </section>
 
@@ -299,27 +326,30 @@
   <h2 class="kicker">04. Proposed Solution</h2>
   <div class="two-col">
     <div>
-      <h3>The idea</h3>
-      <p>UCIP computes a Heat Vulnerability Index (HVI) for each of Mumbai's 24 wards from satellite
-      and demographic data, with PCA-derived weights following the peer-reviewed Reid et al. 2009
-      methodology (data-driven, not guessed). Every ward gets a transparent per-factor breakdown
-      (no black box), and the index is sensitivity-tested (weights perturbed +/-20% to show the
-      ranking holds).</p>
-      <h3>How it solves the problem</h3>
-      <p>The index feeds a rule-based Nature-Based-Solutions engine where every recommendation
-      carries a citation, gated by an ecological plantability filter: native afforestation only
-      where restoration is appropriate (Bastin et al. 2019), blocked over native grasslands where
-      planting would backfire (Veldman et al. 2019), routing those areas to cool roofs instead.
-      Recommendations roll up into ward cards a planner can act on. Not another "plant trees
-      everywhere" map.</p>
+      <div class="card">
+        <h3><span class="dot"></span>The idea</h3>
+        <p>UCIP scores a Heat Vulnerability Index for each of Mumbai's 24 wards from satellite and
+        demographic data, weighted by the peer-reviewed Reid et al. 2009 method rather than
+        guesswork. Every ward gets a transparent per-factor breakdown, and the ranking is
+        stress-tested by perturbing the weights &plusmn;20% to confirm it holds.</p>
+      </div>
+      <div class="card">
+        <h3><span class="dot"></span>How it solves the problem</h3>
+        <p>That index feeds a rule-based recommendation engine where every suggestion carries a
+        citation. An ecological filter checks first: native trees where restoration actually makes
+        sense (Bastin et al. 2019), cool roofs instead wherever planting would backfire over native
+        grassland (Veldman et al. 2019). It's not another "plant trees everywhere" map.</p>
+      </div>
     </div>
     <div>
-      <h3>Who benefits</h3>
-      <ul>
-        <li>BMC planners: a defensible, explainable priority list instead of intuition</li>
-        <li>Vulnerable residents: cooling investment lands in the highest-need wards first</li>
-        <li>Researchers and NGOs: open methodology, open data sources, stated limitations</li>
-      </ul>
+      <div class="card" style="height: 100%;">
+        <h3><span class="dot"></span>Who benefits</h3>
+        <ul class="pill-list">
+          <li>BMC planners get a defensible priority list instead of a guess</li>
+          <li>Vulnerable residents get cooling investment where it's needed most</li>
+          <li>Researchers and NGOs get open methodology, open data, stated limits</li>
+        </ul>
+      </div>
     </div>
   </div>
   <div class="slide-number">4 / 6</div>
@@ -331,35 +361,33 @@
   <h2 class="kicker">05. Prototype / Solution Design</h2>
   <div class="img-grid">
     <figure>
-      <img src="media/screenshot-hvi-choropleth.png" alt="HVI choropleth and ward cards">
-      <figcaption>Leaflet choropleth of the 24-ward HVI ranking, plus ward cards (rank, factor
-      contribution bars, recommended intervention)</figcaption>
+      <div class="frame"><div class="chrome"><span></span><span></span><span></span></div><img src="media/screenshot-hvi-choropleth-dark.png" alt="HVI choropleth and ward list"></div>
+      <figcaption>The 24-ward HVI ranking, plus per-ward factor bars and the recommended intervention</figcaption>
     </figure>
     <figure>
-      <img src="media/screenshot-plantability.png" alt="Plantability layer">
-      <figcaption>NBS plantability filter: green cells eligible for afforestation, red cells routed
-      to cool roofs instead</figcaption>
+      <div class="frame"><div class="chrome"><span></span><span></span><span></span></div><img src="media/screenshot-plantability-dark.png" alt="Plantability layer"></div>
+      <figcaption>The plantability filter: green cells suit afforestation, red cells route to cool roofs instead</figcaption>
     </figure>
     <figure>
-      <img src="media/screenshot-ndvi-change.png" alt="Green-cover change layer">
-      <figcaption>Green-cover change layer: gained / stable / lost NDVI classification per cell</figcaption>
+      <div class="frame"><div class="chrome"><span></span><span></span><span></span></div><img src="media/screenshot-ndvi-change-dark.png" alt="Green-cover change layer"></div>
+      <figcaption>Green-cover change: gained, stable, or lost NDVI per cell</figcaption>
     </figure>
     <figure>
-      <img src="media/screenshot-methodology.png" alt="Methodology page">
-      <figcaption>Methodology page: real computed weights, sensitivity chart, citations, stated limitations</figcaption>
+      <div class="frame"><div class="chrome"><span></span><span></span><span></span></div><img src="media/screenshot-methodology-dark.png" alt="Methodology page"></div>
+      <figcaption>The methodology page: real computed weights, sensitivity chart, citations, stated limits</figcaption>
     </figure>
     <figure>
-      <img src="media/spike_lst.png" alt="GEE land surface temperature spike">
-      <figcaption>Pipeline evidence: GEE land-surface-temperature composite (Day-0 spike)</figcaption>
+      <div class="frame"><div class="chrome"><span></span><span></span><span></span></div><img src="media/spike_lst.png" alt="GEE land surface temperature spike"></div>
+      <figcaption>Pipeline evidence: raw GEE land-surface-temperature composite</figcaption>
     </figure>
     <figure>
-      <img src="media/spike_ndvi.png" alt="GEE NDVI spike">
-      <figcaption>Pipeline evidence: GEE NDVI composite (Day-0 spike)</figcaption>
+      <div class="frame"><div class="chrome"><span></span><span></span><span></span></div><img src="media/spike_ndvi.png" alt="GEE NDVI spike"></div>
+      <figcaption>Pipeline evidence: raw GEE NDVI composite</figcaption>
     </figure>
   </div>
   <div class="stack-line">
-    Stack: Google Earth Engine (Landsat 8/9, WorldPop, WorldCover) -&gt; Python (geopandas,
-    scikit-learn PCA) -&gt; Supabase + PostGIS -&gt; Next.js + Leaflet, deployed on Vercel.
+    Google Earth Engine (Landsat 8/9, WorldPop, WorldCover) &rarr; Python (geopandas, scikit-learn
+    PCA) &rarr; Supabase + PostGIS &rarr; Next.js + Leaflet, deployed on Vercel.
   </div>
   <div class="slide-number">5 / 6</div>
 </section>
@@ -370,22 +398,26 @@
   <h2 class="kicker">06. Impact and Future Scope</h2>
   <div class="two-col">
     <div>
-      <h3>Expected impact</h3>
-      <p>Turns Mumbai's existing heat diagnosis into an operational bridge: which ward first, why,
-      what intervention, at what cost. Methodology is reproducible for any Indian city with the
-      same open data (all sources are free: Landsat, WorldPop, OSM, GHSL). Honesty layer builds
-      trust: proxy data disclosed, land-surface temperature stated as not equal to air temperature,
-      coefficients marked as transferred, not Mumbai-calibrated.</p>
+      <div class="card">
+        <h3><span class="dot"></span>Expected impact</h3>
+        <p>Mumbai already knows it's getting hotter. UCIP turns that diagnosis into a decision:
+        which ward first, why, what to build, at what cost. The same method works for any Indian
+        city on the same free data (Landsat, WorldPop, OSM, GHSL). Every limitation is stated up
+        front: proxy data flagged, land-surface temperature never confused with air temperature,
+        coefficients marked as borrowed from other cities, not Mumbai-measured.</p>
+      </div>
     </div>
     <div>
-      <h3>How it can be improved or expanded</h3>
-      <ul>
-        <li>Finer grid (1 km to 500 m) and Census-linked demographic data when accessible</li>
-        <li>NDVI change detection over time to verify interventions actually green the ward</li>
-        <li>What-if simulator: slide canopy % / cool-roof fraction, watch predicted LST fall (stretch)</li>
-        <li>Budget optimizer: maximize vulnerability-reduction per rupee across wards (stretch)</li>
-        <li>Replication kit: config-driven port to Pune, Ahmedabad, Delhi wards</li>
-      </ul>
+      <div class="card" style="height: 100%;">
+        <h3><span class="dot"></span>What's next</h3>
+        <ul class="pill-list">
+          <li>Finer grid (1km to 500m) and census-linked demographics once accessible</li>
+          <li>NDVI change tracking to confirm interventions actually greened a ward</li>
+          <li>What-if simulator: slide canopy % or cool-roof fraction, watch LST move (shipped)</li>
+          <li>Budget optimizer: maximize vulnerability reduction per rupee spent (stretch)</li>
+          <li>Replication kit: same config, different city (Pune, Ahmedabad, Delhi)</li>
+        </ul>
+      </div>
     </div>
   </div>
   <div class="slide-number">6 / 6</div>
