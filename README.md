@@ -40,6 +40,20 @@ arbitrary weights.
 
 Demonstrated on Mumbai; the architecture is city-agnostic.
 
+## Quick Start
+
+```bash
+git clone https://github.com/AnayDhawan/ucip.git
+cd ucip/frontend
+npm install
+npm run dev
+```
+
+Opens at `localhost:3000`. The dashboard runs entirely off the committed GeoJSON snapshots
+in `data/`, so no Supabase or Google Earth Engine credentials are needed to browse it. See
+[CONTRIBUTING.md](CONTRIBUTING.md) for the full pipeline setup (only needed if you're
+touching the data layer).
+
 ## Structure
 
 ```
@@ -50,6 +64,11 @@ data/       Ward boundaries + committed GeoJSON snapshots (demo-safe fallback)
 docs/       Methodology, citations, pitch deck, brand assets
 ```
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Please read the [Code of Conduct](CODE_OF_CONDUCT.md)
+first.
+
 ## License
 
-MIT, see [LICENSE](LICENSE).
+Apache 2.0, see [LICENSE](LICENSE).
