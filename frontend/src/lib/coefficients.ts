@@ -59,24 +59,51 @@ export function coolRoofCoolingC(albedoIncrease: number): CoolRoofEstimate {
   };
 }
 
+/**
+ * Pocket-park / green-open-space cooling, from Bowler et al. 2010 (Landscape and Urban
+ * Planning 97:147-155, doi:10.1016/j.landurbplan.2010.05.006), a systematic review/
+ * meta-analysis of park-vs-surroundings temperature studies: parks are, on average,
+ * ~0.94C cooler in the day than their built surroundings (the "park cool island" effect).
+ *
+ * That figure is a per-park comparison, not a function of ward-wide coverage — the
+ * paper does not model "what if X% of a ward were parkland." Scaling the 0.94C ceiling
+ * linearly by the fraction of ward area converted to park-like green space is this
+ * project's own simplifying assumption, stated here rather than hidden: at 100% coverage
+ * every point in the ward is inside the park's cooled zone (the full effect); at partial
+ * coverage only that fraction of the ward benefits, averaged across the whole area.
+ */
+export function pocketParkCoolingC(parkAreaPct: number): number {
+  const pct = Math.min(Math.max(parkAreaPct, 0), 100);
+  const MAX_COOLING_C = 0.94;
+  return (pct / 100) * MAX_COOLING_C;
+}
+
 export type SimulationResult = {
   canopyC: number;
   coolRoof: CoolRoofEstimate;
+  parkC: number;
   totalHeadlineC: number;
 };
 
 /**
- * Sums the two interventions as independent illustrative terms. This is explicitly
- * not a coupled physical simulation — canopy and cool-roof effects are not modeled
- * as interacting with each other.
+ * Sums the three interventions as independent illustrative terms. This is explicitly
+ * not a coupled physical simulation — canopy, cool-roof, and pocket-park effects are
+ * not modeled as interacting with each other (e.g. no double-counting check between
+ * canopy cover and park area, even though parks often contain trees).
  */
-export function simulate(canopyPct: number, albedoIncrease: number): SimulationResult {
+export function simulate(
+  canopyPct: number,
+  albedoIncrease: number,
+  parkAreaPct: number = 0,
+): SimulationResult {
   const canopyC = canopyCoolingC(canopyPct);
   const coolRoof = coolRoofCoolingC(albedoIncrease);
+  const parkC = pocketParkCoolingC(parkAreaPct);
   return {
     canopyC,
     coolRoof,
-    totalHeadlineC: canopyC + coolRoof.headlineC,
+    parkC,
+    totalHeadlineC: canopyC + coolRoof.headlineC + parkC,
   };
 }
 

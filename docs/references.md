@@ -17,6 +17,7 @@ Pitch discipline: **Veldman = "5x too large + don't afforest grasslands." Friedl
 | Urban cooling (simulator/NBS coeff) | **Locked in:** Ziter et al. 2019, *PNAS* 116(15):7575-7580, "Scale-dependent interactions between tree canopy cover and impervious surfaces reduce daytime urban heat during summer" | 10.1073/pnas.1817561116 | ✅ verified — pnas.org/doi/10.1073/pnas.1817561116 | Canopy % -> LST reduction coefficients (F8 + NBS impact) |
 | Cool-roof effectiveness | Li, Bou-Zeid & Oppenheimer 2014, *Environ. Res. Lett.* 9(5):055002, "The effectiveness of cool and green roofs as urban heat island mitigation strategies" | 10.1088/1748-9326/9/5/055002 | ✅ verified 2026-07-12 — **authorship corrected** (parallel session mis-listed as Santamouris; this DOI is Li et al., ADS 2014ERL....9e5002L). WRF+PUCM, Baltimore-DC; surface UHI drops near-linearly with cool-roof fraction | Cool-roof fraction -> UHI reduction (F8 + NBS impact) |
 | Cool-roof coefficient | Santamouris 2014, *Solar Energy* 103:682-703, "Cooling the cities — a review of reflective and green roof mitigation technologies" | 10.1016/j.solener.2012.07.003 | ✅ verified 2026-07-12 | Albedo -> peak-temp coefficient (~0.6-2.3 K per +0.1 albedo) for the NBS impact numbers |
+| Pocket-park coefficient | Bowler et al. 2010, *Landscape and Urban Planning* 97:147-155, "Urban greening to cool towns and cities: a systematic review of the empirical evidence" | 10.1016/j.landurbplan.2010.05.006 | ✅ verified 2026-07-21 — resolves via linkinghub.elsevier.com to S0169204610001234 | Park cool-island effect (~0.94°C avg daytime) for the simulator's pocket-park term |
 
 ## Cooling coefficients (numbers the NBS impact model / F8 simulator uses)
 
@@ -31,6 +32,11 @@ openly (methodology §10): transferred from other cities, not Mumbai-calibrated.
   (~0.6 K per +0.1 albedo) for headline claims and state the full range for the sensitivity chart.
 - **Cool-roof city-scale sim (Li, Bou-Zeid & Oppenheimer 2014, ERL):** surface and near-surface UHI
   fall almost linearly as cool-roof fraction rises (WRF+PUCM). Supports a linear cool-roof term in F8.
+- **Pocket parks (Bowler et al. 2010, Landscape and Urban Planning):** meta-analysis of park-vs-
+  surroundings studies finds parks average ~0.94 °C cooler in the day (the "park cool island"
+  effect). The paper doesn't model ward-wide coverage, so the simulator scales this ceiling
+  linearly by the share of ward area converted to park — an explicit simplifying assumption, not
+  a result from the paper itself.
 
 ## Data sources (all open)
 

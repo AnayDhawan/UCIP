@@ -125,6 +125,16 @@ export const CITATIONS: CitationEntry[] = [
     usage: "Albedo to peak-temperature coefficient (~0.6-2.3K per +0.1 albedo)",
     category: "cooling-coefficients",
   },
+  {
+    id: "bowler2010",
+    authors: "Bowler et al. 2010",
+    year: 2010,
+    venue: "Landscape and Urban Planning 97:147-155",
+    doi: "10.1016/j.landurbplan.2010.05.006",
+    verified: true,
+    usage: "Park cool-island effect (~0.94C average daytime, meta-analysis) for the pocket-park simulator term",
+    category: "cooling-coefficients",
+  },
 ];
 
 const CITATIONS_BY_ID: Record<string, CitationEntry> = Object.fromEntries(
@@ -158,6 +168,7 @@ const CITATION_TEXT_TO_ID: [pattern: RegExp, id: string][] = [
   [/reid/i, "reid2009"],
   [/knowlton/i, "knowlton2014"],
   [/azhar/i, "azhar2017"],
+  [/bowler/i, "bowler2010"],
 ];
 
 export function matchCitationFromText(text: string): CitationEntry | undefined {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Sun, TreePine } from "lucide-react";
+import { Sun, TreePine, Trees } from "lucide-react";
 import Card from "../components/Card";
 import CoefficientSparkline from "../components/CoefficientSparkline";
 import { CANOPY_THRESHOLD_PCT, simulate } from "@/lib/coefficients";
@@ -9,13 +9,14 @@ import { CANOPY_THRESHOLD_PCT, simulate } from "@/lib/coefficients";
 export default function SimulatePanel() {
   const [canopyPct, setCanopyPct] = useState(40);
   const [albedoIncrease, setAlbedoIncrease] = useState(0.1);
+  const [parkAreaPct, setParkAreaPct] = useState(10);
 
-  const result = simulate(canopyPct, albedoIncrease);
+  const result = simulate(canopyPct, albedoIncrease, parkAreaPct);
 
   return (
     <div className="space-y-6">
       <Card>
-        <div className="grid gap-8 sm:grid-cols-2">
+        <div className="grid gap-8 sm:grid-cols-3">
           <div>
             <label htmlFor="canopy" className="flex items-center gap-2 text-sm font-medium text-foreground">
               <TreePine className="h-4 w-4 text-brand-emerald" aria-hidden />
@@ -61,6 +62,28 @@ export default function SimulatePanel() {
               supports treating the relationship as roughly linear.
             </p>
           </div>
+
+          <div>
+            <label htmlFor="park" className="flex items-center gap-2 text-sm font-medium text-foreground">
+              <Trees className="h-4 w-4 text-brand-emerald" aria-hidden />
+              Pocket-park coverage
+            </label>
+            <input
+              id="park"
+              type="range"
+              min={0}
+              max={100}
+              step={1}
+              value={parkAreaPct}
+              onChange={(e) => setParkAreaPct(Number(e.target.value))}
+              className="mt-3 w-full accent-brand-teal"
+            />
+            <p className="mt-1 font-mono text-sm text-muted-foreground">{parkAreaPct}% of ward area</p>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Bowler et al. 2010&apos;s meta-analysis found parks average ~0.94°C cooler than their
+              surroundings in the day; scaled here by the share of ward area converted.
+            </p>
+          </div>
         </div>
       </Card>
 
@@ -82,6 +105,13 @@ export default function SimulatePanel() {
             max={1.2}
             format={(v) => `${v.toFixed(2)}°C`}
           />
+          <CoefficientSparkline
+            mode="unidirectional"
+            label="From pocket parks"
+            value={result.parkC}
+            max={1.2}
+            format={(v) => `${v.toFixed(2)}°C`}
+          />
         </div>
         <p className="mt-4 text-sm text-foreground">
           Combined estimate: <span className="font-mono">{result.totalHeadlineC.toFixed(2)}°C</span>{" "}
@@ -95,8 +125,8 @@ export default function SimulatePanel() {
       <div className="rounded-xl border border-brand-teal/30 bg-brand-teal/5 p-4 text-sm text-muted-foreground">
         This is a cited coefficient estimator, not a trained model and not a validated climate
         simulation. The coefficients above are transferred from other cities&apos; studies, not
-        Mumbai-calibrated, and the two interventions are summed as independent illustrative terms,
-        not a coupled physical model.
+        Mumbai-calibrated, and the three interventions are summed as independent illustrative
+        terms, not a coupled physical model.
       </div>
     </div>
   );
