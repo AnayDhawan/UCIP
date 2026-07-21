@@ -10,7 +10,7 @@ block into a slide, trim to taste. Section 05 screenshots get captured Aug 3-5 d
 
 - **Project title:** UCIP: Urban Climate Intelligence Platform
 - **Student name:** Anay Dhawan
-- **School name:** [fill in]
+- **School name:** NES International School Mumbai
 - **Grade:** 11 (IBDP Year 1)
 - **Selected domain:** PLANET
 - **Focus area:** Urban heat resilience / climate adaptation decision-support
