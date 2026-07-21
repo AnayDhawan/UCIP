@@ -197,7 +197,7 @@ html {
    stay clearly distinct; dark mode's near-white text already has its own
    shadow doing that work, so it can keep a livelier, thinner scrim. */
 .mesh-hero-scrim {
-  background: color-mix(in oklab, var(--background) 50%, transparent);
+  background: color-mix(in oklab, var(--background) 20%, transparent);
 }
 .dark .mesh-hero-scrim {
   background: color-mix(in oklab, var(--background) 38%, transparent);
