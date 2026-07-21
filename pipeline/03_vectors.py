@@ -2,8 +2,9 @@
 
 Planned (sprint Aug 2):
 - Population density: WorldPop (GEE-hosted) or GHS-POP.
-- Elderly %: WorldPop age-sex structure (65+ share) — PROXY, stated openly in methodology.
-- Slum index: GHS-SMOD settlement class / built-up density + OSM — PROXY, stated openly.
+- Elderly %: WorldPop age-sex structure (60+ share) — PROXY, stated openly in methodology.
+  Pinned to WORLDPOP_YEAR below; India's most recent year in this GEE collection is 2020.
+- Slum index: real Datameet slumClusters.geojson boundaries (see below), not a modeled proxy.
 - Hospital access: OSM hospitals via osmnx; per-cell distance to nearest hospital.
 No data.gov.in / Census 2011 wrangling (council + Anay decision, 2026-07-11).
 
@@ -35,6 +36,12 @@ GEE_PROJECT = os.environ.get("GEE_PROJECT", "ucip-mum")
 UTM_CRS = "EPSG:32643"
 WGS84 = "EPSG:4326"
 
+# Most recent year WorldPop's age-sex collection publishes for India (verified live
+# 2026-07-21: only one India image exists, system:index "IND_2020"). Pinned explicitly
+# rather than left on .first() — an unpinned call would silently re-target a different
+# vintage the moment WorldPop adds a newer India image, with no code change to notice.
+WORLDPOP_YEAR = "2020"
+
 # WorldPop age-sex bands 60+ (both sexes) — elderly definition per methodology.
 ELDERLY_BANDS = [f"{sex}_{age}" for sex in ("M", "F") for age in ("60", "65", "70", "75", "80")]
 
@@ -48,7 +55,12 @@ def load_grid_fc(path: Path) -> ee.FeatureCollection:
 
 def pull_worldpop(grid_fc: ee.FeatureCollection) -> dict:
     """Total population + elderly population per cell, via GEE reduceRegions(sum)."""
-    img = ee.ImageCollection("WorldPop/GP/100m/pop_age_sex").filterBounds(grid_fc).first()
+    img = (
+        ee.ImageCollection("WorldPop/GP/100m/pop_age_sex")
+        .filterBounds(grid_fc)
+        .filter(ee.Filter.eq("system:index", f"IND_{WORLDPOP_YEAR}"))
+        .first()
+    )
     band_names = img.bandNames().getInfo()
 
     total_pop = img.select(band_names).reduce(ee.Reducer.sum()).rename("total_pop")

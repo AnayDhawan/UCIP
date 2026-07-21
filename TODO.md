@@ -56,7 +56,7 @@ entries). Aug 1-7 below is now deploy/hardening/rehearsal time, not first-build 
 | M3 | Mon Aug 3 | ~~HVI computed (PCA weights) + Leaflet choropleth~~ done 2026-07-18. ~~Capture choropleth screenshot~~ done, in `docs/media/` | F1 |
 | M4 | Tue Aug 4 | ~~Factor breakdown, NBS engine + plantability filter, ward cards~~ done 2026-07-18 (`WardCards.tsx`, plantability map layer). ~~Capture ward-card + NBS screenshots~~ done | F2 F3 F4 F7 |
 | M5 | Wed Aug 5 | 🔴 **PITCH DECK DUE**: ~~assemble deck~~ done 2026-07-18 (`docs/UCIP-Pitch-Deck.pdf`, school-name field still flagged for Anay). Also: Vercel deploy (not done), ~~methodology page~~ done, ~~sensitivity chart~~ done, README | F5 + deck |
-| M6 | Thu Aug 6 | ~~NDVI change (F6)~~ done 2026-07-18 (`09_ndvi_change.py`, map layer); demo-safe static mode + video backup still needed; F8/F9 only if green | F6 (+F8/F9) |
+| M6 | Thu Aug 6 | ~~NDVI change (F6)~~ done 2026-07-18 (`09_ndvi_change.py`, map layer); ~~demo-safe static mode~~ verified 2026-07-21 — dashboard was already 100% static-file-driven (no client-side Supabase/GEE calls), confirmed by blocking `*.supabase.co`/`earthengine.googleapis.com` at the fetch layer and walking the full judged flow with zero errors (screenshot: `docs/media/demo-safe-mode-methodology-2026-07-21.png`); 2-min video backup still needed; F8/F9 only if green | F6 (+F8/F9) |
 | M7 | Fri Aug 7 | 3-min narrative rehearsed, prototype hardening, deploy freeze | packaging |
 | M8 | Sat Aug 8 | 🔴 **PROTOTYPE SUBMISSION** (event day 1) | ship |
 

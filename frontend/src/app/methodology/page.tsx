@@ -181,8 +181,8 @@ export default function MethodologyPage() {
               <li>Land-surface temperature is not air temperature.</li>
               <li>Cooling coefficients are transferred from other cities, not Mumbai-calibrated.</li>
               <li>
-                Slum-density and elderly layers are proxies (WorldPop, mapped slum-cluster
-                boundaries, OSM), not ward-level census.
+                Slum-density and elderly layers are proxies (WorldPop 2020, the most recent year
+                available for India, and mapped slum-cluster boundaries, OSM), not ward-level census.
               </li>
               <li>The what-if estimator is a first-order estimate, not a validated climate model.</li>
               <li>The ecological plantability layer is coarse-resolution.</li>

@@ -39,8 +39,8 @@ openly (methodology §10): transferred from other cities, not Mumbai-calibrated.
 | Land Surface Temp | Landsat 8/9 C2 L2 (USGS) | GEE | Dry-season composite |
 | NDVI / green cover | Sentinel-2 or Landsat | GEE | Two dates for F6 |
 | Population density | WorldPop / GHS-POP | GEE | |
-| Elderly % | WorldPop age-sex structure | GEE | **PROXY** — stated in methodology |
-| Slum index | GHS-SMOD + OSM | GEE / Overpass | **PROXY** — stated in methodology |
+| Elderly % | WorldPop age-sex structure, 2020 (pinned in `03_vectors.py`; most recent year available for India) | GEE | **PROXY** — stated in methodology |
+| Slum index | Datameet `slumClusters.geojson` (mapped cluster boundaries) | `data/slumClusters.geojson` | **PROXY** — stated in methodology |
 | Hospitals | OpenStreetMap | osmnx / Overpass | Nearest-hospital distance |
 | Impervious / built-up | ESA WorldCover / GHSL | GEE | |
 | Ward boundaries | Datameet (`Municipal_Spatial_Data/Mumbai/BMC_Wards.geojson`) | `data/bmc_wards.geojson` | ✅ downloaded + validated 2026-07-12: 24 features, EPSG:4326, valid geometry |

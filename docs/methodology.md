@@ -39,6 +39,7 @@
 ## 10. Limitations (state these openly)
 - Land-surface temperature != air temperature.
 - Cooling coefficients transferred from other cities, not Mumbai-calibrated.
-- Slum-density and elderly layers are proxies (WorldPop/GHS-SMOD/OSM), not ward-level census.
+- Slum-density and elderly layers are proxies (WorldPop 2020 — most recent year available for
+  India — and mapped slum-cluster boundaries, OSM), not ward-level census.
 - Simulator is a first-order estimate, not a validated climate model.
 - Ecological plantability layer is coarse-resolution.

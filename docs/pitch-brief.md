@@ -51,8 +51,9 @@ housing (Mehrotra, Bardhan & Ramamritham 2018).
 **Data, facts, observations:**
 - Live satellite pipeline over Mumbai (Google Earth Engine): 12 Landsat 8/9 dry-season scenes,
   mean land-surface temperature 33.6 °C, mean NDVI 0.305, computed, not copied.
-- WorldPop age-sex rasters give elderly population per ward (e.g. ~235,000 men aged 60+ across
-  the metro bbox); OSM gives hospital locations; GHS-SMOD/OSM proxy the slum index.
+- WorldPop age-sex rasters (2020, the most recent year available for India) give elderly
+  population per ward (e.g. ~235,000 men aged 60+ across the metro bbox); OSM gives hospital
+  locations; real Datameet slum-cluster boundaries proxy the slum index.
 - Tree canopy cooling is nonlinear: below ~40% canopy, daytime cooling is negligible; 40→80%
   gives ≈1 °C (Ziter et al. 2019, PNAS). Cool roofs cut peak temperature ~0.6 K per +0.1 albedo,
   conservative end of the published range (Santamouris 2014).
