@@ -13,7 +13,7 @@ export default function Hero() {
             Mumbai&apos;s ward-level heat vulnerability,{" "}
             <span className="font-black">turned into decisions you can act on.</span>
           </h1>
-          <div className="mt-6 h-1.5 w-44 rounded-full bg-gradient-to-r from-brand-teal to-brand-emerald" />
+          <div className="mt-6 h-1.5 w-44 rounded-full bg-gradient-to-r from-[#fed976] to-[#4ade80]" />
           <p className="hero-text-shadow mt-6 max-w-xl text-lg leading-relaxed text-foreground">
             UCIP scores heat vulnerability across all 24 city wards using satellite and population
             data, then recommends what to build where: trees, cool roofs, or shaded cooling centres.
