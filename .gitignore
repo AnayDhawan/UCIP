@@ -41,7 +41,9 @@ Thumbs.db
 %TEMP%/
 .gif-frames/
 .playwright-mcp/
+frontend/.impeccable/
 *.log
 
 # Local planning (personal schedule data, never commit)
 BUILD-PLAN.md
+TODO.md
