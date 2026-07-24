@@ -49,9 +49,6 @@ generated from the current vector brand kit). Summary:
 - `frontend/src/app/{favicon.ico,icon.png,apple-icon.png}`: regenerated from `icon-512.png` (not
   from a "logo-small" variant; that asset was retired).
 - `frontend/public/og-image.png`, `site.webmanifest`.
-- `docs/brand/`: an earlier raster-only brand pass (wordmark-horizontal.png,
-  lockup-vertical-tagline.png, style-guide.png). Superseded by the vector kit above for in-app use;
-  kept for historical/large-format reference only.
 
 ## Components inventory
 

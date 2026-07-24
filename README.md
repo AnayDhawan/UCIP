@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/brand/wordmark-horizontal.png" alt="UCIP" width="360">
+<img src="docs/media/wordmark.svg" alt="UCIP" width="360">
 
 **A research-backed decision-support platform for Mumbai's ward-level heat vulnerability.**
 
@@ -18,8 +18,7 @@ arbitrary weights.
 
 > **Status: prototype live.** The full data pipeline, HVI computation, NBS engine, and a working
 > Leaflet frontend (choropleth, plantability layer, green-cover-change layer, ward cards,
-> methodology page) are built and running end-to-end on real Mumbai data. See
-> [docs/UCIP-Pitch-Deck.pdf](docs/UCIP-Pitch-Deck.pdf) for the full write-up.
+> methodology page) are built and running end-to-end on real Mumbai data.
 
 ![Demo](docs/media/demo.gif)
 
@@ -61,7 +60,7 @@ frontend/   Next.js 16 + TypeScript + Tailwind + Leaflet (map, ward cards, metho
 pipeline/   Python 3 + Google Earth Engine (grid, HVI, NBS rules, sensitivity check)
 supabase/   Postgres + PostGIS schema and migrations
 data/       Ward boundaries + committed GeoJSON snapshots (demo-safe fallback)
-docs/       Methodology, citations, pitch deck, brand assets
+docs/       Methodology, citations, screenshots
 ```
 
 ## Contributing

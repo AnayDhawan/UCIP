@@ -47,3 +47,9 @@ frontend/.impeccable/
 # Local planning (personal schedule data, never commit)
 BUILD-PLAN.md
 TODO.md
+
+# Competition-submission materials (kept local + EA copy only, not published)
+docs/UCIP-Pitch-Deck.pdf
+docs/pitch-deck.html
+docs/pitch-brief.md
+docs/prior-art.md
