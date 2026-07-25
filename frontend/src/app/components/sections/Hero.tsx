@@ -10,8 +10,9 @@ export default function Hero() {
         <div className="max-w-3xl animate-fade-up">
           <p className="hero-text-shadow kicker !text-foreground">Urban Climate Intelligence Platform</p>
           <h1 className="hero-text-shadow mt-4 text-3xl font-bold leading-[1.1] tracking-tight text-foreground sm:text-4xl md:text-5xl">
-            Mumbai&apos;s ward-level{" "}
-            <span className="whitespace-nowrap">heat vulnerability.</span>
+            Mumbai&apos;s ward-level
+            <br />
+            heat vulnerability.
           </h1>
           <div className="mt-6 h-1.5 w-44 rounded-full bg-gradient-to-r from-brand-teal to-brand-emerald" />
           <p className="hero-text-shadow mt-6 max-w-xl text-lg leading-relaxed text-foreground">
