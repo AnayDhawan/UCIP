@@ -6,18 +6,16 @@ export default function Hero() {
   return (
     <section className="relative overflow-hidden border-b border-border">
       <HeroGradient />
-      <div className="relative mx-auto max-w-5xl px-6 py-20 md:py-28">
+      <div className="relative mx-auto max-w-6xl px-6 py-20 sm:px-8 md:py-24">
         <div className="max-w-3xl animate-fade-up">
           <p className="hero-text-shadow kicker !text-foreground">Urban Climate Intelligence Platform</p>
-          <h1 className="hero-text-shadow mt-4 text-4xl font-bold leading-[1.08] tracking-tight text-foreground sm:text-5xl md:text-6xl">
-            Mumbai&apos;s ward-level heat vulnerability,{" "}
-            <span className="font-black">turned into decisions you can act on.</span>
+          <h1 className="hero-text-shadow mt-4 text-3xl font-bold leading-[1.1] tracking-tight text-foreground sm:text-4xl md:text-5xl">
+            Mumbai&apos;s ward-level{" "}
+            <span className="whitespace-nowrap">heat vulnerability.</span>
           </h1>
-          <div className="mt-6 h-1.5 w-44 rounded-full bg-gradient-to-r from-[#fbbf24] to-[#16a34a] dark:from-brand-teal dark:to-brand-emerald" />
+          <div className="mt-6 h-1.5 w-44 rounded-full bg-gradient-to-r from-brand-teal to-brand-emerald" />
           <p className="hero-text-shadow mt-6 max-w-xl text-lg leading-relaxed text-foreground">
-            UCIP scores heat vulnerability across all 24 city wards using satellite and population
-            data, then recommends what to build where: trees, cool roofs, or shaded cooling centres.
-            Every number is computed. Every claim cites its source.
+            Satellite and population data, scored ward by ward. Every number sourced.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Link
