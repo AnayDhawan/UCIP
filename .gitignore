@@ -16,6 +16,9 @@ __pycache__/
 # osmnx HTTP response cache (regenerable, not source data)
 pipeline/cache/
 
+# Natural Earth archives downloaded by 12_hero_region.py (re-fetched on demand)
+data/cache/
+
 # ad-hoc debug dumps
 *_debug.csv
 

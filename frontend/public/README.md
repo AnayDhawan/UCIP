@@ -35,7 +35,14 @@ and `brand-notes.txt` (the source brand sheet). For docs and large-format use.
 ## Data (fetched at runtime, do not rename)
 
 `wards_hvi.geojson`, `cells_nbs.geojson`, `cells_ndvi_change.geojson`,
-`nbs_recommendations.json`, `hvi_pca_log.json`, `sensitivity.json`, `sensitivity_chart.png`.
+`nbs_recommendations.json`, `hvi_pca_log.json`, `sensitivity.json`, `sensitivity_chart.png`,
+`ward_profiles.json`, `hero_city.json`, `hero_region.json`.
+
+`ward_profiles.json` (pipeline/10) rolls the per-cell indicators up to ward level and adds the
+comparison context the dashboard's ward dialog reads: city means, percentile, top driver, adjacent
+wards. `hero_city.json` (pipeline/11) is the landing hero's 3D model: the real BMC ward polygons
+projected, simplified and normalised. `hero_region.json` (pipeline/12) is the surrounding coast
+from Natural Earth 1:10m (public domain), rendered hazed as context only.
 
 Full gradient mark (`logo.svg`/`logo-dark.svg`) is brand-restricted to 48px and up and is not
 square (492x654). At nav/footer size, use `icon-192.png`/`icon-512.png` instead: a square,

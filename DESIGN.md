@@ -58,14 +58,30 @@ generated from the current vector brand kit). Summary:
   gradient; SSR-safe via `useSyncExternalStore`, no dynamic-import wrapper needed.
 - `WardChoropleth.tsx`: Leaflet map, 3-layer switcher (shadcn Tabs), CartoDB Positron tiles,
   click-to-select with a teal selection outline, `fitBounds()` to the ward extent on first load,
-  fullscreen mode (hides site chrome, keeps the layer box + legend + exit button, Escape to close),
-  and a Leaflet popup shown only in fullscreen (ward summary + top cited intervention + year) since
-  fullscreen hides the sidebar detail panel that would otherwise show it.
-- `WardPanel.tsx` (replaces the old `WardCards.tsx`): master-detail sidebar, not 24 stacked cards.
-  Default view is a compact searchable ranked list (search matches ward code or locality name, via
-  `lib/wardAreas.ts`); selecting a ward (list or map) shows a single rich detail panel. Selection is
-  synced through the URL (`?ward=`) via `dashboard/page.tsx`'s `useSearchParams`, not local state
-  alone, so browser Back steps back through selections instead of leaving the dashboard.
+  and fullscreen mode (hides site chrome, keeps the layer box + legend + exit button, Escape to
+  close). The fullscreen-only Leaflet popup was removed when `WardDialog` took over ward detail on
+  every viewport, fullscreen included.
+- `WardPanel.tsx` (replaces the old `WardCards.tsx`): the ranked ward list, not 24 stacked cards
+  and no longer master-detail. Compact searchable list (search matches ward code or locality name,
+  via `lib/wardAreas.ts`), with the selected row highlighted. Selection is synced through the URL
+  (`?ward=`) via `dashboard/page.tsx`'s `useSearchParams`, not local state alone, so browser Back
+  steps back through selections instead of leaving the dashboard.
+- `WardDialog.tsx` + `WardDetail.tsx` + `components/ui/dialog.tsx`: the single ward-detail surface,
+  opened by clicking a ward on any layer or in the list. Reads: localities, plain-language
+  description generated from the real indicators (`lib/wardProfile.ts` over
+  `public/ward_profiles.json`), a ward-versus-city table, percentile and top driver, clickable
+  neighbour chips, then the seven contribution bars (F2) and the cited interventions (F3). Sits at
+  `z-[2000]`, above the map chrome's `z-[1000]`. `dashboard/page.tsx`'s Escape handler is gated on
+  no dialog being open, or one press would close the dialog and exit fullscreen together.
+- `HeroCity.tsx` / `HeroCityScene.tsx`: the landing hero's subject. The 24 real BMC ward polygons
+  extruded in 3D, height and colour from their real HVI (same locked ramp, via `lib/hvi.ts`), on a
+  gently curved sphere-cap ground, with the Natural Earth coastline around them drawn unlit and
+  fogged back as out-of-focus context. North is up and nothing auto-rotates; hover names a ward.
+  `three` and `@react-three/fiber` load only through a dynamic import, and a no-WebGL client gets a
+  flat SVG of the same geometry instead. **Gotcha:** the fog colour is sampled from the live
+  `--background` through a 1x1 canvas, because the palette is authored in OKLCH and the browser
+  returns a computed `lab()` value that `THREE.Color` silently fails to parse (it renders white,
+  which shows up as a hard horizontal seam where the ground ends).
 - `Citation.tsx`, `lib/citations.ts`: single source of truth for all citations (from
   `docs/references.md`), three render modes (chip/full/marker) reused across methodology, the
   landing citation wall, and ward-card recommendations.
@@ -86,4 +102,11 @@ generated from the current vector brand kit). Summary:
 ## Banned (per impeccable + this repo)
 
 Side-stripe borders, gradient text, glassmorphism-by-default, hero-metric template, identical
-card grids, modal-first flows, em dashes in copy.
+card grids, em dashes in copy.
+
+**Ward detail is a deliberate exception to the modal-first ban.** The ban assumed the
+master-detail sidebar covered ward detail; it does not. `dashboard/page.tsx`'s `<aside>` is
+`hidden md:block` and is unmounted entirely in fullscreen, so between them the sidebar and the
+old fullscreen-only Leaflet popup left phones and fullscreen with no way to read a ward at all.
+`WardDialog` is now the single ward surface on every viewport, and the sidebar is a list again.
+Do not reintroduce modals elsewhere on this argument: the rule stands everywhere else.

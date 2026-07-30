@@ -187,4 +187,5 @@ export const SOURCES: SourceEntry[] = [
   { name: "OpenStreetMap contributors", use: "Hospital locations (ODbL)" },
   { name: "Datameet Municipal Spatial Data", use: "BMC ward boundaries and slum-cluster polygons" },
   { name: "CARTO / OpenStreetMap", use: "Basemap tiles on the dashboard" },
+  { name: "Natural Earth 1:10m physical", use: "Regional coastline behind the landing-page model (public domain)" },
 ];
