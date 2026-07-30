@@ -1,22 +1,23 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import type { Feature, FeatureCollection, Geometry } from "geojson";
+import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { areasForWard } from "@/lib/wardAreas";
 import { hviColor } from "@/lib/hvi";
-import type { WardProps } from "@/lib/wardTypes";
+import { useWardData } from "@/lib/useWardData";
+import WardDetail from "./WardDetail";
+import WardDetailHeader from "./WardDetailHeader";
 
 /**
- * The ranked ward list.
+ * The dashboard sidebar: a ranked, searchable ward list that hands the whole
+ * panel over to the selected ward's profile.
  *
- * This used to be a master-detail panel, with a whole second view for the
- * selected ward. That detail view now lives in WardDialog, which works on every
- * viewport and in fullscreen, where this `hidden md:block` aside does not
- * exist at all. What remains here is the list: the browsable, searchable index
- * into the map.
+ * Selecting a ward replaces the list rather than opening something on top of
+ * the map, so the choropleth stays fully visible and clickable while a ward is
+ * being read. The X returns to the list. Fullscreen and viewports below `md`
+ * have no sidebar to hand over, so those use WardDialog instead.
  */
 
 export default function WardPanel({
@@ -26,21 +27,8 @@ export default function WardPanel({
   selectedWardId: string | null;
   onSelectWard: (wardId: string | null) => void;
 }) {
-  const [wards, setWards] = useState<Feature<Geometry, WardProps>[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { wards, recs, profiles, error } = useWardData();
   const [search, setSearch] = useState("");
-
-  useEffect(() => {
-    fetch("/wards_hvi.geojson")
-      .then((r) => r.json() as Promise<FeatureCollection<Geometry, WardProps>>)
-      .then((wardsData) => {
-        const sorted = [...wardsData.features].sort(
-          (a, b) => (a.properties.rank ?? 99) - (b.properties.rank ?? 99)
-        );
-        setWards(sorted);
-      })
-      .catch((err) => setError(String(err)));
-  }, []);
 
   const filtered = useMemo(() => {
     if (!wards) return [];
@@ -55,6 +43,37 @@ export default function WardPanel({
 
   if (error) return <div className="p-4 text-sm text-destructive">Failed to load ward data: {error}</div>;
   if (!wards) return <div className="p-4 text-sm text-muted-foreground">Loading wards…</div>;
+
+  const selected = wards.find((f) => f.properties.ward_id === selectedWardId) ?? null;
+
+  if (selected) {
+    const props = selected.properties;
+    const wardRecs = (recs ?? [])
+      .filter((r) => r.ward_id === props.ward_id)
+      .sort((a, b) => a.priority - b.priority);
+
+    return (
+      <div className="flex h-full min-h-0 flex-col">
+        <WardDetailHeader
+          ward={props}
+          totalWards={profiles?.n_wards ?? wards.length}
+          onClose={() => onSelectWard(null)}
+        />
+        {/* type="always": the profile is taller than the panel, and a
+            hover-only scrollbar gave no cue that there was more below. */}
+        <ScrollArea type="always" className="min-h-0 flex-1">
+          <WardDetail
+            ward={props}
+            profile={profiles?.wards.find((w) => w.ward_id === props.ward_id) ?? null}
+            city={profiles?.city ?? null}
+            recs={wardRecs}
+            totalWards={profiles?.n_wards ?? wards.length}
+            onSelectWard={onSelectWard}
+          />
+        </ScrollArea>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full min-h-0 flex-col">

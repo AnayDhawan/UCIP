@@ -96,7 +96,9 @@ export default function WardDetail({
   const topDriver = profile ? describeTopDriver(profile) : null;
 
   return (
-    <div className="px-6 py-5">
+    // Sized for the sidebar, which is the narrowest place this renders; the
+    // dialog uses the same padding so a ward reads identically in both.
+    <div className="px-4 py-4">
       {areas.length > 0 && (
         <p className="text-sm leading-relaxed text-foreground/80">{areas.join(", ")}</p>
       )}

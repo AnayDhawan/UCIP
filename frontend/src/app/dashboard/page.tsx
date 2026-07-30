@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState, useSyncExternalStore } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import WardPanel from "../components/WardPanel";
 import WardDialog from "../components/WardDialog";
 import SiteHeader from "../components/SiteHeader";
@@ -12,6 +12,23 @@ const WardChoropleth = dynamic(() => import("../components/WardChoropleth"), {
   ssr: false,
   loading: () => <div className="p-8 text-zinc-500">Loading map…</div>,
 });
+
+/** Matches the `md` breakpoint the sidebar is gated on (`hidden md:block`). */
+const SIDEBAR_QUERY = "(min-width: 48rem)";
+
+function subscribeSidebar(callback: () => void) {
+  const mql = window.matchMedia(SIDEBAR_QUERY);
+  mql.addEventListener("change", callback);
+  return () => mql.removeEventListener("change", callback);
+}
+
+function getSidebarSnapshot() {
+  return window.matchMedia(SIDEBAR_QUERY).matches;
+}
+
+function getSidebarServerSnapshot() {
+  return false;
+}
 
 const HINT_KEY = "ucip-dashboard-hint-dismissed";
 const hintListeners = new Set<() => void>();
@@ -65,27 +82,42 @@ function FirstVisitHint() {
 }
 
 function DashboardContent() {
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const selectedWardId = searchParams.get("ward");
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const sidebarVisible = useSyncExternalStore(
+    subscribeSidebar,
+    getSidebarSnapshot,
+    getSidebarServerSnapshot
+  );
+  /** The sidebar shows the ward itself whenever it is on screen, so the dialog
+   *  is only for the cases where there is no sidebar. */
+  const dialogHandlesWard = isFullscreen || !sidebarVisible;
 
   /**
    * The URL is the source of truth for ward selection, not local state.
    * Selecting a ward pushes a new history entry (so browser Back steps back
    * to the list instead of leaving the dashboard entirely); clearing the
    * selection replaces the current entry instead of adding another one.
+   *
+   * Uses the History API rather than router.push/replace. This route is
+   * statically prerendered, and after a cold load of a URL that already
+   * carries `?ward=`, both router methods became silent no-ops: selecting a
+   * different ward or closing the panel left the URL, and therefore the
+   * selection, stuck on whatever was loaded. Next supports history.pushState
+   * and replaceState for search-param updates, and useSearchParams re-renders
+   * from them.
    */
   function selectWard(wardId: string | null) {
     const params = new URLSearchParams(searchParams.toString());
     if (wardId) {
       params.set("ward", wardId);
-      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+      window.history.pushState(null, "", `${pathname}?${params.toString()}`);
     } else {
       params.delete("ward");
       const qs = params.toString();
-      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+      window.history.replaceState(null, "", qs ? `${pathname}?${qs}` : pathname);
     }
   }
 
@@ -95,13 +127,15 @@ function DashboardContent() {
    * close the dialog and drop out of fullscreen at the same time.
    */
   useEffect(() => {
-    if (!isFullscreen || selectedWardId) return;
+    // Only skip when the dialog owns Escape; with the ward in the sidebar there
+    // is no dialog to close first, so Escape should still exit fullscreen.
+    if (!isFullscreen || (selectedWardId && dialogHandlesWard)) return;
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") setIsFullscreen(false);
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [isFullscreen, selectedWardId]);
+  }, [isFullscreen, selectedWardId, dialogHandlesWard]);
 
   return (
     <div className="flex h-screen flex-col bg-background">
@@ -130,7 +164,7 @@ function DashboardContent() {
       <WardDialog
         selectedWardId={selectedWardId}
         onSelectWard={selectWard}
-        compact={!isFullscreen}
+        enabled={dialogHandlesWard}
       />
     </div>
   );

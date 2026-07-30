@@ -44,7 +44,9 @@ export default function Hero() {
           </h1>
           <div className="mx-auto mt-6 h-1.5 w-44 rounded-full bg-gradient-to-r from-brand-teal to-brand-emerald md:mx-0" />
           <p className="hero-text-shadow mx-auto mt-6 max-w-xl text-lg leading-relaxed text-foreground md:mx-0">
-            Satellite and population data, scored ward by ward. Every number sourced.
+            Satellite and population data, scored ward by ward.
+            <br />
+            Every number sourced.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3 md:justify-start">
             <Link
