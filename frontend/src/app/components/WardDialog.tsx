@@ -1,6 +1,5 @@
 "use client";
 
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import WardDetail from "./WardDetail";
 import WardDetailHeader from "./WardDetailHeader";
@@ -62,7 +61,7 @@ export default function WardDialog({
           </DialogTitle>
         )}
 
-        <ScrollArea type="always" className="min-h-0 flex-1">
+        <div className="ward-scroll min-h-0 flex-1 overflow-y-auto">
           {error && (
             <p className="px-4 py-4 text-sm text-destructive">Failed to load ward data: {error}</p>
           )}
@@ -79,7 +78,7 @@ export default function WardDialog({
               onSelectWard={onSelectWard}
             />
           )}
-        </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );

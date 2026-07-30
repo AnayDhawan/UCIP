@@ -59,9 +59,10 @@ export default function WardPanel({
           totalWards={profiles?.n_wards ?? wards.length}
           onClose={() => onSelectWard(null)}
         />
-        {/* type="always": the profile is taller than the panel, and a
-            hover-only scrollbar gave no cue that there was more below. */}
-        <ScrollArea type="always" className="min-h-0 flex-1">
+        {/* Native scroller (see .ward-scroll in globals.css): the profile runs
+            taller than the panel and needs an unambiguous, always-present
+            scrollbar rather than an overlay one. */}
+        <div className="ward-scroll min-h-0 flex-1 overflow-y-auto">
           <WardDetail
             ward={props}
             profile={profiles?.wards.find((w) => w.ward_id === props.ward_id) ?? null}
@@ -70,7 +71,7 @@ export default function WardPanel({
             totalWards={profiles?.n_wards ?? wards.length}
             onSelectWard={onSelectWard}
           />
-        </ScrollArea>
+        </div>
       </div>
     );
   }
