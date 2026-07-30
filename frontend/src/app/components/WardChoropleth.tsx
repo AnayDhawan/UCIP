@@ -10,57 +10,12 @@ import { Maximize2, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { matchCitationFromText } from "@/lib/citations";
-import { areasForWard } from "@/lib/wardAreas";
-
-type NbsRec = {
-  ward_id: string;
-  intervention: string;
-  rationale: string;
-  citation: string;
-  priority: number;
-};
-
-type WardProps = {
-  ward_id: string;
-  ward_gid: number;
-  HVI: number | null;
-  rank: number | null;
-  n_cells: number | null;
-  [key: string]: unknown;
-};
-
-type CellNbsProps = {
-  grid_id: string;
-  ward_id: string;
-  plantable: boolean;
-  worldcover_class: number | null;
-  nbs_fired: boolean;
-  [key: string]: unknown;
-};
-
-type CellNdviProps = {
-  grid_id: string;
-  ward_id: string;
-  ndvi_delta: number | null;
-  change_class: "gained" | "stable" | "lost" | "unknown";
-  [key: string]: unknown;
-};
+import { hviColor as colorForHvi } from "@/lib/hvi";
+import type { CellNbsProps, CellNdviProps, WardProps } from "@/lib/wardTypes";
 
 type LayerId = "hvi" | "plantability" | "ndvi_change";
 
 const MUMBAI_CENTER: [number, number] = [19.076, 72.877];
-
-// Sequential ramp (ColorBrewer YlOrRd, colorblind-safe) — low HVI (cooler/safer)
-// to high HVI (hotter/more vulnerable).
-const HVI_COLORS = ["#ffffb2", "#fed976", "#feb24c", "#fd8d3c", "#f03b20", "#bd0026"];
-
-function colorForHvi(hvi: number | null): string {
-  if (hvi === null || Number.isNaN(hvi)) return "#cccccc";
-  const bins = [20, 35, 50, 65, 80];
-  const idx = bins.findIndex((b) => hvi < b);
-  return idx === -1 ? HVI_COLORS[HVI_COLORS.length - 1] : HVI_COLORS[idx];
-}
 
 /** Selected-ward outline, layered on top of whichever data layer is active. */
 function selectionStyle(wardId: string, selectedWardId: string | null): Partial<PathOptions> {
@@ -276,7 +231,10 @@ function FitToWardExtent({ wardsGeo }: { wardsGeo: FeatureCollection<Geometry, W
     if (fitted.current || !wardsGeo) return;
     const bounds = leafletGeoJSON(wardsGeo as GeoJSON.GeoJsonObject).getBounds();
     if (bounds.isValid()) {
-      map.fitBounds(bounds, { padding: [24, 24] });
+      // Tight padding plus the map's fractional zoomSnap: with the default
+      // whole-number snap, fitBounds rounds down and can throw away most of a
+      // zoom level, leaving the city noticeably smaller than the space allows.
+      map.fitBounds(bounds, { padding: [10, 10] });
       fitted.current = true;
     }
   }, [wardsGeo, map]);
@@ -309,7 +267,6 @@ export default function WardChoropleth({
   const [activeLayer, setActiveLayer] = useState<LayerId>("hvi");
   const [cache, setCache] = useState<Partial<Record<LayerId, FeatureCollection>>>({});
   const [error, setError] = useState<string | null>(null);
-  const [nbsRecs, setNbsRecs] = useState<NbsRec[]>([]);
 
   useEffect(() => {
     if (cache[activeLayer]) return;
@@ -322,21 +279,15 @@ export default function WardChoropleth({
       .catch((err) => setError(String(err)));
   }, [activeLayer, cache]);
 
-  useEffect(() => {
-    fetch("/nbs_recommendations.json")
-      .then((res) => res.json())
-      .then(setNbsRecs)
-      .catch(() => setNbsRecs([]));
-  }, []);
-
   const data = cache[activeLayer];
   const wardsGeo = (cache.hvi as FeatureCollection<Geometry, WardProps> | undefined) ?? null;
 
-  // Only isFullscreen forces a remount (it needs onEachFeature to rebind
-  // popups). Selection changes restyle the already-mounted layer in place via
-  // the ref below — remounting on every ward click would tear down and
-  // recreate the layer mid-click, which silently kills any popup Leaflet was
-  // about to open on that same click.
+  // Selection changes restyle the already-mounted layer in place via the ref
+  // below, and never go through `key`. Remounting on every ward click tears the
+  // layer down and recreates it mid-click, which silently swallows whatever
+  // Leaflet was doing with that same click. The popup this originally protected
+  // is gone (WardDialog covers fullscreen too), but the hazard is not: keep
+  // `key` for changes that genuinely need onEachFeature to rebind.
   const layerRef = useRef<LeafletGeoJSONLayer | null>(null);
   useEffect(() => {
     if (!layerRef.current) return;
@@ -346,43 +297,11 @@ export default function WardChoropleth({
     else layerRef.current.setStyle(styleNdviChange(selectedWardId) as (f?: Feature<Geometry>) => PathOptions);
   }, [selectedWardId, activeLayer]);
 
-  /** Ward summary + top cited intervention (with source and year), for the
-   *  fullscreen popup — fullscreen hides the sidebar detail panel, so this is
-   *  the only place that information is otherwise reachable from there. */
-  function popupHtml(wardId: string): string {
-    const p = wardsGeo?.features.find((f) => f.properties.ward_id === wardId)?.properties;
-    const areas = areasForWard(wardId);
-    const rec = nbsRecs.filter((r) => r.ward_id === wardId).sort((a, b) => a.priority - b.priority)[0];
-    const cited = rec ? matchCitationFromText(rec.citation) : undefined;
-
-    const hviLine = p
-      ? `<div style="font-size:12px;color:var(--muted-foreground);margin-top:2px;">HVI ${p.HVI !== null ? p.HVI.toFixed(1) : "n/a"} &middot; priority ${p.rank ?? "n/a"} of 24</div>`
-      : "";
-    const areasLine = areas.length
-      ? `<div style="font-size:11px;color:var(--muted-foreground);margin-top:4px;">${areas.join(", ")}</div>`
-      : "";
-    const sourceHtml = cited
-      ? `<a href="https://doi.org/${cited.doi}" target="_blank" rel="noopener noreferrer" style="color:var(--brand-teal);">${cited.authors}</a> &middot; ${cited.year}`
-      : rec
-        ? `<span style="font-style:italic;">${rec.citation}</span>`
-        : "";
-    const recBlock = rec
-      ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">
-           <div style="font-size:12px;font-weight:600;color:var(--foreground);">${rec.intervention}</div>
-           <div style="font-size:11px;color:var(--muted-foreground);margin-top:2px;">${rec.rationale}</div>
-           <div style="font-size:11px;color:var(--muted-foreground);margin-top:4px;">${sourceHtml}</div>
-         </div>`
-      : "";
-
-    return `<div style="min-width:200px;"><div style="font-size:14px;font-weight:700;color:var(--foreground);">Ward ${wardId}</div>${hviLine}${areasLine}${recBlock}</div>`;
-  }
-
+  /** Every layer resolves a click to a ward: the cell layers carry `ward_id`
+   *  too, so clicking a grid cell opens its parent ward. */
   function selectFrom<P extends { ward_id: string }>(feature: Feature<Geometry, P>, layer: Layer) {
     const wardId = feature.properties.ward_id;
     layer.on("click", () => onSelectWard?.(wardId));
-    if (isFullscreen) {
-      layer.bindPopup(popupHtml(wardId));
-    }
   }
 
   return (
@@ -429,7 +348,15 @@ export default function WardChoropleth({
         </div>
       )}
 
-      <MapContainer center={MUMBAI_CENTER} zoom={11} style={{ height: "100%", width: "100%" }}>
+      <MapContainer
+        center={MUMBAI_CENTER}
+        zoom={11}
+        // Quarter-step zooms so fitBounds can actually fill the container
+        // instead of rounding down to the next whole level.
+        zoomSnap={0.25}
+        zoomDelta={0.5}
+        style={{ height: "100%", width: "100%" }}
+      >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"

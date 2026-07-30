@@ -20,6 +20,14 @@
 - HVI = weighted sum, rescaled 0-100.
 - Explainability = per-factor contribution (weight x z-score), shown as a ranked bar breakdown. Transparent linear index — **no SHAP** (nothing black-box to explain).
 
+## 4b. Ward-level figures (what the ward dialog shows)
+- HVI, rank and the seven contributions come straight from `wards_hvi.geojson` (stage 05); the dialog never recomputes them.
+- The raw indicator figures are the **unweighted mean of the ward's member cells** (stage 10, `ward_profiles.json`). A ward with 2 cells and a ward with 61 cells are both simple means over their own cells, so small wards are noisier.
+- "Hotter than X%" is the ward's HVI percentile among the 24, derived from rank, not a separate statistic.
+- "Biggest driver" is the largest positive per-factor contribution, i.e. the same numbers as the bar breakdown, not a separate model.
+- Adjacency for the neighbour comparison is polygon touching on the BMC boundaries (stage 12 uses the same source for the landing-page coastline).
+- Caveats carried over from section 10: `elderly_pct` varies only about 1.6 points across the whole city, so it separates wards weakly and the copy does not lean on it; NDVI is reported as an index, never as a canopy percentage.
+
 ## 5. Sensitivity / validity
 - Weights perturbed +/-20%; ward priority ranking shown stable (chart). Addresses weight-transfer validity for Mumbai.
 

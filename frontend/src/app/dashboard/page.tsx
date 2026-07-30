@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import WardPanel from "../components/WardPanel";
+import WardDialog from "../components/WardDialog";
 import SiteHeader from "../components/SiteHeader";
 
 const WardChoropleth = dynamic(() => import("../components/WardChoropleth"), {
@@ -88,14 +89,19 @@ function DashboardContent() {
     }
   }
 
+  /**
+   * Escape exits fullscreen, but only when no ward dialog is open. Radix owns
+   * Escape while the dialog is up; without this guard a single press would
+   * close the dialog and drop out of fullscreen at the same time.
+   */
   useEffect(() => {
-    if (!isFullscreen) return;
+    if (!isFullscreen || selectedWardId) return;
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") setIsFullscreen(false);
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [isFullscreen]);
+  }, [isFullscreen, selectedWardId]);
 
   return (
     <div className="flex h-screen flex-col bg-background">
@@ -111,11 +117,21 @@ function DashboardContent() {
           />
         </div>
         {!isFullscreen && (
-          <aside className="hidden w-96 shrink-0 border-l border-border bg-background md:block">
+          // Narrower than it was: the list is an index into the map, not the
+          // main event, and every pixel it gives back goes to the map.
+          <aside className="hidden w-72 shrink-0 border-l border-border bg-background md:block lg:w-80">
             <WardPanel selectedWardId={selectedWardId} onSelectWard={selectWard} />
           </aside>
         )}
       </main>
+      {/* Outside <main> and outside the fullscreen guards on purpose: this is
+          the only ward-detail surface now, so it has to work in fullscreen and
+          below the md breakpoint, where the aside above does not exist. */}
+      <WardDialog
+        selectedWardId={selectedWardId}
+        onSelectWard={selectWard}
+        compact={!isFullscreen}
+      />
     </div>
   );
 }
