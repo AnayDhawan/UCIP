@@ -306,16 +306,18 @@ export default function WardChoropleth({
 
   return (
     <div className="absolute inset-0">
-      <Card className="absolute right-2 top-2 z-[1000] w-fit gap-0 bg-background/95 p-1.5 backdrop-blur-sm">
-        <div className="flex items-center gap-1">
+      <Card className="absolute right-2 top-2 z-[1000] w-fit gap-0 bg-background/95 p-1 backdrop-blur-sm">
+        <div className="flex items-center gap-0.5">
           <Tabs value={activeLayer} onValueChange={(v: string) => setActiveLayer(v as LayerId)}>
-            <TabsList aria-label="Map layer">
+            {/* Height is overridden through the same group-data variant the
+                primitive uses, so it wins rather than sitting alongside it. */}
+            <TabsList aria-label="Map layer" className="group-data-horizontal/tabs:h-7">
               {(Object.keys(LAYER_META) as LayerId[]).map((id) => (
                 <TabsTrigger
                   key={id}
                   value={id}
                   title={LAYER_META[id].caption}
-                  className="whitespace-nowrap px-2"
+                  className="whitespace-nowrap px-1.5 text-xs"
                 >
                   {LAYER_META[id].label}
                 </TabsTrigger>

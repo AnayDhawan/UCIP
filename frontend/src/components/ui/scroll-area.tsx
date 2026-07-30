@@ -46,7 +46,9 @@ function ScrollBar({
     >
       <ScrollAreaPrimitive.ScrollAreaThumb
         data-slot="scroll-area-thumb"
-        className="relative flex-1 rounded-full bg-border"
+        // Slightly stronger than --border: with type="always" the thumb is a
+        // permanent affordance, and at border strength it read as a hairline.
+        className="relative flex-1 rounded-full bg-muted-foreground/35"
       />
     </ScrollAreaPrimitive.ScrollAreaScrollbar>
   )

@@ -94,7 +94,15 @@ export default function WardDialog({
     >
       <DialogContent
         aria-describedby={undefined}
-        className={compact ? "max-w-sm max-h-[min(70dvh,100dvh-2rem)] text-[13px]" : undefined}
+        className={
+          compact
+            ? // Outside fullscreen the box sits against the right edge of the
+              // map, clear of the ward list, so the choropleth stays readable
+              // behind it. The offsets track the aside's width (w-72, lg:w-80)
+              // plus a gap; below md the aside is not rendered at all.
+              "max-w-sm max-h-[min(70dvh,100dvh-2rem)] text-[13px] left-auto translate-x-0 right-4 md:right-[19rem] lg:right-[21rem]"
+            : undefined
+        }
       >
         <DialogHeader>
           <div className="flex items-center gap-2">
@@ -121,7 +129,9 @@ export default function WardDialog({
           )}
         </DialogHeader>
 
-        <ScrollArea className="min-h-0 flex-1">
+        {/* type="always": Radix hides the scrollbar until hover by default, which
+            left no visible cue that the box scrolls. */}
+        <ScrollArea type="always" className="min-h-0 flex-1">
           {error && <p className="px-6 py-5 text-sm text-destructive">Failed to load ward data: {error}</p>}
           {!error && !props && (
             <p className="px-6 py-5 text-sm text-muted-foreground">Loading ward…</p>
