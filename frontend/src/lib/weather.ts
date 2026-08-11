@@ -1,7 +1,8 @@
 /**
- * Live current air temperature for Mumbai, via Open-Meteo (api.open-meteo.com) —
- * free, no API key, no rate-limit auth. Used by `LiveTempStrip` to give a real,
- * live number to contrast against the map's land-surface-temperature proxy.
+ * Live current air temperature for the configured city, via Open-Meteo
+ * (api.open-meteo.com) — free, no API key, no rate-limit auth. Used by
+ * `LiveTempStrip` to give a real, live number to contrast against the map's
+ * land-surface-temperature proxy.
  *
  * Deliberately returns `null` on any failure rather than a stale or fabricated
  * value: UCIP's own product rule is "numbers are real, never invented," and a
@@ -9,25 +10,25 @@
  * satellite data does.
  */
 
-const MUMBAI_LAT = 19.076;
-const MUMBAI_LON = 72.877;
+import type { CityConfig } from "./city";
+
 const FETCH_TIMEOUT_MS = 5000;
 
-export type MumbaiTemp = {
+export type CityTemp = {
   temperatureC: number;
   observedAt: string;
 };
 
-export async function fetchMumbaiTemp(): Promise<MumbaiTemp | null> {
+export async function fetchCityTemp(city: CityConfig): Promise<CityTemp | null> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
   try {
     const url = new URL("https://api.open-meteo.com/v1/forecast");
-    url.searchParams.set("latitude", String(MUMBAI_LAT));
-    url.searchParams.set("longitude", String(MUMBAI_LON));
+    url.searchParams.set("latitude", String(city.lat));
+    url.searchParams.set("longitude", String(city.lon));
     url.searchParams.set("current", "temperature_2m");
-    url.searchParams.set("timezone", "Asia/Kolkata");
+    url.searchParams.set("timezone", city.timezone);
 
     const res = await fetch(url.toString(), { signal: controller.signal });
     if (!res.ok) return null;

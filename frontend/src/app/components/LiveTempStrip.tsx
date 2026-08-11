@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Thermometer } from "lucide-react";
-import { fetchMumbaiTemp } from "@/lib/weather";
+import { MUMBAI } from "@/lib/city";
+import { fetchCityTemp } from "@/lib/weather";
 
 type Status = "loading" | "ok" | "unavailable";
 
 /**
- * Live Mumbai air temperature (Open-Meteo), framed as a methodology point rather
+ * Live air temperature (Open-Meteo), framed as a methodology point rather
  * than a decorative weather widget: it exists to make UCIP's own stated
  * LST-is-not-air-temperature limitation tangible with a real, live contrast.
  * On any fetch failure this shows an honest "unavailable" state — never a
@@ -20,7 +21,7 @@ export default function LiveTempStrip() {
 
   useEffect(() => {
     let cancelled = false;
-    fetchMumbaiTemp().then((result) => {
+    fetchCityTemp(MUMBAI).then((result) => {
       if (cancelled) return;
       if (result) {
         setTempC(result.temperatureC);
@@ -48,10 +49,10 @@ export default function LiveTempStrip() {
           />
         </span>
         <Thermometer className="h-4 w-4 shrink-0 text-brand-teal" aria-hidden />
-        {status === "loading" && <span className="text-foreground">Checking Mumbai now…</span>}
+        {status === "loading" && <span className="text-foreground">Checking {MUMBAI.name} now…</span>}
         {status === "ok" && tempC !== null && (
           <span className="text-foreground">
-            Mumbai now{" "}
+            {MUMBAI.name} now{" "}
             <span className="font-mono font-medium text-foreground">{tempC.toFixed(1)}°C</span> air
           </span>
         )}
