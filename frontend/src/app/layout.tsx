@@ -14,12 +14,36 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
+  metadataBase: new URL(siteUrl),
   title: "UCIP: Urban Climate Intelligence Platform",
   description: "Mumbai ward-level heat vulnerability decision-support platform.",
+  keywords: [
+    "urban heat vulnerability",
+    "Mumbai",
+    "urban planning",
+    "climate resilience",
+    "heat island",
+    "ward-level data",
+    "climate intelligence",
+  ],
   manifest: "/site.webmanifest",
+  robots: {
+    index: true,
+    follow: true,
+  },
   openGraph: {
+    title: "UCIP: Urban Climate Intelligence Platform",
+    description: "Mumbai ward-level heat vulnerability decision-support platform.",
+    url: siteUrl,
+    siteName: "UCIP",
+    images: ["/og-image.png"],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
     title: "UCIP: Urban Climate Intelligence Platform",
     description: "Mumbai ward-level heat vulnerability decision-support platform.",
     images: ["/og-image.png"],
