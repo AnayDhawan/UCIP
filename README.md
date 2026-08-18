@@ -63,6 +63,13 @@ data/       Ward boundaries + committed GeoJSON snapshots (demo-safe fallback)
 docs/       Methodology, citations, screenshots
 ```
 
+## Documentation
+
+- [docs/methodology.md](docs/methodology.md) - the HVI indicators, weights, NBS rules, and
+  plantability filter, mirroring the in-app `/methodology` page.
+- [docs/references.md](docs/references.md) - the citation table backing every variable and
+  weight, with DOIs.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Please read the [Code of Conduct](CODE_OF_CONDUCT.md)
