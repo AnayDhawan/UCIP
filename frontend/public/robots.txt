@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+
+# TODO: swap in the real production domain once one is documented (no domain
+# is committed anywhere in the repo yet, see NEXT_PUBLIC_SITE_URL in layout.tsx).
+Sitemap: https://ucip.example.com/sitemap.xml
