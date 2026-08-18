@@ -1,6 +1,6 @@
 "use client";
 
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import WardDetail from "./WardDetail";
 import WardDetailHeader from "./WardDetailHeader";
 import { useWardData } from "@/lib/useWardData";
@@ -43,11 +43,15 @@ export default function WardDialog({
       }}
     >
       <DialogContent
-        aria-describedby={undefined}
+        aria-describedby="ward-dialog-description"
         aria-labelledby="ward-dialog-title"
         showCloseButton={false}
         className="max-w-md"
       >
+        <DialogDescription id="ward-dialog-description" className="sr-only">
+          Detailed heat vulnerability index, greening data, and recommended
+          interventions for the selected Mumbai ward.
+        </DialogDescription>
         {props ? (
           <WardDetailHeader
             ward={props}
