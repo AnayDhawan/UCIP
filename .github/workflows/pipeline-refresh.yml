@@ -1,0 +1,121 @@
+# Scheduled data refresh (issue #58), on the cadence documented in
+# pipeline/README.md#refresh-cadence-issue-57: the pipeline is satellite- and
+# WorldPop-driven data that changes monthly at best, so this runs monthly, not
+# daily. Live weather is intentionally NOT run from here — it's fetched
+# client-side per page load by frontend/src/lib/weather.ts and needs no cron.
+#
+# NOT verified end-to-end: this workflow has never run against real Earth Engine
+# or Supabase credentials. This fork/PR has none configured, `earthengine
+# authenticate` cannot be run headlessly here, and there is no way to trigger a
+# live GitHub Actions run against upstream's secrets from a contributor's fork.
+# Every secret below is a placeholder name the maintainer needs to add under
+# Settings > Secrets > Actions before this can run for real. See the PR
+# description for exactly what was and wasn't testable.
+#
+# Required repo secrets:
+#   GEE_PROJECT                 Earth Engine project id (see .env.example)
+#   GEE_SERVICE_ACCOUNT_JSON    Full service-account key JSON (see pipeline/_gee_auth.py)
+#   NEXT_PUBLIC_SUPABASE_URL    Supabase project URL
+#   SUPABASE_SERVICE_ROLE_KEY   Supabase service-role key (server-side upsert only)
+
+name: Pipeline refresh
+
+on:
+  schedule:
+    # 03:17 UTC on the 1st of each month. Off the top of the hour on purpose —
+    # avoids piling onto GitHub's :00 cron stampede on shared runners.
+    - cron: "17 3 1 * *"
+  workflow_dispatch:
+    inputs:
+      include_spike:
+        description: "Also run 00_gee_spike.py as a GEE connectivity smoke test"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: pipeline-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+          cache: "pip"
+          cache-dependency-path: pipeline/requirements.txt
+
+      - name: Install pipeline dependencies
+        working-directory: pipeline
+        run: pip install -r requirements.txt
+
+      - name: Snapshot pre-refresh data/ as the diff baseline
+        # diff_snapshots.py (#61) needs the PREVIOUS run's output to compare
+        # against. Copying it before run_pipeline.py overwrites data/ is the
+        # cheapest way to have both "before" and "after" on disk at once.
+        run: cp -r data data-baseline
+
+      - name: Run orchestrated pipeline
+        working-directory: pipeline
+        env:
+          GEE_PROJECT: ${{ secrets.GEE_PROJECT }}
+          GEE_SERVICE_ACCOUNT_JSON: ${{ secrets.GEE_SERVICE_ACCOUNT_JSON }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          if [ "${{ inputs.include_spike }}" = "true" ]; then
+            python run_pipeline.py --include-spike
+          else
+            python run_pipeline.py
+          fi
+
+      - name: Compute alert-worthy diff against the previous run
+        working-directory: pipeline
+        run: |
+          python diff_snapshots.py \
+            --old-dir ../data-baseline \
+            --new-dir ../data \
+            --out ../data/pipeline_diff.json
+
+      - name: Upload run log and diff as workflow artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-refresh-${{ github.run_id }}
+          path: |
+            data/pipeline_run_log.json
+            data/pipeline_diff.json
+          if-no-files-found: warn
+
+      - name: Build PR body from the diff summary
+        id: diff_summary
+        run: |
+          echo "body<<PR_BODY_EOF" >> "$GITHUB_OUTPUT"
+          echo "Automated monthly pipeline refresh (schedule: \`17 3 1 * *\`, UTC)." >> "$GITHUB_OUTPUT"
+          echo "" >> "$GITHUB_OUTPUT"
+          python pipeline/format_diff_summary.py data/pipeline_diff.json >> "$GITHUB_OUTPUT"
+          echo "" >> "$GITHUB_OUTPUT"
+          echo "## Scope" >> "$GITHUB_OUTPUT"
+          echo "- This PR contains only regenerated pipeline output (data/, frontend/public/*.json)." >> "$GITHUB_OUTPUT"
+          echo "- Per-user \"saved ward\" alert filtering and email delivery are out of scope pending issue #59." >> "$GITHUB_OUTPUT"
+          echo "PR_BODY_EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Open a PR with the refreshed data
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "chore(pipeline): monthly automated data refresh"
+          branch: automated/pipeline-refresh
+          delete-branch: true
+          title: "Automated monthly pipeline refresh"
+          body: ${{ steps.diff_summary.outputs.body }}
+          labels: automated,data-refresh
+          add-paths: |
+            data/**
+            frontend/public/*.json
