@@ -24,3 +24,21 @@ jobs:
       - run: npm run lint
       - run: npm run build
       - run: npm test --if-present
+
+  pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: pipeline/requirements.txt
+      - run: pip install -r pipeline/requirements.txt
+      - run: pip install ruff==0.12.1
+      - run: ruff check pipeline/
+      - run: |
+          for f in pipeline/*.py; do
+            echo "checking $f"
+            python -c "import ast; ast.parse(open('$f').read())"
+          done

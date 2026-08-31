@@ -1,10 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  hviColor,
-  HVI_COLORS,
-  HVI_NO_DATA_COLOR,
-  HVI_BIN_MAX,
-} from "./hvi";
+import { hviColor, HVI_COLORS, HVI_NO_DATA_COLOR } from "./hvi";
 
 describe("hviColor", () => {
   it("returns no-data gray for null", () => {
