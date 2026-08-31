@@ -25,6 +25,9 @@ data/cache/
 # run_pipeline.py's per-run log (regenerated every refresh, not source data)
 data/pipeline_run_log.json
 
+# diff_snapshots.py's output (regenerated per refresh)
+data/pipeline_diff.json
+
 # Env / secrets
 .env
 .env.*

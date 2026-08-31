@@ -24,3 +24,16 @@ jobs:
       - run: npm run lint
       - run: npm run build
       - run: npm test --if-present
+
+  pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+      # Only pytest, not pipeline/requirements.txt's geospatial/GEE stack: the tests
+      # under pipeline/tests/ exercise diff_snapshots.py, which has no third-party
+      # dependencies (stdlib json only), so this stays a fast, credential-free check.
+      - run: pip install -r pipeline/requirements-dev.txt
+      - run: pytest pipeline/tests/

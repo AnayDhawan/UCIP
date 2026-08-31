@@ -1,0 +1,4 @@
+# Test-only dependencies. diff_snapshots.py itself has no third-party dependencies
+# (stdlib json only), so this stays separate from requirements.txt's geospatial stack
+# and can be installed on its own in CI.
+pytest
