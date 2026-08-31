@@ -5,6 +5,9 @@ rasterio
 shapely
 scikit-learn
 pandas
+numpy
+scipy
 osmnx
 matplotlib
 supabase
+python-dotenv
