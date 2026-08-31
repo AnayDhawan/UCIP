@@ -23,6 +23,8 @@ import urllib.request
 
 import ee
 
+from _gee_auth import init_ee
+
 # ---------------------------------------------------------------- config ----
 GEE_PROJECT = os.environ.get("GEE_PROJECT", "ucip-mumbai")
 
@@ -48,7 +50,7 @@ def mask_l2_clouds(img: ee.Image) -> ee.Image:
 
 
 def main() -> int:
-    ee.Initialize(project=GEE_PROJECT)
+    init_ee(GEE_PROJECT)
     print(f"[ok] Earth Engine initialized (project={GEE_PROJECT})")
 
     region = ee.Geometry.Rectangle(TEST_BBOX)

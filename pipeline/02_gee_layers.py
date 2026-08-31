@@ -20,6 +20,8 @@ from pathlib import Path
 
 import ee
 
+from _gee_auth import init_ee
+
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 GRID_PATH = DATA_DIR / "grid_1km.geojson"
 OUT_PATH = DATA_DIR / "grid_1km_gee.geojson"
@@ -77,7 +79,7 @@ def main() -> int:
         print(f"[FAIL] {GRID_PATH} not found — run 01_grid.py first.")
         return 1
 
-    ee.Initialize(project=GEE_PROJECT)
+    init_ee(GEE_PROJECT)
     print(f"[ok] Earth Engine initialized (project={GEE_PROJECT})")
 
     grid_fc = load_grid_fc(GRID_PATH)

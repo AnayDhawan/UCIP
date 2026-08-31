@@ -35,6 +35,8 @@ from pathlib import Path
 import ee
 import geopandas as gpd
 
+from _gee_auth import init_ee
+
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 IN_PATH = DATA_DIR / "cells_hvi.geojson"
 OUT_CELLS_PATH = DATA_DIR / "cells_nbs.geojson"
@@ -55,7 +57,7 @@ def load_grid_fc(gdf: gpd.GeoDataFrame) -> ee.FeatureCollection:
 
 
 def pull_landcover_and_flood_proxy(gdf: gpd.GeoDataFrame) -> dict:
-    ee.Initialize(project=GEE_PROJECT)
+    init_ee(GEE_PROJECT)
     grid_fc = load_grid_fc(gdf)
     worldcover = ee.ImageCollection("ESA/WorldCover/v200").first()
 

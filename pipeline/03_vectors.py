@@ -26,6 +26,8 @@ import ee
 import geopandas as gpd
 import osmnx as ox
 
+from _gee_auth import init_ee
+
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 GRID_PATH = DATA_DIR / "grid_1km_gee.geojson"
 WARDS_PATH = DATA_DIR / "bmc_wards.geojson"
@@ -140,7 +142,7 @@ def main() -> int:
     grid_gdf = gpd.read_file(GRID_PATH)
     print(f"[ok] loaded {len(grid_gdf)} grid cells")
 
-    ee.Initialize(project=GEE_PROJECT)
+    init_ee(GEE_PROJECT)
     print(f"[ok] Earth Engine initialized (project={GEE_PROJECT})")
     grid_fc = load_grid_fc(GRID_PATH)
 
