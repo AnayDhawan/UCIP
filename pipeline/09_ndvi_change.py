@@ -22,9 +22,16 @@ from pathlib import Path
 import geopandas as gpd
 import pandas as pd
 
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+from _publish import publish
+
+ROOT = Path(__file__).resolve().parent.parent
+DATA_DIR = ROOT / "data"
 IN_PATH = DATA_DIR / "cells_hvi.geojson"
 OUT_PATH = DATA_DIR / "cells_ndvi_change.geojson"
+# WardChoropleth.tsx's green-cover-change layer fetches this straight from the
+# browser, so it needs a frontend/public/ copy on every refresh, same as
+# 10_ward_profile.py/11_hero_city.py/12_hero_region.py already do for theirs.
+OUT_PUBLIC_PATH = ROOT / "frontend" / "public" / "cells_ndvi_change.geojson"
 
 GAIN_THRESHOLD = 0.05
 LOSS_THRESHOLD = -0.05
@@ -69,9 +76,18 @@ def main() -> int:
     print(f"[ok] wrote {len(out)} cells with NDVI-change classification -> {OUT_PATH}")
 
     # ------------------------------------------------------- sanity checks --
+    # Runs BEFORE the frontend/public copy below, on purpose -- see 05_hvi.py's
+    # matching comment.
     counts = out["change_class"].value_counts().to_dict()
     print(f"\nclass counts: {counts}")
     ok = counts.get("unknown", 0) < 0.1 * len(out)
+
+    if ok:
+        publish(OUT_PATH, OUT_PUBLIC_PATH)
+    else:
+        print(f"[WARN] sanity check failed -- NOT copying to {OUT_PUBLIC_PATH}; "
+              "the live site keeps serving its previous cells_ndvi_change.geojson")
+
     print("GO" if ok else "CHECK WARNINGS: too many 'unknown' cells")
     return 0 if ok else 2
 

@@ -28,19 +28,28 @@ Run:
 """
 
 import json
-import os
 import sys
 from pathlib import Path
 
 import ee
 import geopandas as gpd
 
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+from _gee_auth import init_ee, resolve_project
+from _publish import publish
+
+ROOT = Path(__file__).resolve().parent.parent
+DATA_DIR = ROOT / "data"
 IN_PATH = DATA_DIR / "cells_hvi.geojson"
 OUT_CELLS_PATH = DATA_DIR / "cells_nbs.geojson"
 OUT_WARD_RECS_PATH = DATA_DIR / "nbs_recommendations.json"
+# Both files are fetched directly by the browser (WardChoropleth.tsx's plantability
+# layer reads cells_nbs.geojson; useWardData.ts reads nbs_recommendations.json for the
+# dashboard's per-ward NBS list), so both need a frontend/public/ copy on every
+# refresh, same as 10_ward_profile.py/11_hero_city.py/12_hero_region.py already do.
+OUT_CELLS_PUBLIC_PATH = ROOT / "frontend" / "public" / "cells_nbs.geojson"
+OUT_WARD_RECS_PUBLIC_PATH = ROOT / "frontend" / "public" / "nbs_recommendations.json"
 
-GEE_PROJECT = os.environ.get("GEE_PROJECT", "ucip-mum")
+GEE_PROJECT = resolve_project()
 ZONAL_SCALE = 10  # WorldCover native resolution
 
 WORLDCOVER_GRASSLAND = 30
@@ -55,7 +64,7 @@ def load_grid_fc(gdf: gpd.GeoDataFrame) -> ee.FeatureCollection:
 
 
 def pull_landcover_and_flood_proxy(gdf: gpd.GeoDataFrame) -> dict:
-    ee.Initialize(project=GEE_PROJECT)
+    init_ee(GEE_PROJECT)
     grid_fc = load_grid_fc(gdf)
     worldcover = ee.ImageCollection("ESA/WorldCover/v200").first()
 
@@ -189,6 +198,10 @@ def main() -> int:
     print(f"[ok] wrote {len(ward_recs_list)} ward-level recommendation rows -> {OUT_WARD_RECS_PATH}")
 
     # ------------------------------------------------------- sanity checks --
+    # Runs BEFORE the frontend/public copies below, on purpose -- see 05_hvi.py's
+    # matching comment. Both files are gated on the same "ok" so a run that fails this
+    # check publishes neither a stale-relative-to-cells_nbs recommendations file nor a
+    # stale-relative-to-recommendations cells file; they stay a matched pair.
     ok = True
     wards_with_recs = {r["ward_id"] for r in all_recs}
     if len(wards_with_recs) < 15:
@@ -197,6 +210,14 @@ def main() -> int:
     if n_rejected_grassland == 0:
         print("[WARN] plantability filter never rejected a grassland cell — check WorldCover class mapping")
     print(f"\n{len(all_recs)} recommendation rows fired across {len(wards_with_recs)} wards")
+
+    if ok:
+        publish(OUT_CELLS_PATH, OUT_CELLS_PUBLIC_PATH)
+        publish(OUT_WARD_RECS_PATH, OUT_WARD_RECS_PUBLIC_PATH)
+    else:
+        print(f"[WARN] sanity check failed -- NOT copying to {OUT_CELLS_PUBLIC_PATH} or "
+              f"{OUT_WARD_RECS_PUBLIC_PATH}; the live site keeps serving its previous NBS output")
+
     print("GO" if ok else "CHECK WARNINGS")
     return 0 if ok else 2
 

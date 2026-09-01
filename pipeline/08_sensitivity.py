@@ -29,11 +29,21 @@ from scipy.stats import kendalltau
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+from _publish import publish
+
+ROOT = Path(__file__).resolve().parent.parent
+DATA_DIR = ROOT / "data"
 CELLS_PATH = DATA_DIR / "cells.geojson"
 PCA_LOG_PATH = DATA_DIR / "hvi_pca_log.json"
 OUT_JSON_PATH = DATA_DIR / "sensitivity.json"
 OUT_CHART_PATH = DATA_DIR / "sensitivity_chart.png"
+# sensitivity.json itself is read server-side straight out of data/ (see
+# frontend/src/app/methodology/page.tsx's readJson, which resolves "../data/..." from
+# frontend/), so it needs no copy. The chart PNG is different: methodology/page.tsx
+# renders it as a plain <img src="/sensitivity_chart.png">, a browser-fetched static
+# asset, so it has to land in frontend/public/ on every refresh like the other
+# browser-fetched outputs.
+OUT_CHART_PUBLIC_PATH = ROOT / "frontend" / "public" / "sensitivity_chart.png"
 
 INDICATORS_DIRECTION = {
     "LST_C": 1, "NDVI": -1, "pop_density_km2": 1, "elderly_pct": 1,
@@ -136,9 +146,18 @@ def main() -> int:
     print(f"[ok] wrote chart -> {OUT_CHART_PATH}")
 
     # ------------------------------------------------------- sanity checks --
+    # Runs BEFORE the frontend/public copy below, on purpose -- see 05_hvi.py's
+    # matching comment.
     ok = mean_tau > 0.7 and mean_overlap >= TOP_N - 1
     print(f"\nmean Kendall tau={mean_tau:.3f}, mean top-{TOP_N} overlap={mean_overlap:.1f}/{TOP_N}, "
           f"all runs fully stable={all_stable}")
+
+    if ok:
+        publish(OUT_CHART_PATH, OUT_CHART_PUBLIC_PATH)
+    else:
+        print(f"[WARN] sanity check failed -- NOT copying to {OUT_CHART_PUBLIC_PATH}; "
+              "the live site keeps serving its previous sensitivity_chart.png")
+
     print("GO: ranking stable under perturbation." if ok else "CHECK: ranking sensitive to some weight(s) — inspect sensitivity.json.")
     return 0 if ok else 2
 
