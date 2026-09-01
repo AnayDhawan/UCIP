@@ -69,13 +69,23 @@ class Stage:
     script: str
     cadence: str  # "monthly" (satellite/demographic-driven) or "manual" (dev-only gate)
     description: str
-    default: bool = True  # included in a plain `run_pipeline.py` with no flags
+
+    @property
+    def default(self) -> bool:
+        """Whether this stage runs in a plain `run_pipeline.py` with no flags.
+
+        Derived from cadence rather than stored as its own field: right now "manual"
+        cadence and "excluded from the default run" are the same one bit of
+        information (only 00_gee_spike.py is either), and a second, separately-set
+        field for it would just be a second place that bit could drift out of sync
+        as more stages are added later.
+        """
+        return self.cadence != "manual"
 
 
 STAGES: list[Stage] = [
     Stage("00", "00_gee_spike.py", "manual",
-          "Day-0 GEE go/no-go smoke test. Not part of a real refresh; excluded by default.",
-          default=False),
+          "Day-0 GEE go/no-go smoke test. Not part of a real refresh; excluded by default."),
     Stage("01", "01_grid.py", "monthly",
           "Build the 1km grid from BMC ward boundaries. Boundaries essentially never change."),
     Stage("02", "02_gee_layers.py", "monthly",
@@ -110,7 +120,22 @@ class StageResult:
     stage: Stage
     returncode: int | None
     seconds: float
-    status: str  # "ok" | "warn" | "fail" | "skipped"
+
+    @property
+    def status(self) -> str:
+        """"ok" | "warn" | "fail" | "skipped", derived from returncode rather than
+        stored separately: the mapping is a pure function of the exit code a stage's
+        script process actually returned (None for a dry-run stage that never ran), so
+        keeping it as its own field would just be the same information twice, with the
+        two copies free to disagree if one were ever updated without the other.
+        """
+        if self.returncode is None:
+            return "skipped"
+        if self.returncode == 0:
+            return "ok"
+        if self.returncode == 2:
+            return "warn"
+        return "fail"
 
 
 @dataclass
@@ -146,19 +171,36 @@ def parse_stage_ids(raw: str) -> list[str]:
 
 
 def select_stages(args: argparse.Namespace) -> list[Stage]:
+    """Pick which stages to run.
+
+    --only names stages explicitly, and naming a non-default stage (00) that way IS
+    the opt-in: no reason to also require --include-spike when the user just typed
+    "00" themselves. --from applies the same rule for consistency: --from 00 starts
+    the chain AT 00, which only makes sense if the caller meant to include it, so it
+    is treated as its own opt-in too, exactly like --only 00 already was. Without
+    --only or --from naming 00 directly, --include-spike is still required, so a
+    plain `run_pipeline.py` keeps excluding the dev-only spike stage by default.
+    """
     if args.only:
-        return [STAGE_BY_ID[i] for i in parse_stage_ids(args.only)]
+        ids = parse_stage_ids(args.only)
+        explicit_spike = "00" in ids
+        stages = [STAGE_BY_ID[i] for i in ids]
+        if not args.include_spike and not explicit_spike:
+            stages = [s for s in stages if s.default]
+        return stages
 
     ids_in_order = [s.id for s in STAGES]
     start = 0
+    explicit_spike = False
     if args.from_stage:
         start_id = args.from_stage.strip().zfill(2)
         if start_id not in STAGE_BY_ID:
             raise SystemExit(f"unknown --from stage id: {start_id}")
         start = ids_in_order.index(start_id)
+        explicit_spike = start_id == "00"
 
     selected = STAGES[start:]
-    if not args.include_spike:
+    if not args.include_spike and not explicit_spike:
         selected = [s for s in selected if s.default]
     return selected
 
@@ -170,21 +212,15 @@ def run_stage(stage: Stage, dry_run: bool) -> StageResult:
     if dry_run:
         print("[dry-run] would execute: "
               f"{sys.executable} {script_path}")
-        return StageResult(stage, None, 0.0, "skipped")
+        return StageResult(stage, None, 0.0)
 
     start = time.monotonic()
     proc = subprocess.run([sys.executable, str(script_path)], cwd=PIPELINE_DIR)
     elapsed = time.monotonic() - start
 
-    if proc.returncode == 0:
-        status = "ok"
-    elif proc.returncode == 2:
-        status = "warn"
-    else:
-        status = "fail"
-
-    print(f"[{stage.id}] {stage.script} finished in {elapsed:.1f}s -> exit {proc.returncode} ({status})")
-    return StageResult(stage, proc.returncode, elapsed, status)
+    result = StageResult(stage, proc.returncode, elapsed)
+    print(f"[{stage.id}] {stage.script} finished in {elapsed:.1f}s -> exit {proc.returncode} ({result.status})")
+    return result
 
 
 def main() -> int:
