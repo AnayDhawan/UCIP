@@ -315,18 +315,26 @@ export default function WardChoropleth({
     // Enter/Space, mirroring the click handler. The focus ring is drawn with
     // CSS (see the global rule below) so it stays visible without touching
     // Leaflet's own styling.
-    const el = (layer as Path).getElement?.() as HTMLElement | undefined;
-    if (el) {
+    // Leaflet calls onEachFeature *before* the layer is added to the map, so
+    // getElement() is undefined at this point — defer until the 'add' event
+    // when the <path> actually exists in the DOM.
+    const pathLayer = layer as Path;
+    const attachKeyboard = () => {
+      const el = pathLayer.getElement?.() as HTMLElement | undefined;
+      if (!el) return;
       el.setAttribute("tabindex", "0");
       el.setAttribute("role", "button");
       el.setAttribute("aria-label", `Select ward ${wardId}`);
-      el.addEventListener("keydown", (e: KeyboardEvent) => {
+      const onKeyDown = (e: KeyboardEvent) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           onSelectWard?.(wardId);
         }
-      });
-    }
+      };
+      el.addEventListener("keydown", onKeyDown);
+      layer.once("remove", () => el.removeEventListener("keydown", onKeyDown));
+    };
+    layer.once("add", attachKeyboard);
   }
 
   return (
