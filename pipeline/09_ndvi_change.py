@@ -16,15 +16,21 @@ Run:
     python 09_ndvi_change.py
 """
 
+import shutil
 import sys
 from pathlib import Path
 
 import geopandas as gpd
 import pandas as pd
 
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+ROOT = Path(__file__).resolve().parent.parent
+DATA_DIR = ROOT / "data"
 IN_PATH = DATA_DIR / "cells_hvi.geojson"
 OUT_PATH = DATA_DIR / "cells_ndvi_change.geojson"
+# WardChoropleth.tsx's green-cover-change layer fetches this straight from the
+# browser, so it needs a frontend/public/ copy on every refresh, same as
+# 10_ward_profile.py/11_hero_city.py/12_hero_region.py already do for theirs.
+OUT_PUBLIC_PATH = ROOT / "frontend" / "public" / "cells_ndvi_change.geojson"
 
 GAIN_THRESHOLD = 0.05
 LOSS_THRESHOLD = -0.05
@@ -67,6 +73,10 @@ def main() -> int:
     out = gdf[out_cols]
     out.to_file(OUT_PATH, driver="GeoJSON")
     print(f"[ok] wrote {len(out)} cells with NDVI-change classification -> {OUT_PATH}")
+
+    OUT_PUBLIC_PATH.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(OUT_PATH, OUT_PUBLIC_PATH)
+    print(f"[ok] copied -> {OUT_PUBLIC_PATH}")
 
     # ------------------------------------------------------- sanity checks --
     counts = out["change_class"].value_counts().to_dict()

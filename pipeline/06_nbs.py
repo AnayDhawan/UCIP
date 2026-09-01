@@ -29,6 +29,7 @@ Run:
 
 import json
 import os
+import shutil
 import sys
 from pathlib import Path
 
@@ -37,10 +38,17 @@ import geopandas as gpd
 
 from _gee_auth import init_ee
 
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+ROOT = Path(__file__).resolve().parent.parent
+DATA_DIR = ROOT / "data"
 IN_PATH = DATA_DIR / "cells_hvi.geojson"
 OUT_CELLS_PATH = DATA_DIR / "cells_nbs.geojson"
 OUT_WARD_RECS_PATH = DATA_DIR / "nbs_recommendations.json"
+# Both files are fetched directly by the browser (WardChoropleth.tsx's plantability
+# layer reads cells_nbs.geojson; useWardData.ts reads nbs_recommendations.json for the
+# dashboard's per-ward NBS list), so both need a frontend/public/ copy on every
+# refresh, same as 10_ward_profile.py/11_hero_city.py/12_hero_region.py already do.
+OUT_CELLS_PUBLIC_PATH = ROOT / "frontend" / "public" / "cells_nbs.geojson"
+OUT_WARD_RECS_PUBLIC_PATH = ROOT / "frontend" / "public" / "nbs_recommendations.json"
 
 GEE_PROJECT = os.environ.get("GEE_PROJECT", "ucip-mum")
 ZONAL_SCALE = 10  # WorldCover native resolution
@@ -171,6 +179,10 @@ def main() -> int:
     gdf.to_file(OUT_CELLS_PATH, driver="GeoJSON")
     print(f"[ok] wrote {len(gdf)} cells with NBS flags -> {OUT_CELLS_PATH}")
 
+    OUT_CELLS_PUBLIC_PATH.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(OUT_CELLS_PATH, OUT_CELLS_PUBLIC_PATH)
+    print(f"[ok] copied -> {OUT_CELLS_PUBLIC_PATH}")
+
     # ------------------------------------------------- ward-level rollup --
     ward_recs = {}
     for r in all_recs:
@@ -189,6 +201,10 @@ def main() -> int:
     ward_recs_list = sorted(ward_recs.values(), key=lambda r: (r["ward_id"], r["priority"]))
     OUT_WARD_RECS_PATH.write_text(json.dumps(ward_recs_list, indent=2), encoding="utf-8")
     print(f"[ok] wrote {len(ward_recs_list)} ward-level recommendation rows -> {OUT_WARD_RECS_PATH}")
+
+    OUT_WARD_RECS_PUBLIC_PATH.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(OUT_WARD_RECS_PATH, OUT_WARD_RECS_PUBLIC_PATH)
+    print(f"[ok] copied -> {OUT_WARD_RECS_PUBLIC_PATH}")
 
     # ------------------------------------------------------- sanity checks --
     ok = True

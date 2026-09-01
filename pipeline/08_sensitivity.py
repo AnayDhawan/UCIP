@@ -18,6 +18,7 @@ Run:
 """
 
 import json
+import shutil
 import sys
 from pathlib import Path
 
@@ -29,11 +30,19 @@ from scipy.stats import kendalltau
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+ROOT = Path(__file__).resolve().parent.parent
+DATA_DIR = ROOT / "data"
 CELLS_PATH = DATA_DIR / "cells.geojson"
 PCA_LOG_PATH = DATA_DIR / "hvi_pca_log.json"
 OUT_JSON_PATH = DATA_DIR / "sensitivity.json"
 OUT_CHART_PATH = DATA_DIR / "sensitivity_chart.png"
+# sensitivity.json itself is read server-side straight out of data/ (see
+# frontend/src/app/methodology/page.tsx's readJson, which resolves "../data/..." from
+# frontend/), so it needs no copy. The chart PNG is different: methodology/page.tsx
+# renders it as a plain <img src="/sensitivity_chart.png">, a browser-fetched static
+# asset, so it has to land in frontend/public/ on every refresh like the other
+# browser-fetched outputs.
+OUT_CHART_PUBLIC_PATH = ROOT / "frontend" / "public" / "sensitivity_chart.png"
 
 INDICATORS_DIRECTION = {
     "LST_C": 1, "NDVI": -1, "pop_density_km2": 1, "elderly_pct": 1,
@@ -134,6 +143,10 @@ def main() -> int:
     plt.tight_layout()
     fig.savefig(OUT_CHART_PATH, dpi=150)
     print(f"[ok] wrote chart -> {OUT_CHART_PATH}")
+
+    OUT_CHART_PUBLIC_PATH.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(OUT_CHART_PATH, OUT_CHART_PUBLIC_PATH)
+    print(f"[ok] copied -> {OUT_CHART_PUBLIC_PATH}")
 
     # ------------------------------------------------------- sanity checks --
     ok = mean_tau > 0.7 and mean_overlap >= TOP_N - 1

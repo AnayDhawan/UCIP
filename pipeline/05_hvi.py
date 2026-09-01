@@ -17,6 +17,7 @@ Run:
 """
 
 import json
+import shutil
 import sys
 from pathlib import Path
 
@@ -24,11 +25,18 @@ import geopandas as gpd
 import numpy as np
 from sklearn.decomposition import PCA
 
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+ROOT = Path(__file__).resolve().parent.parent
+DATA_DIR = ROOT / "data"
 IN_PATH = DATA_DIR / "cells.geojson"
 OUT_CELLS_PATH = DATA_DIR / "cells_hvi.geojson"
 OUT_WARDS_PATH = DATA_DIR / "wards_hvi.geojson"
 OUT_METHOD_PATH = DATA_DIR / "hvi_pca_log.json"
+# wards_hvi.geojson is what the frontend actually reads at request time (server-side
+# in page.tsx via fs, client-side via fetch in useWardData.ts and WardChoropleth.tsx),
+# so it has to land in frontend/public/, not just data/, on every refresh -- the same
+# "write to data/ AND frontend/public/" pattern 10_ward_profile.py, 11_hero_city.py and
+# 12_hero_region.py already use for their own outputs.
+OUT_WARDS_PUBLIC_PATH = ROOT / "frontend" / "public" / "wards_hvi.geojson"
 
 # direction: +1 means "higher raw value = more vulnerable", -1 = inverted (methodology.md §3)
 INDICATORS = {
@@ -127,6 +135,10 @@ def main() -> int:
     wards_out = wards.merge(ward_hvi, on="ward_id", how="left")
     wards_out.to_file(OUT_WARDS_PATH, driver="GeoJSON")
     print(f"[ok] wrote {len(wards_out)} wards with ranked HVI -> {OUT_WARDS_PATH}")
+
+    OUT_WARDS_PUBLIC_PATH.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(OUT_WARDS_PATH, OUT_WARDS_PUBLIC_PATH)
+    print(f"[ok] copied -> {OUT_WARDS_PUBLIC_PATH}")
 
     OUT_METHOD_PATH.write_text(json.dumps({
         "explained_variance_pc1": explained_var_1,

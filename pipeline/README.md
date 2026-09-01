@@ -41,6 +41,39 @@ A stage script's exit code means: `0` clean pass, `2` ran but a sanity check fla
 "CHECK WARNINGS" (non-fatal, e.g. the PCA fallback triggering), `1` hard failure. The
 runner stops the chain on `1` and continues past `2`.
 
+## Frontend sync
+
+A refresh is only real if the live site actually serves it. The deployed frontend
+reads its data from `frontend/public/`, not from `data/` directly (see
+`frontend/src/lib/useWardData.ts`, `frontend/src/app/components/WardChoropleth.tsx`,
+and `frontend/src/app/page.tsx`), so every stage whose output the browser fetches at
+runtime writes to both places in the same run, not just `data/`:
+
+| Stage | Writes to `data/` | Also copies to `frontend/public/` |
+|-------|--------------------|------------------------------------|
+| `05_hvi.py` | `wards_hvi.geojson` | yes |
+| `06_nbs.py` | `cells_nbs.geojson`, `nbs_recommendations.json` | yes, both |
+| `08_sensitivity.py` | `sensitivity_chart.png` | yes |
+| `09_ndvi_change.py` | `cells_ndvi_change.geojson` | yes |
+| `10_ward_profile.py` | `ward_profiles.json` | yes (already did this before #56) |
+| `11_hero_city.py` | `hero_city.json` | yes (already did this before #56) |
+| `12_hero_region.py` | `hero_region.json` | yes (already did this before #56) |
+
+`sensitivity.json` and `hvi_pca_log.json` are the two exceptions: the methodology page
+(`frontend/src/app/methodology/page.tsx`) reads them server-side straight out of
+`../data/`, so they need no `frontend/public/` copy at all. `sensitivity_chart.png` is
+different from `sensitivity.json` even though both come from `08_sensitivity.py`: the
+chart is rendered as a plain `<img src="/sensitivity_chart.png">`, a browser-fetched
+static asset, so it does need the copy.
+
+Before this, only `10`-`12` copied their own output to `frontend/public/`; `05`, `06`,
+`08`, and `09`'s outputs were kept in sync by a one-time hand copy when the repo was
+first built, not by anything a refresh would repeat. A pipeline run would have quietly
+kept writing correct data to `data/` while the live site kept serving whatever was
+hand-copied into `frontend/public/` at that one point in time, indefinitely. All four
+now copy their own output the same way `10`-`12` already did, so this can't recur
+silently for any stage added later either, as long as it follows the same pattern.
+
 ## Refresh cadence (issue #57)
 
 **Every stage below runs on a monthly cadence, not daily, because the data underneath
