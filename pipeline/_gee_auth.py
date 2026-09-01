@@ -28,6 +28,19 @@ activates when someone deliberately set it up for this pipeline.
 
 Neither variable is set in this fork/branch and no live GEE credentials were used to
 test this path; see the PR description for what remains unverified.
+
+Project-id resolution is also centralized here (resolve_project()) rather than left to
+each stage's own `os.environ.get("GEE_PROJECT", "<default>")` line: before this module
+existed, that line was copy-pasted into 00, 02, 03, and 06 with two different literal
+defaults ("ucip-mumbai" in 00, matching .env.example; "ucip-mum", missing the second
+syllable, in 02/03/06) that nobody had ever needed to reconcile, since 00 is a
+standalone smoke test that never runs in the same process as the others. Now that
+run_pipeline.py chains all of them in one CI job, and pipeline-refresh.yml's
+GEE_PROJECT resolution step supports leaving the secret unset entirely (issue #58),
+that drift became load-bearing: a run with no GEE_PROJECT secret configured would
+authenticate stage 00 against "ucip-mumbai" and stages 02/03/06 against "ucip-mum" in
+the same CI run. One shared resolve_project() means there is only one default left to
+get right.
 """
 
 from __future__ import annotations
@@ -37,14 +50,33 @@ import os
 
 import ee
 
+# The project id every stage falls back to when GEE_PROJECT isn't set in the
+# environment. Matches .env.example's documented GEE_PROJECT=ucip-mumbai.
+DEFAULT_PROJECT = "ucip-mumbai"
 
-def init_ee(project: str) -> None:
+
+def resolve_project() -> str:
+    """The GEE project id to use: GEE_PROJECT from the environment if set, else
+    DEFAULT_PROJECT. The single place this lookup happens, so every GEE-calling stage
+    resolves to the same project by construction instead of by each stage's own
+    copy-pasted os.environ.get(..., "<default>") agreeing (or not) with the others.
+    """
+    return os.environ.get("GEE_PROJECT", DEFAULT_PROJECT)
+
+
+def init_ee(project: str | None = None) -> None:
     """Initialize Earth Engine, using a service account if one is configured.
 
     Falls back to the pre-existing `ee.Initialize(project=project)` behavior (relies on
     locally persisted `earthengine authenticate` credentials) when neither service
     account variable is set, so this is a strict superset of the previous behavior.
+
+    `project` defaults to resolve_project() when not given explicitly, so a caller that
+    just wants "the configured project" doesn't have to resolve it itself first.
     """
+    if project is None:
+        project = resolve_project()
+
     key_json = os.environ.get("GEE_SERVICE_ACCOUNT_JSON")
     key_path = os.environ.get("GEE_SERVICE_ACCOUNT_KEY_FILE")
 

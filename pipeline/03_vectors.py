@@ -18,7 +18,6 @@ Run:
 """
 
 import json
-import os
 import sys
 from pathlib import Path
 
@@ -26,7 +25,7 @@ import ee
 import geopandas as gpd
 import osmnx as ox
 
-from _gee_auth import init_ee
+from _gee_auth import init_ee, resolve_project
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 GRID_PATH = DATA_DIR / "grid_1km_gee.geojson"
@@ -34,7 +33,7 @@ WARDS_PATH = DATA_DIR / "bmc_wards.geojson"
 SLUMS_PATH = DATA_DIR / "slumClusters.geojson"
 OUT_PATH = DATA_DIR / "grid_1km_vectors.geojson"
 
-GEE_PROJECT = os.environ.get("GEE_PROJECT", "ucip-mum")
+GEE_PROJECT = resolve_project()
 UTM_CRS = "EPSG:32643"
 WGS84 = "EPSG:4326"
 

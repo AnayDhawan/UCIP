@@ -14,19 +14,18 @@ Run:
 """
 
 import json
-import os
 import sys
 from pathlib import Path
 
 import ee
 
-from _gee_auth import init_ee
+from _gee_auth import init_ee, resolve_project
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 GRID_PATH = DATA_DIR / "grid_1km.geojson"
 OUT_PATH = DATA_DIR / "grid_1km_gee.geojson"
 
-GEE_PROJECT = os.environ.get("GEE_PROJECT", "ucip-mum")
+GEE_PROJECT = resolve_project()
 
 # Same dry-season window validated by the Day-0 spike (00_gee_spike.py).
 CURR_START, CURR_END = "2025-11-01", "2026-02-28"

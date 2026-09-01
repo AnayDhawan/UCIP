@@ -17,16 +17,15 @@ Run:
     python 00_gee_spike.py
 """
 
-import os
 import sys
 import urllib.request
 
 import ee
 
-from _gee_auth import init_ee
+from _gee_auth import init_ee, resolve_project
 
 # ---------------------------------------------------------------- config ----
-GEE_PROJECT = os.environ.get("GEE_PROJECT", "ucip-mumbai")
+GEE_PROJECT = resolve_project()
 
 # Small test bbox: central Mumbai (roughly Dadar/Sion belt). One ward-sized area.
 TEST_BBOX = [72.83, 19.00, 72.92, 19.08]  # [west, south, east, north]

@@ -1,12 +1,15 @@
 """Tests for _gee_auth.py's env-var routing.
 
-Needs the `ee` package (and, transitively, `cryptography`) to construct a real
-credentials object, so this is skipped when only requirements-dev.txt is installed
-(the lightweight "pipeline" CI job) and runs when the full pipeline/requirements.txt
-stack is present. See pipeline/README.md.
+Needs the `ee` package and `cryptography` (both listed in requirements-dev.txt) to
+construct a real credentials object, so this runs as part of the CI "pipeline" job
+(.github/workflows/ci.yml), which installs requirements-dev.txt. The pytest.importorskip
+calls below are a fallback for running this file directly in an environment with
+neither installed (e.g. a bare `pytest pipeline/tests/` with nothing pip-installed at
+all) -- they make that a clean skip instead of a collection error, not a statement
+that CI itself skips this file.
 
 Run:
-    pip install -r requirements.txt
+    pip install -r requirements-dev.txt
     pytest pipeline/tests/test_gee_auth.py
 """
 
@@ -117,3 +120,32 @@ def test_missing_client_email_raises(monkeypatch):
 
     with pytest.raises(ValueError, match="client_email"):
         _gee_auth.init_ee("proj-x")
+
+
+def test_resolve_project_falls_back_to_default(monkeypatch):
+    """Regression test for the pre-existing "ucip-mumbai" (00_gee_spike.py, matching
+    .env.example) vs "ucip-mum" (02/03/06, typo) drift: every GEE-calling stage now
+    calls this one function instead of its own os.environ.get(..., "<default>") line,
+    so there is exactly one default left to get right.
+    """
+    monkeypatch.delenv("GEE_PROJECT", raising=False)
+    assert _gee_auth.resolve_project() == _gee_auth.DEFAULT_PROJECT == "ucip-mumbai"
+
+
+def test_resolve_project_respects_env_var(monkeypatch):
+    monkeypatch.setenv("GEE_PROJECT", "some-other-project")
+    assert _gee_auth.resolve_project() == "some-other-project"
+
+
+def test_init_ee_defaults_project_to_resolve_project(monkeypatch, captured_init_calls):
+    """init_ee(), called with no project argument at all, must resolve the same
+    project a caller would get from resolve_project() itself -- not silently
+    initialize against ee.Initialize's own unrelated default.
+    """
+    monkeypatch.delenv("GEE_SERVICE_ACCOUNT_JSON", raising=False)
+    monkeypatch.delenv("GEE_SERVICE_ACCOUNT_KEY_FILE", raising=False)
+    monkeypatch.delenv("GEE_PROJECT", raising=False)
+
+    _gee_auth.init_ee()
+
+    assert captured_init_calls == [{"credentials": "persistent", "project": "ucip-mumbai"}]
