@@ -133,7 +133,7 @@ jobs:
           python pipeline/format_diff_summary.py data/pipeline_diff.json >> "$GITHUB_OUTPUT"
           echo "" >> "$GITHUB_OUTPUT"
           echo "## Scope" >> "$GITHUB_OUTPUT"
-          echo "- This PR contains only regenerated pipeline output (data/, frontend/public/*.json)." >> "$GITHUB_OUTPUT"
+          echo "- This PR contains only regenerated pipeline output (data/, frontend/public/)." >> "$GITHUB_OUTPUT"
           echo "- Per-user \"saved ward\" alert filtering and email delivery are out of scope pending issue #59." >> "$GITHUB_OUTPUT"
           echo "PR_BODY_EOF" >> "$GITHUB_OUTPUT"
 
@@ -146,6 +146,17 @@ jobs:
           title: "Automated monthly pipeline refresh"
           body: ${{ steps.diff_summary.outputs.body }}
           labels: automated,data-refresh
+          # Every extension the pipeline actually writes into frontend/public/ (see
+          # pipeline/README.md's "Frontend sync" table): *.json alone used to miss the
+          # .geojson layers (wards_hvi, cells_nbs, cells_ndvi_change) and the
+          # sensitivity chart .png this same PR added, which would have made every
+          # scheduled refresh silently commit nbs_recommendations.json while leaving
+          # the map/NBS/NDVI-change layers and the chart stale indefinitely. Matching
+          # unrelated static assets (logos, icons, robots.txt) under these globs is
+          # harmless: add-paths only stages files git already sees as changed, and the
+          # pipeline never touches those.
           add-paths: |
             data/**
             frontend/public/*.json
+            frontend/public/*.geojson
+            frontend/public/*.png
