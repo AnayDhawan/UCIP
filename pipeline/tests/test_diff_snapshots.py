@@ -150,6 +150,76 @@ def test_green_cover_flip_uses_ward_majority_class():
         assert change.new_class == "lost"
 
 
+def test_green_cover_flags_ward_disappearing_from_new_run(tmp_path):
+    """Regression test: diff_rank flags a ward dropping out of the ranking, and
+    diff_nbs flags every intervention for a ward as "removed" when the ward
+    disappears entirely -- but diff_green_cover used to just `continue` (skip) a ward
+    present in old but missing from new, reporting it as zero change instead of the
+    same kind of data-quality regression the other two diffs already surface.
+    """
+    old_dir = tmp_path / "old"
+    new_dir = tmp_path / "new"
+    old_dir.mkdir()
+    new_dir.mkdir()
+
+    _write_ndvi_change(old_dir, [{"ward_id": "A", "change_class": "stable"}])
+    # Ward A has no cells at all in the new run.
+    _write_ndvi_change(new_dir, [{"ward_id": "B", "change_class": "gained"}])
+
+    result = compute_diff(old_dir, new_dir)
+
+    by_ward = {c.ward_id: c for c in result.green_cover_changes}
+    assert "A" in by_ward, "ward A disappearing must be reported, not silently skipped"
+    assert by_ward["A"].old_class == "stable"
+    assert by_ward["A"].new_class is None
+
+
+def test_green_cover_flags_ward_newly_appearing_in_new_run(tmp_path):
+    """Symmetric case: a ward with no PREVIOUS classification (e.g. a ward that just
+    got its first-ever NDVI-change data) is reported too, matching diff_rank's
+    "newly ranked" case for consistency.
+    """
+    old_dir = tmp_path / "old"
+    new_dir = tmp_path / "new"
+    old_dir.mkdir()
+    new_dir.mkdir()
+
+    _write_ndvi_change(old_dir, [{"ward_id": "B", "change_class": "gained"}])
+    _write_ndvi_change(new_dir, [
+        {"ward_id": "A", "change_class": "lost"},
+        {"ward_id": "B", "change_class": "gained"},
+    ])
+
+    result = compute_diff(old_dir, new_dir)
+
+    by_ward = {c.ward_id: c for c in result.green_cover_changes}
+    assert "A" in by_ward
+    assert by_ward["A"].old_class is None
+    assert by_ward["A"].new_class == "lost"
+    assert "B" not in by_ward  # unchanged, correctly not reported
+
+
+def test_main_labels_disappeared_ward_in_green_cover_output(tmp_path, monkeypatch, capsys):
+    old_dir = tmp_path / "old"
+    new_dir = tmp_path / "new"
+    old_dir.mkdir()
+    new_dir.mkdir()
+
+    _write_ndvi_change(old_dir, [{"ward_id": "A", "change_class": "stable"}])
+    _write_ndvi_change(new_dir, [{"ward_id": "B", "change_class": "gained"}])
+
+    monkeypatch.setattr(
+        sys, "argv",
+        ["diff_snapshots.py", "--old-dir", str(old_dir), "--new-dir", str(new_dir)],
+    )
+    exit_code = main()
+    out = capsys.readouterr().out
+
+    assert exit_code == 0
+    assert "A: stable -> MISSING" in out
+    assert "data-quality regression" in out
+
+
 def test_partial_baseline_does_not_produce_false_full_diff(tmp_path):
     """Regression test: an old_dir that has wards_hvi.geojson but NOT
     nbs_recommendations.json used to be treated as "has a baseline" globally (because

@@ -147,7 +147,10 @@ class NbsChange:
 class GreenCoverChange:
     ward_id: str
     old_class: Optional[str]
-    new_class: str
+    # None means the ward has NO classification in the new run at all -- its cells
+    # vanished from cells_ndvi_change.geojson, a data-quality regression worth
+    # surfacing, not "no green-cover change." See diff_green_cover.
+    new_class: Optional[str]
 
 
 @dataclass
@@ -224,10 +227,22 @@ def diff_nbs(old: dict[str, set[str]], new: dict[str, set[str]]) -> list[NbsChan
 
 
 def diff_green_cover(old: dict[str, str], new: dict[str, str]) -> list[GreenCoverChange]:
+    """Same union-over-both-runs pattern as diff_rank/diff_nbs above: iterate every
+    ward that appears in EITHER run, not just wards present in the new run.
+
+    A ward can only be legitimately absent from the union's *union* if it never had a
+    classification in either run, in which case o == n == None and nothing is
+    reported. A ward present in old but missing from new (o is not None, n is None)
+    is a real event -- its cells vanished from cells_ndvi_change.geojson entirely,
+    which diff_rank already flags as "dropped from ranking" and diff_nbs already
+    flags as every intervention being "removed." Silently skipping it here (the
+    previous behavior) hid that same class of data-quality regression instead of
+    surfacing it the way the other two diffs do.
+    """
     changes = []
     for ward_id in sorted(set(old) | set(new)):
         o, n = old.get(ward_id), new.get(ward_id)
-        if n is None or o == n:
+        if o == n:
             continue
         changes.append(GreenCoverChange(ward_id, o, n))
     return changes
@@ -325,9 +340,15 @@ def main() -> int:
         if c.removed:
             print(f"  {c.ward_id}: - {', '.join(c.removed)}")
 
-    print(f"\n{len(result.green_cover_changes)} ward(s) with a green-cover classification flip")
+    print(f"\n{len(result.green_cover_changes)} ward(s) with a green-cover classification change")
     for c in result.green_cover_changes:
-        print(f"  {c.ward_id}: {c.old_class} -> {c.new_class}")
+        if c.new_class is None:
+            print(f"  {c.ward_id}: {c.old_class} -> MISSING (ward has no cells in the new "
+                  "cells_ndvi_change.geojson -- data-quality regression, not \"no change\")")
+        elif c.old_class is None:
+            print(f"  {c.ward_id}: (no previous classification) -> {c.new_class}")
+        else:
+            print(f"  {c.ward_id}: {c.old_class} -> {c.new_class}")
 
     print("\nGO")
     return 0
