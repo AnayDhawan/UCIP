@@ -1,4 +1,12 @@
-# Test-only dependencies. diff_snapshots.py itself has no third-party dependencies
-# (stdlib json only), so this stays separate from requirements.txt's geospatial stack
-# and can be installed on its own in CI.
+# Test-only dependencies, installed on their own in CI rather than pulling in
+# requirements.txt's full geospatial/GEE stack (geopandas, rasterio, osmnx,
+# scikit-learn, scipy, matplotlib, supabase -- none of which pipeline/tests/ needs).
 pytest
+
+# For pipeline/tests/test_gee_auth.py: the `ee` package (earthengine-api) so
+# ee.ServiceAccountCredentials/ee.Initialize exist to monkeypatch, and `cryptography`
+# to generate a throwaway RSA key for the test fixtures. No real Earth Engine
+# credentials or network access are used -- ee.Initialize is monkeypatched in every
+# test, so this stays credential-free like the rest of this file.
+earthengine-api
+cryptography
