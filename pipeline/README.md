@@ -118,6 +118,12 @@ recommendations added/removed, and green-cover classification flips. It is a pla
 diff over pipeline artifacts, with no notion of user accounts or saved wards. See the
 script's own docstring and the PR description for what is and is not in scope.
 
+Each of the three categories is only diffed if its own file existed in the "before"
+directory (`had_rank_baseline`/`had_nbs_baseline`/`had_green_cover_baseline` in the
+output), independently of the other two. A partial "before" directory, e.g. an
+interrupted first refresh, reports the categories it has no baseline for as not-diffed
+rather than as a false wall of changes for every ward.
+
 ```bash
 python diff_snapshots.py --old-dir /path/to/previous/data --new-dir ../data --out ../data/pipeline_diff.json
 ```

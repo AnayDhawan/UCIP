@@ -83,11 +83,13 @@ def load_nbs_by_ward(data_dir: Path) -> dict[str, set[str]]:
         return {}
     out: dict[str, set[str]] = {}
     for r in recs:
-        ward_id = str(r.get("ward_id"))
+        ward_id = r.get("ward_id")
         intervention = r.get("intervention")
-        if not ward_id or not intervention:
+        # Check for None BEFORE stringifying: str(None) == "None", a real string, which
+        # would otherwise slip a missing ward_id through as a phantom ward called "None".
+        if ward_id is None or not intervention:
             continue
-        out.setdefault(ward_id, set()).add(intervention)
+        out.setdefault(str(ward_id), set()).add(intervention)
     return out
 
 
@@ -97,6 +99,12 @@ def load_green_cover_by_ward(data_dir: Path) -> dict[str, str]:
     rolls the cell-level classification up to the single class that describes the
     ward overall, the same "majority" logic a reader means by "did this ward gain or
     lose canopy."
+
+    Ties (two classes with the same cell count) are broken alphabetically by class
+    name, not by which class happened to appear first in the GeoJSON's feature order.
+    Feature order isn't guaranteed stable across GEE exports, so breaking ties on it
+    would let the reported "majority" flip between two runs with an identical count
+    distribution and nothing having actually changed.
     """
     gj = _load_json(data_dir / NDVI_CHANGE_FILENAME)
     if gj is None:
@@ -109,7 +117,13 @@ def load_green_cover_by_ward(data_dir: Path) -> dict[str, str]:
         if ward_id is None or change_class is None:
             continue
         classes_by_ward.setdefault(str(ward_id), Counter())[change_class] += 1
-    return {ward_id: counter.most_common(1)[0][0] for ward_id, counter in classes_by_ward.items()}
+
+    result: dict[str, str] = {}
+    for ward_id, counter in classes_by_ward.items():
+        top_count = max(counter.values())
+        tied_classes = sorted(cls for cls, count in counter.items() if count == top_count)
+        result[ward_id] = tied_classes[0]
+    return result
 
 
 @dataclass
@@ -143,13 +157,24 @@ class DiffResult:
     rank_changes: list[RankChange]
     nbs_changes: list[NbsChange]
     green_cover_changes: list[GreenCoverChange]
-    had_baseline: bool  # False if old_dir had none of the three files (e.g. first-ever run)
+    had_baseline: bool  # True if old_dir had AT LEAST ONE of the three files
+    # Per-category baseline flags: whether THAT category's own file existed in
+    # old_dir. A category with had_..._baseline=False was not diffed at all (its
+    # list above is empty because there was nothing to compare, not because nothing
+    # changed) -- see compute_diff's docstring for why this is tracked separately
+    # from had_baseline.
+    had_rank_baseline: bool
+    had_nbs_baseline: bool
+    had_green_cover_baseline: bool
 
     def to_json(self) -> dict:
         return {
             "old_dir": self.old_dir,
             "new_dir": self.new_dir,
             "had_baseline": self.had_baseline,
+            "had_rank_baseline": self.had_rank_baseline,
+            "had_nbs_baseline": self.had_nbs_baseline,
+            "had_green_cover_baseline": self.had_green_cover_baseline,
             "summary": {
                 "rank_changes": len(self.rank_changes),
                 "nbs_changes": len(self.nbs_changes),
@@ -209,35 +234,47 @@ def diff_green_cover(old: dict[str, str], new: dict[str, str]) -> list[GreenCove
 
 
 def compute_diff(old_dir: Path, new_dir: Path) -> DiffResult:
-    old_files_present = any(
-        (old_dir / name).exists()
-        for name in (WARDS_HVI_FILENAME, NBS_RECS_FILENAME, NDVI_CHANGE_FILENAME)
+    """Diff two runs' output, one category at a time.
+
+    Each of the three categories (rank, NBS, green-cover) is gated on the PRESENCE OF
+    ITS OWN file in old_dir, independently of the other two. This matters because a
+    *partial* baseline is a real scenario (e.g. an interrupted first refresh that wrote
+    wards_hvi.geojson but not cells_ndvi_change.geojson yet): treating the baseline as
+    "present" just because *some* file exists, while each loader silently treats its
+    own missing file as an empty dict, would make every ward in the new run look like
+    it "changed" for the categories that actually have no baseline -- a false full-diff
+    instead of "nothing to compare for this category yet."
+    """
+    old_rank_path = old_dir / WARDS_HVI_FILENAME
+    old_nbs_path = old_dir / NBS_RECS_FILENAME
+    old_green_path = old_dir / NDVI_CHANGE_FILENAME
+
+    had_rank_baseline = old_rank_path.exists()
+    had_nbs_baseline = old_nbs_path.exists()
+    had_green_baseline = old_green_path.exists()
+    had_baseline = had_rank_baseline or had_nbs_baseline or had_green_baseline
+
+    rank_changes = (
+        diff_rank(load_ward_hvi(old_dir), load_ward_hvi(new_dir)) if had_rank_baseline else []
     )
-
-    if not old_files_present:
-        # No previous run to compare against (e.g. the very first refresh). Reporting
-        # every ward in the new run as a "change" from nothing would just be noise —
-        # there is nothing alert-worthy about a baseline appearing for the first time.
-        return DiffResult(
-            old_dir=str(old_dir), new_dir=str(new_dir),
-            rank_changes=[], nbs_changes=[], green_cover_changes=[],
-            had_baseline=False,
-        )
-
-    old_rank = load_ward_hvi(old_dir)
-    new_rank = load_ward_hvi(new_dir)
-    old_nbs = load_nbs_by_ward(old_dir)
-    new_nbs = load_nbs_by_ward(new_dir)
-    old_green = load_green_cover_by_ward(old_dir)
-    new_green = load_green_cover_by_ward(new_dir)
+    nbs_changes = (
+        diff_nbs(load_nbs_by_ward(old_dir), load_nbs_by_ward(new_dir)) if had_nbs_baseline else []
+    )
+    green_cover_changes = (
+        diff_green_cover(load_green_cover_by_ward(old_dir), load_green_cover_by_ward(new_dir))
+        if had_green_baseline else []
+    )
 
     return DiffResult(
         old_dir=str(old_dir),
         new_dir=str(new_dir),
-        rank_changes=diff_rank(old_rank, new_rank),
-        nbs_changes=diff_nbs(old_nbs, new_nbs),
-        green_cover_changes=diff_green_cover(old_green, new_green),
-        had_baseline=True,
+        rank_changes=rank_changes,
+        nbs_changes=nbs_changes,
+        green_cover_changes=green_cover_changes,
+        had_baseline=had_baseline,
+        had_rank_baseline=had_rank_baseline,
+        had_nbs_baseline=had_nbs_baseline,
+        had_green_cover_baseline=had_green_baseline,
     )
 
 
@@ -257,6 +294,15 @@ def main() -> int:
     if not result.had_baseline:
         print(f"[ok] no previous run found at {args.old_dir} — nothing to diff against (first-ever run?). "
               "Writing an empty diff.")
+    else:
+        for label, present in [
+            ("wards_hvi.geojson (HVI rank)", result.had_rank_baseline),
+            ("nbs_recommendations.json (NBS)", result.had_nbs_baseline),
+            ("cells_ndvi_change.geojson (green cover)", result.had_green_cover_baseline),
+        ]:
+            if not present:
+                print(f"[WARN] no previous {label} found at {args.old_dir} — that category was not diffed "
+                      "(reported as zero changes below, not verified unchanged).")
 
     payload = result.to_json()
     if args.out:
@@ -266,7 +312,10 @@ def main() -> int:
 
     print(f"\n{len(result.rank_changes)} ward(s) with an HVI rank change")
     for c in result.rank_changes:
-        direction = "more vulnerable" if (c.delta or 0) > 0 else "less vulnerable"
+        if c.delta is None:
+            direction = "newly ranked" if c.old_rank is None else "dropped from ranking"
+        else:
+            direction = "more vulnerable" if c.delta > 0 else "less vulnerable"
         print(f"  {c.ward_id}: rank {c.old_rank} -> {c.new_rank} ({direction})")
 
     print(f"\n{len(result.nbs_changes)} ward(s) with an NBS recommendation change")

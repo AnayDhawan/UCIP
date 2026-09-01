@@ -14,7 +14,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from diff_snapshots import compute_diff  # noqa: E402
+from diff_snapshots import compute_diff, load_green_cover_by_ward, load_nbs_by_ward, main  # noqa: E402
 
 
 def _write_wards_hvi(dir_path: Path, wards: list[dict]) -> None:
@@ -148,6 +148,118 @@ def test_green_cover_flip_uses_ward_majority_class():
         assert change.ward_id == "A"
         assert change.old_class == "stable"
         assert change.new_class == "lost"
+
+
+def test_partial_baseline_does_not_produce_false_full_diff(tmp_path):
+    """Regression test: an old_dir that has wards_hvi.geojson but NOT
+    nbs_recommendations.json used to be treated as "has a baseline" globally (because
+    *a* file existed), while load_nbs_by_ward silently treated its own missing file as
+    {} -- making every ward in the new run's NBS recs look "added" even though there
+    was really no baseline to compare against for that category at all.
+    """
+    old_dir = tmp_path / "old"
+    new_dir = tmp_path / "new"
+    old_dir.mkdir()
+    new_dir.mkdir()
+
+    # old_dir has a rank baseline but no NBS baseline.
+    _write_wards_hvi(old_dir, [{"ward_id": "A", "hvi": 60.0, "rank": 2}])
+    _write_wards_hvi(new_dir, [{"ward_id": "A", "hvi": 60.0, "rank": 2}])
+    _write_nbs_recs(new_dir, [
+        {"ward_id": "A", "intervention": "Pocket parks"},
+        {"ward_id": "A", "intervention": "Native tree planting + green corridors"},
+    ])
+
+    result = compute_diff(old_dir, new_dir)
+
+    assert result.had_baseline is True  # SOME file existed in old_dir
+    assert result.had_rank_baseline is True
+    assert result.had_nbs_baseline is False
+    # The real fix: no NBS baseline means NBS is not diffed at all, not diffed as
+    # "everything just got added."
+    assert result.nbs_changes == []
+    # The category that DOES have a baseline still gets diffed normally.
+    assert result.rank_changes == []  # rank 2 -> 2, unchanged
+
+
+def test_missing_ward_id_in_nbs_recs_not_treated_as_phantom_ward(tmp_path):
+    """Regression test: str(r.get("ward_id")) used to run before the None-check, so a
+    rec with no ward_id became the literal string "None" and slipped through as a
+    phantom ward in the loaded map and the diff output.
+    """
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    _write_nbs_recs(data_dir, [
+        {"ward_id": "A", "intervention": "Pocket parks"},
+        {"intervention": "Cool roofs + reflective pavements + cooling centres"},  # no ward_id
+    ])
+
+    by_ward = load_nbs_by_ward(data_dir)
+
+    assert set(by_ward) == {"A"}
+    assert "None" not in by_ward
+
+
+def test_green_cover_tie_break_is_order_independent(tmp_path):
+    """Regression test: Counter.most_common(1) ties-break on GeoJSON feature order,
+    which GEE exports don't guarantee stable across runs. A ward with an identical
+    count distribution (e.g. 2 "gained" / 2 "lost") must resolve to the SAME class
+    regardless of which one appears first in the file, or the reported "majority"
+    could flip between two runs with nothing having actually changed.
+    """
+    dir_a = tmp_path / "a"
+    dir_b = tmp_path / "b"
+    dir_a.mkdir()
+    dir_b.mkdir()
+
+    # Same 2-2 tie for ward A, features listed in opposite order.
+    _write_ndvi_change(dir_a, [
+        {"ward_id": "A", "change_class": "gained"},
+        {"ward_id": "A", "change_class": "gained"},
+        {"ward_id": "A", "change_class": "lost"},
+        {"ward_id": "A", "change_class": "lost"},
+    ])
+    _write_ndvi_change(dir_b, [
+        {"ward_id": "A", "change_class": "lost"},
+        {"ward_id": "A", "change_class": "lost"},
+        {"ward_id": "A", "change_class": "gained"},
+        {"ward_id": "A", "change_class": "gained"},
+    ])
+
+    result_a = load_green_cover_by_ward(dir_a)
+    result_b = load_green_cover_by_ward(dir_b)
+
+    assert result_a["A"] == result_b["A"]
+    # Deterministic tie-break: alphabetically first among tied classes ("gained" < "lost").
+    assert result_a["A"] == "gained"
+
+
+def test_main_labels_new_and_dropped_ranks_correctly(tmp_path, monkeypatch, capsys):
+    """Regression test: main()'s printed direction label collapsed a None delta (a
+    ward newly appearing in, or dropped entirely from, the ranking) to 0 and always
+    printed "less vulnerable" for those cases, regardless of what actually happened.
+    """
+    old_dir = tmp_path / "old"
+    new_dir = tmp_path / "new"
+    old_dir.mkdir()
+    new_dir.mkdir()
+
+    # Ward A is newly ranked (no old rank); ward B is dropped (no new rank).
+    _write_wards_hvi(old_dir, [{"ward_id": "B", "hvi": 50.0, "rank": 1}])
+    _write_wards_hvi(new_dir, [{"ward_id": "A", "hvi": 60.0, "rank": 1}])
+
+    monkeypatch.setattr(
+        sys, "argv",
+        ["diff_snapshots.py", "--old-dir", str(old_dir), "--new-dir", str(new_dir)],
+    )
+    exit_code = main()
+    out = capsys.readouterr().out
+
+    assert exit_code == 0
+    assert "A: rank None -> 1 (newly ranked)" in out
+    assert "B: rank 1 -> None (dropped from ranking)" in out
+    # The old bug printed "less vulnerable" for both of these instead.
+    assert "less vulnerable" not in out
 
 
 def test_to_json_roundtrip_is_serializable():
