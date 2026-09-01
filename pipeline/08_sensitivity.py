@@ -18,7 +18,6 @@ Run:
 """
 
 import json
-import shutil
 import sys
 from pathlib import Path
 
@@ -29,6 +28,8 @@ from scipy.stats import kendalltau
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+
+from _publish import publish
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
@@ -144,14 +145,19 @@ def main() -> int:
     fig.savefig(OUT_CHART_PATH, dpi=150)
     print(f"[ok] wrote chart -> {OUT_CHART_PATH}")
 
-    OUT_CHART_PUBLIC_PATH.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(OUT_CHART_PATH, OUT_CHART_PUBLIC_PATH)
-    print(f"[ok] copied -> {OUT_CHART_PUBLIC_PATH}")
-
     # ------------------------------------------------------- sanity checks --
+    # Runs BEFORE the frontend/public copy below, on purpose -- see 05_hvi.py's
+    # matching comment.
     ok = mean_tau > 0.7 and mean_overlap >= TOP_N - 1
     print(f"\nmean Kendall tau={mean_tau:.3f}, mean top-{TOP_N} overlap={mean_overlap:.1f}/{TOP_N}, "
           f"all runs fully stable={all_stable}")
+
+    if ok:
+        publish(OUT_CHART_PATH, OUT_CHART_PUBLIC_PATH)
+    else:
+        print(f"[WARN] sanity check failed -- NOT copying to {OUT_CHART_PUBLIC_PATH}; "
+              "the live site keeps serving its previous sensitivity_chart.png")
+
     print("GO: ranking stable under perturbation." if ok else "CHECK: ranking sensitive to some weight(s) — inspect sensitivity.json.")
     return 0 if ok else 2
 

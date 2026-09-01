@@ -17,13 +17,14 @@ Run:
 """
 
 import json
-import shutil
 import sys
 from pathlib import Path
 
 import geopandas as gpd
 import numpy as np
 from sklearn.decomposition import PCA
+
+from _publish import publish
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
@@ -136,10 +137,6 @@ def main() -> int:
     wards_out.to_file(OUT_WARDS_PATH, driver="GeoJSON")
     print(f"[ok] wrote {len(wards_out)} wards with ranked HVI -> {OUT_WARDS_PATH}")
 
-    OUT_WARDS_PUBLIC_PATH.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(OUT_WARDS_PATH, OUT_WARDS_PUBLIC_PATH)
-    print(f"[ok] copied -> {OUT_WARDS_PUBLIC_PATH}")
-
     OUT_METHOD_PATH.write_text(json.dumps({
         "explained_variance_pc1": explained_var_1,
         "loadings_pc1": dict(zip(cols, loadings_1.tolist())),
@@ -151,6 +148,11 @@ def main() -> int:
     print(f"[ok] wrote PCA log -> {OUT_METHOD_PATH}")
 
     # ------------------------------------------------------- sanity checks --
+    # Runs BEFORE the frontend/public copy below, on purpose: data/ is always written
+    # (it's the pipeline's own working state, and the demo-safe-fallback snapshot logic
+    # in 07_load.py already treats data/ as the thing to inspect on a bad run), but the
+    # live site must not start serving a run that failed its own sanity check just
+    # because the copy happened to run first.
     ok = True
     if not (0 <= gdf["HVI"].min() and gdf["HVI"].max() <= 100.0001):
         print(f"[WARN] HVI range {gdf['HVI'].min()}-{gdf['HVI'].max()} outside 0-100")
@@ -160,6 +162,13 @@ def main() -> int:
         ok = False
     print("\nTop 5 most vulnerable wards:")
     print(ward_hvi[["rank", "ward_id", "HVI", "n_cells"]].head(5).to_string(index=False))
+
+    if ok:
+        publish(OUT_WARDS_PATH, OUT_WARDS_PUBLIC_PATH)
+    else:
+        print(f"[WARN] sanity check failed -- NOT copying to {OUT_WARDS_PUBLIC_PATH}; "
+              "the live site keeps serving its previous wards_hvi.geojson")
+
     print("\nGO" if ok else "\nCHECK WARNINGS")
     return 0 if ok else 2
 

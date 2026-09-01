@@ -28,15 +28,14 @@ Run:
 """
 
 import json
-import os
-import shutil
 import sys
 from pathlib import Path
 
 import ee
 import geopandas as gpd
 
-from _gee_auth import init_ee
+from _gee_auth import init_ee, resolve_project
+from _publish import publish
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
@@ -50,7 +49,7 @@ OUT_WARD_RECS_PATH = DATA_DIR / "nbs_recommendations.json"
 OUT_CELLS_PUBLIC_PATH = ROOT / "frontend" / "public" / "cells_nbs.geojson"
 OUT_WARD_RECS_PUBLIC_PATH = ROOT / "frontend" / "public" / "nbs_recommendations.json"
 
-GEE_PROJECT = os.environ.get("GEE_PROJECT", "ucip-mum")
+GEE_PROJECT = resolve_project()
 ZONAL_SCALE = 10  # WorldCover native resolution
 
 WORLDCOVER_GRASSLAND = 30
@@ -179,10 +178,6 @@ def main() -> int:
     gdf.to_file(OUT_CELLS_PATH, driver="GeoJSON")
     print(f"[ok] wrote {len(gdf)} cells with NBS flags -> {OUT_CELLS_PATH}")
 
-    OUT_CELLS_PUBLIC_PATH.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(OUT_CELLS_PATH, OUT_CELLS_PUBLIC_PATH)
-    print(f"[ok] copied -> {OUT_CELLS_PUBLIC_PATH}")
-
     # ------------------------------------------------- ward-level rollup --
     ward_recs = {}
     for r in all_recs:
@@ -202,11 +197,11 @@ def main() -> int:
     OUT_WARD_RECS_PATH.write_text(json.dumps(ward_recs_list, indent=2), encoding="utf-8")
     print(f"[ok] wrote {len(ward_recs_list)} ward-level recommendation rows -> {OUT_WARD_RECS_PATH}")
 
-    OUT_WARD_RECS_PUBLIC_PATH.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(OUT_WARD_RECS_PATH, OUT_WARD_RECS_PUBLIC_PATH)
-    print(f"[ok] copied -> {OUT_WARD_RECS_PUBLIC_PATH}")
-
     # ------------------------------------------------------- sanity checks --
+    # Runs BEFORE the frontend/public copies below, on purpose -- see 05_hvi.py's
+    # matching comment. Both files are gated on the same "ok" so a run that fails this
+    # check publishes neither a stale-relative-to-cells_nbs recommendations file nor a
+    # stale-relative-to-recommendations cells file; they stay a matched pair.
     ok = True
     wards_with_recs = {r["ward_id"] for r in all_recs}
     if len(wards_with_recs) < 15:
@@ -215,6 +210,14 @@ def main() -> int:
     if n_rejected_grassland == 0:
         print("[WARN] plantability filter never rejected a grassland cell — check WorldCover class mapping")
     print(f"\n{len(all_recs)} recommendation rows fired across {len(wards_with_recs)} wards")
+
+    if ok:
+        publish(OUT_CELLS_PATH, OUT_CELLS_PUBLIC_PATH)
+        publish(OUT_WARD_RECS_PATH, OUT_WARD_RECS_PUBLIC_PATH)
+    else:
+        print(f"[WARN] sanity check failed -- NOT copying to {OUT_CELLS_PUBLIC_PATH} or "
+              f"{OUT_WARD_RECS_PUBLIC_PATH}; the live site keeps serving its previous NBS output")
+
     print("GO" if ok else "CHECK WARNINGS")
     return 0 if ok else 2
 

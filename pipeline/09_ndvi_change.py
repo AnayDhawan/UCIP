@@ -16,12 +16,13 @@ Run:
     python 09_ndvi_change.py
 """
 
-import shutil
 import sys
 from pathlib import Path
 
 import geopandas as gpd
 import pandas as pd
+
+from _publish import publish
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
@@ -74,14 +75,19 @@ def main() -> int:
     out.to_file(OUT_PATH, driver="GeoJSON")
     print(f"[ok] wrote {len(out)} cells with NDVI-change classification -> {OUT_PATH}")
 
-    OUT_PUBLIC_PATH.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(OUT_PATH, OUT_PUBLIC_PATH)
-    print(f"[ok] copied -> {OUT_PUBLIC_PATH}")
-
     # ------------------------------------------------------- sanity checks --
+    # Runs BEFORE the frontend/public copy below, on purpose -- see 05_hvi.py's
+    # matching comment.
     counts = out["change_class"].value_counts().to_dict()
     print(f"\nclass counts: {counts}")
     ok = counts.get("unknown", 0) < 0.1 * len(out)
+
+    if ok:
+        publish(OUT_PATH, OUT_PUBLIC_PATH)
+    else:
+        print(f"[WARN] sanity check failed -- NOT copying to {OUT_PUBLIC_PATH}; "
+              "the live site keeps serving its previous cells_ndvi_change.geojson")
+
     print("GO" if ok else "CHECK WARNINGS: too many 'unknown' cells")
     return 0 if ok else 2
 

@@ -74,6 +74,17 @@ hand-copied into `frontend/public/` at that one point in time, indefinitely. All
 now copy their own output the same way `10`-`12` already did, so this can't recur
 silently for any stage added later either, as long as it follows the same pattern.
 
+**The copy runs AFTER each stage's own sanity check, and only if it passes.** `05`,
+`06`, `08`, and `09` each already had an end-of-run sanity check (HVI range and ward
+count, recommendation coverage, weight-perturbation stability, NDVI-unknown rate) that
+flags a bad run with a `[WARN]`/exit-code-2 but doesn't stop `run_pipeline.py`'s chain.
+A stage that produces genuinely bad data (fewer than 24 wards, unstable ranking, too
+many "unknown" NDVI cells) writes that bad data to `data/` as always, but its
+`frontend/public/` copy is skipped, with an explicit `[WARN]` saying so. The live site
+keeps serving its previous (last-known-good) file instead of a broken run, with no
+manual rollback needed. `pipeline/_publish.py`'s `publish(src, dest)` is the one place
+this copy actually happens, called from each stage's `if ok:` branch.
+
 ## Refresh cadence (issue #57)
 
 **Every stage below runs on a monthly cadence, not daily, because the data underneath
