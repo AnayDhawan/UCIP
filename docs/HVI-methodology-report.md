@@ -70,7 +70,13 @@ The study area is Mumbai, analyzed at 1 km grid-cell resolution and rolled up to
 city's 24 BMC administrative wards. The pipeline (`pipeline/01_grid.py`) builds this
 grid by clipping a fishnet to ward boundaries in a metric CRS (EPSG:32643, UTM zone
 43N) and assigning each cell to the ward containing its largest fragment. As of the
-data underlying this report, the grid contains 541 cells across all 24 wards.
+data underlying this report, that raw fishnet produces 547 cells across all 24 wards
+(`data/grid_1km.geojson`). A later consolidation step, `pipeline/04_zonal.py`, drops
+any cell missing one or more of the seven indicators in Section 4 before the indicators
+can be z-standardized; as of this run that drops 6 of the 547 cells (about 1%, well
+under the pipeline's own 15% sanity-check ceiling for data loss), leaving the 541-cell
+table (`data/cells.geojson`) that every subsequent stage, and every other cell count in
+this report, is computed from.
 
 | Layer | Source | Access | Note |
 |---|---|---|---|
@@ -152,8 +158,11 @@ PC1's loadings and therefore these weights. What is fixed, and cited, is the *pr
 all cells in the run (min mapped to 0, max to 100). Ward-level HVI is the unweighted
 mean of its member cells' scores, and ward rank is `HVI` sorted descending (rank 1 =
 most vulnerable). As of this run, the five highest-ranked wards are C, G/N, L, E, and
-F/S (HVI 73.6, 69.7, 65.8, 65.0, and 64.8 respectively), each driven primarily by
-`impervious_pct` except L, driven primarily by `LST_C`.
+F/S (HVI 73.6, 69.7, 65.8, 65.0, and 64.8 respectively). Reading each ward's largest
+per-factor contribution directly from `data/wards_hvi.geojson`: C, G/N, and E are each
+driven primarily by `impervious_pct` (contributions 0.292, 0.217, and 0.233
+respectively); L primarily by `LST_C` (0.209); and F/S primarily by `elderly_pct`
+(0.170), narrowly ahead of `impervious_pct` (0.140) for that one ward.
 
 **Explainability.** Per-cell, per-indicator contributions (`weight × signed z-score`)
 are stored alongside the score and shown as a ranked bar breakdown in the product.
@@ -175,15 +184,23 @@ by Kendall's tau (rank-correlation over all 24 wards) and by top-5 overlap (how 
 the baseline top-5 most-vulnerable wards remain in the perturbed top-5).
 
 **Results.** Mean Kendall tau across all 14 runs was 0.978 (1.0 = identical ranking),
-and mean top-5 overlap was 4.43 of 5. The top three wards by HVI (C, G/N, L) were
-unchanged in every one of the 14 perturbations. In 6 of the 14 runs the entire top-5
-set matched baseline exactly; in the remaining 8, exactly one ward (either the
-baseline's 4th- or 5th-ranked ward, F/S or E) was displaced by ward B, and overlap
-never fell below 4 of 5 in any run. No perturbation altered which ward ranked most
-vulnerable overall. We read this as the ward-priority ordering being stable under
-plausible weight disagreement at the top of the ranking, with some genuine sensitivity
-at the boundary between the 4th and 5th most-vulnerable ward, a result we consider
-honest to report exactly as computed rather than rounding up to "fully stable."
+and mean top-5 overlap was 4.43 of 5. Overlap was 5 of 5 (the entire top-5 set matched
+baseline exactly) in 6 of the 14 runs, and 4 of 5 in the other 8; it never fell below 4
+in any run. Reading `data/sensitivity.json`'s per-run rankings directly rather than
+summarizing from memory: only the top TWO wards by HVI, C and G/N, were unchanged in
+every one of the 14 perturbations. Ward L (baseline rank 3) dropped out of the top 5 in
+2 of the 14 runs (`elderly_pct` +20%, `slum_pct` -20%), ward E (baseline rank 4)
+dropped out in 2 runs (`hospital_dist_m` +20%, `impervious_pct` -20%), and ward F/S
+(baseline rank 5) dropped out in 4 runs (`LST_C` -20%, `NDVI` +20%,
+`pop_density_km2` -20%, `impervious_pct` +20%). In every one of these 8 runs, the ward
+dropped from the top 5 was replaced by exactly one ward, B, and never by any other
+ward. No perturbation altered which ward ranked most vulnerable overall: ward C is
+rank 1 in the baseline and in all 14 perturbed rankings. We read this as the top of the
+ranking (ranks 1-2) being fully robust to plausible weight disagreement, with
+increasing but still bounded sensitivity moving down through ranks 3-5, where ward B is
+the one consistent alternative that displaces the baseline's 3rd-5th-ranked wards under
+perturbation. This is a more qualified result than "top 5 is stable," and we consider
+reporting it exactly as computed more honest than rounding up.
 
 ## 7. Nature-Based Solutions Engine and the Ecological Plantability Filter
 
