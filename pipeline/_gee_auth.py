@@ -12,19 +12,28 @@ Why this exists:
     account is configured, behavior is byte-for-byte what it was before this module
     existed.
 
-Service-account credentials, when present, are read from one of:
+Service-account credentials, when present, are read from one of these two
+PIPELINE-SPECIFIC variables:
     GEE_SERVICE_ACCOUNT_JSON       the full key JSON as a string (e.g. a GitHub secret)
-    GOOGLE_APPLICATION_CREDENTIALS a path to a key JSON file on disk
+    GEE_SERVICE_ACCOUNT_KEY_FILE   a path to a key JSON file on disk (for local testing)
 
-Neither is set in this fork/branch and no live GEE credentials were used to test this
-path, see the PR description for what remains unverified.
+Deliberately NOT read: the ambient `GOOGLE_APPLICATION_CREDENTIALS` variable that
+generic Google Cloud tooling (gcloud, other GCP client libraries) commonly sets. A
+developer who has that exported for unrelated work would otherwise be silently
+redirected off their working `earthengine authenticate` session into a service-account
+branch that most likely has no Earth Engine access at all, producing a confusing
+failure with nothing to do with what they actually touched. Requiring one of this
+module's own, unambiguous variable names means the service-account path only ever
+activates when someone deliberately set it up for this pipeline.
+
+Neither variable is set in this fork/branch and no live GEE credentials were used to
+test this path; see the PR description for what remains unverified.
 """
 
 from __future__ import annotations
 
 import json
 import os
-import tempfile
 
 import ee
 
@@ -33,27 +42,21 @@ def init_ee(project: str) -> None:
     """Initialize Earth Engine, using a service account if one is configured.
 
     Falls back to the pre-existing `ee.Initialize(project=project)` behavior (relies on
-    locally persisted `earthengine authenticate` credentials) when no service account
-    environment variable is set, so this is a strict superset of the previous behavior.
+    locally persisted `earthengine authenticate` credentials) when neither service
+    account variable is set, so this is a strict superset of the previous behavior.
     """
     key_json = os.environ.get("GEE_SERVICE_ACCOUNT_JSON")
-    key_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+    key_path = os.environ.get("GEE_SERVICE_ACCOUNT_KEY_FILE")
 
     if key_json:
         info = json.loads(key_json)
         email = info.get("client_email")
         if not email:
             raise ValueError("GEE_SERVICE_ACCOUNT_JSON is missing 'client_email'")
-        # ee.ServiceAccountCredentials wants a path, not inline JSON, so spill the
-        # secret to a private temp file for the lifetime of this process only.
-        fd, tmp_path = tempfile.mkstemp(prefix="gee-key-", suffix=".json")
-        try:
-            with os.fdopen(fd, "w", encoding="utf-8") as f:
-                f.write(key_json)
-            credentials = ee.ServiceAccountCredentials(email, tmp_path)
-            ee.Initialize(credentials, project=project)
-        finally:
-            os.remove(tmp_path)
+        # key_data takes the JSON inline; no need to spill the secret to a temp file
+        # on disk just to hand ee.ServiceAccountCredentials a path to read it back from.
+        credentials = ee.ServiceAccountCredentials(email, key_data=key_json)
+        ee.Initialize(credentials, project=project)
         return
 
     if key_path:
@@ -62,7 +65,7 @@ def init_ee(project: str) -> None:
         email = info.get("client_email")
         if not email:
             raise ValueError(f"{key_path} is missing 'client_email'")
-        credentials = ee.ServiceAccountCredentials(email, key_path)
+        credentials = ee.ServiceAccountCredentials(email, key_file=key_path)
         ee.Initialize(credentials, project=project)
         return
 
