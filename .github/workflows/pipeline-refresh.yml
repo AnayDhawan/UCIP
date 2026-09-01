@@ -17,6 +17,15 @@
 #   GEE_SERVICE_ACCOUNT_JSON    Full service-account key JSON (see pipeline/_gee_auth.py)
 #   NEXT_PUBLIC_SUPABASE_URL    Supabase project URL
 #   SUPABASE_SERVICE_ROLE_KEY   Supabase service-role key (server-side upsert only)
+#
+# Known limitation: the diff baseline (see "Snapshot pre-refresh data/" below) is
+# whatever's committed on main when this workflow starts, not necessarily the last
+# MERGED refresh. If a previous automated-refresh PR is still open when the next
+# scheduled run fires, that run diffs against the same stale baseline again instead of
+# against the (still unmerged) previous refresh, so its diff can double-count changes
+# already sitting in the open PR. Not fixed here: doing so needs somewhere to persist
+# "the last refresh actually merged" (e.g. a git tag updated on merge), which is a
+# bigger change than this workflow's first version.
 
 name: Pipeline refresh
 
@@ -62,15 +71,36 @@ jobs:
         # cheapest way to have both "before" and "after" on disk at once.
         run: cp -r data data-baseline
 
+      - name: Resolve GEE_PROJECT
+        # An unconfigured secrets.* reference substitutes as an empty string, not as
+        # "absent". Every GEE-calling script resolves its project id with
+        # os.environ.get("GEE_PROJECT", "<its own hardcoded default>"), which only
+        # falls back when the variable is genuinely UNSET -- an env var explicitly set
+        # to "" still counts as present and defeats that fallback, which would send an
+        # empty project id to Earth Engine on the very first scheduled run after
+        # GEE_SERVICE_ACCOUNT_JSON is configured but GEE_PROJECT is not. Only export
+        # GEE_PROJECT here when the secret is actually non-empty, so an unconfigured
+        # secret leaves it genuinely unset and each script's own default applies.
+        run: |
+          if [ -n "${{ secrets.GEE_PROJECT }}" ]; then
+            echo "GEE_PROJECT=${{ secrets.GEE_PROJECT }}" >> "$GITHUB_ENV"
+          fi
+
       - name: Run orchestrated pipeline
         working-directory: pipeline
         env:
-          GEE_PROJECT: ${{ secrets.GEE_PROJECT }}
           GEE_SERVICE_ACCOUNT_JSON: ${{ secrets.GEE_SERVICE_ACCOUNT_JSON }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        # inputs.include_spike only exists on a workflow_dispatch run; on the schedule
+        # trigger there are no inputs at all, so a bare `inputs.include_spike` reads as
+        # empty rather than the declared "false" default. That happens to still take
+        # the "else" branch below, but only by coincidence of empty-string comparison,
+        # not because the schedule trigger was ever meant to route through this input.
+        # Gating on github.event_name makes the schedule path explicit instead of
+        # accidental.
         run: |
-          if [ "${{ inputs.include_spike }}" = "true" ]; then
+          if [ "${{ github.event_name == 'workflow_dispatch' && inputs.include_spike }}" = "true" ]; then
             python run_pipeline.py --include-spike
           else
             python run_pipeline.py
