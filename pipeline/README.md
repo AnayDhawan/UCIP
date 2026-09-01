@@ -11,8 +11,8 @@
 | 02 | `02_gee_layers.py` | Pull LST, NDVI (current + 2016-17 baseline), impervious proxy from GEE | GEE + `grid_1km.geojson` | `data/grid_1km_gee.geojson` |
 | 03 | `03_vectors.py` | Vector/socio layers: WorldPop density/elderly, Datameet slums, OSM hospitals | GEE (WorldPop) + OSM + `grid_1km_gee.geojson`, `data/slumClusters.geojson` | `data/grid_1km_vectors.geojson` |
 | 04 | `04_zonal.py` | Consolidate to tidy per-cell table (canonical indicator set) | `grid_1km_vectors.geojson` | `data/cells.geojson` |
-| 05 | `05_hvi.py` | HVI: z-score → PCA (Reid et al. 2009) → 0-100 + per-factor `contrib_*` | `cells.geojson` | `data/cells_hvi.geojson`, `data/wards_hvi.geojson`, `data/hvi_pca_log.json` |
-| 06 | `06_nbs.py` | NBS rule engine + plantability filter (Bastin/Veldman etc.) | `cells_hvi.geojson` + `wards_hvi.geojson` + GEE (WorldCover) | `data/cells_nbs.geojson`, `data/nbs_recommendations.json` |
+| 05 | `05_hvi.py` | HVI: z-score → PCA (Reid et al. 2009) → 0-100 + per-factor `contrib_*` | `cells.geojson` + `bmc_wards.geojson` | `data/cells_hvi.geojson`, `data/wards_hvi.geojson`, `data/hvi_pca_log.json` |
+| 06 | `06_nbs.py` | NBS rule engine + plantability filter (Bastin/Veldman etc.) | `cells_hvi.geojson` + GEE (WorldCover) | `data/cells_nbs.geojson`, `data/nbs_recommendations.json` |
 | 07 | `07_load.py` | Upsert to Supabase + write demo-safe snapshots | `cells_nbs.geojson`, `wards_hvi.geojson`, `nbs_recommendations.json` | Supabase (`wards`, `grid_cells`, `nbs_recommendations`, …) + `data/snapshot_*.geojson` |
 | 08 | `08_sensitivity.py` | Weight perturbation (±20% one-at-a-time) + Kendall τ stability chart | `cells.geojson`, `hvi_pca_log.json` | `data/sensitivity.json`, `data/sensitivity_chart.png` |
 | 09 | `09_ndvi_change.py` | Classify per-cell NDVI delta → `gained/stable/lost` (thr ±0.05) | `cells_hvi.geojson` | `data/cells_ndvi_change.geojson` |
@@ -33,10 +33,10 @@ python -m venv .venv
 pip install -r pipeline/requirements.txt
 
 # 2. Credentials — see .env.example
-#    Copy to .env in repo root:
-#      NEXT_PUBLIC_SUPABASE_URL / ANON_KEY / SERVICE_ROLE_KEY  (for 07_load.py)
+#    Copy to .env.local in repo root (07_load.py loads .env.local):
+#      NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY  (for 07_load.py)
 #      GEE_PROJECT=ucip-mumbai  (also settable as env var; must have run `earthengine authenticate` once)
-cp .env.example .env          # then fill values
+cp .env.example .env.local          # then fill values
 # GEE auth (once per machine):
 earthengine authenticate
 
@@ -66,9 +66,8 @@ python pipeline/12_hero_region.py
 | Var | Where used | Required? |
 |-----|------------|-----------|
 | `GEE_PROJECT` | `00`, `02`, `03`, `06` | Yes for any GEE pull |
-| `NEXT_PUBLIC_SUPABASE_URL` | `07_load.py` | Only for live DB upsert |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `07_load.py` | Only for live DB upsert |
-| `SUPABASE_SERVICE_ROLE_KEY` | `07_load.py` | Only for live DB upsert |
+| `NEXT_PUBLIC_SUPABASE_URL` | `07_load.py` (loads `.env.local`) | Only for live DB upsert |
+| `SUPABASE_SERVICE_ROLE_KEY` | `07_load.py` (loads `.env.local`) | Only for live DB upsert |
 
 Source of truth for env names: `.env.example` at repo root.
 
