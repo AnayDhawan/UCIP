@@ -138,7 +138,7 @@ jobs:
           echo "PR_BODY_EOF" >> "$GITHUB_OUTPUT"
 
       - name: Open a PR with the refreshed data
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: "chore(pipeline): monthly automated data refresh"
           branch: automated/pipeline-refresh
