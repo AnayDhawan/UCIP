@@ -1,7 +1,7 @@
 -- UCIP Batch E (#22): NOT NULL tightening + FK documentation.
 -- Verified against current data snapshots:
 --   wards_hvi.geojson          → ward_gid non-null in all 24 wards
---   cells_hvi.geojson          → ward_id non-null in all sampled cells
+--   cells_hvi.geojson          → ward_id non-null in all 541 cells
 --   nbs_recommendations.json   → ward_id present in every row (grid_id absent)
 --
 -- No column is made NOT NULL that current data needs null for.

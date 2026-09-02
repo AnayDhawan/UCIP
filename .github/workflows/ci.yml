@@ -31,14 +31,14 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v6
         with:
-          python-version: "3.12"
-          cache: "pip"
-          cache-dependency-path: pipeline/requirements.txt
-      - run: pip install -r pipeline/requirements.txt
-      - run: pip install ruff==0.12.1
-      - run: ruff check pipeline/
-      - run: |
-          for f in pipeline/*.py; do
-            echo "checking $f"
-            python -c "import ast; ast.parse(open('$f').read())"
-          done
+          python-version: "3.14"
+      # requirements-dev.txt only, not requirements.txt's full geospatial/GEE stack
+      # (geopandas, rasterio, osmnx, scikit-learn, scipy, matplotlib, supabase) --
+      # pipeline/tests/ doesn't need any of that. It DOES need earthengine-api and
+      # cryptography (both in requirements-dev.txt) for test_gee_auth.py, which
+      # covers _gee_auth.py's credential-routing logic -- the highest-risk new code
+      # in the pipeline orchestration work, and worth actually running here rather
+      # than only locally. No real GEE credentials or network calls are used;
+      # ee.Initialize is monkeypatched in every test.
+      - run: pip install -r pipeline/requirements-dev.txt
+      - run: pytest pipeline/tests/

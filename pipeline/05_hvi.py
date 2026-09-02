@@ -24,11 +24,20 @@ import geopandas as gpd
 import numpy as np
 from sklearn.decomposition import PCA
 
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+from _publish import publish
+
+ROOT = Path(__file__).resolve().parent.parent
+DATA_DIR = ROOT / "data"
 IN_PATH = DATA_DIR / "cells.geojson"
 OUT_CELLS_PATH = DATA_DIR / "cells_hvi.geojson"
 OUT_WARDS_PATH = DATA_DIR / "wards_hvi.geojson"
 OUT_METHOD_PATH = DATA_DIR / "hvi_pca_log.json"
+# wards_hvi.geojson is what the frontend actually reads at request time (server-side
+# in page.tsx via fs, client-side via fetch in useWardData.ts and WardChoropleth.tsx),
+# so it has to land in frontend/public/, not just data/, on every refresh -- the same
+# "write to data/ AND frontend/public/" pattern 10_ward_profile.py, 11_hero_city.py and
+# 12_hero_region.py already use for their own outputs.
+OUT_WARDS_PUBLIC_PATH = ROOT / "frontend" / "public" / "wards_hvi.geojson"
 
 # direction: +1 means "higher raw value = more vulnerable", -1 = inverted (methodology.md §3)
 INDICATORS = {
@@ -139,6 +148,11 @@ def main() -> int:
     print(f"[ok] wrote PCA log -> {OUT_METHOD_PATH}")
 
     # ------------------------------------------------------- sanity checks --
+    # Runs BEFORE the frontend/public copy below, on purpose: data/ is always written
+    # (it's the pipeline's own working state, and the demo-safe-fallback snapshot logic
+    # in 07_load.py already treats data/ as the thing to inspect on a bad run), but the
+    # live site must not start serving a run that failed its own sanity check just
+    # because the copy happened to run first.
     ok = True
     if not (0 <= gdf["HVI"].min() and gdf["HVI"].max() <= 100.0001):
         print(f"[WARN] HVI range {gdf['HVI'].min()}-{gdf['HVI'].max()} outside 0-100")
@@ -148,6 +162,13 @@ def main() -> int:
         ok = False
     print("\nTop 5 most vulnerable wards:")
     print(ward_hvi[["rank", "ward_id", "HVI", "n_cells"]].head(5).to_string(index=False))
+
+    if ok:
+        publish(OUT_WARDS_PATH, OUT_WARDS_PUBLIC_PATH)
+    else:
+        print(f"[WARN] sanity check failed -- NOT copying to {OUT_WARDS_PUBLIC_PATH}; "
+              "the live site keeps serving its previous wards_hvi.geojson")
+
     print("\nGO" if ok else "\nCHECK WARNINGS")
     return 0 if ok else 2
 

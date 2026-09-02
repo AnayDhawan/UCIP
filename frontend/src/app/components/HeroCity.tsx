@@ -47,7 +47,8 @@ function getWebGLSnapshot(): boolean {
     try {
       const canvas = document.createElement("canvas");
       webGLSupport = !!(canvas.getContext("webgl2") || canvas.getContext("webgl"));
-    } catch {
+    } catch (err) {
+      console.warn("[HeroCity] WebGL probe failed:", err);
       webGLSupport = false;
     }
   }

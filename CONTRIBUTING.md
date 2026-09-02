@@ -25,9 +25,11 @@ pip install -r requirements.txt
 earthengine authenticate     # needs your own Google Earth Engine account
 ```
 
-The pipeline scripts (`00`–`09`) require a Google Earth Engine project and Supabase
+The pipeline scripts (`00`–`12`) require a Google Earth Engine project and Supabase
 credentials to run end-to-end; the committed GeoJSON snapshots in `data/` let the frontend
-run without either.
+run without either. Run the full chain in order with `python pipeline/run_pipeline.py`
+rather than invoking each script by hand; see [pipeline/README.md](pipeline/README.md)
+for usage, the monthly refresh cadence, and the post-refresh change-diff tool.
 
 ## How to contribute
 

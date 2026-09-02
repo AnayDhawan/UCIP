@@ -18,7 +18,6 @@ Run:
 """
 
 import json
-import os
 import sys
 from pathlib import Path
 
@@ -26,13 +25,15 @@ import ee
 import geopandas as gpd
 import osmnx as ox
 
+from _gee_auth import init_ee, resolve_project
+
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 GRID_PATH = DATA_DIR / "grid_1km_gee.geojson"
 WARDS_PATH = DATA_DIR / "bmc_wards.geojson"
 SLUMS_PATH = DATA_DIR / "slumClusters.geojson"
 OUT_PATH = DATA_DIR / "grid_1km_vectors.geojson"
 
-GEE_PROJECT = os.environ.get("GEE_PROJECT", "ucip-mum")
+GEE_PROJECT = resolve_project()
 UTM_CRS = "EPSG:32643"
 WGS84 = "EPSG:4326"
 
@@ -140,7 +141,7 @@ def main() -> int:
     grid_gdf = gpd.read_file(GRID_PATH)
     print(f"[ok] loaded {len(grid_gdf)} grid cells")
 
-    ee.Initialize(project=GEE_PROJECT)
+    init_ee(GEE_PROJECT)
     print(f"[ok] Earth Engine initialized (project={GEE_PROJECT})")
     grid_fc = load_grid_fc(GRID_PATH)
 
