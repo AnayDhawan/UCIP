@@ -1,7 +1,7 @@
 "use client";
 
 import "leaflet/dist/leaflet.css";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { GeoJSON, MapContainer, TileLayer, useMap } from "react-leaflet";
 import { geoJSON as leafletGeoJSON } from "leaflet";
 import type { Feature, FeatureCollection, Geometry, Position } from "geojson";
@@ -282,6 +282,13 @@ export default function WardChoropleth({
   const data = cache[activeLayer];
   const wardsGeo = (cache.hvi as FeatureCollection<Geometry, WardProps> | undefined) ?? null;
 
+  // Memoize per-render style functions so react-leaflet sees a stable identity
+  // unless selectedWardId actually changed (#35). Otherwise every render
+  // creates a new function and forces an unnecessary GeoJSON restyle.
+  const hviStyle = useMemo(() => styleHvi(selectedWardId), [selectedWardId]);
+  const plantabilityStyle = useMemo(() => stylePlantability(selectedWardId), [selectedWardId]);
+  const ndviStyle = useMemo(() => styleNdviChange(selectedWardId), [selectedWardId]);
+
   // Selection changes restyle the already-mounted layer in place via the ref
   // below, and never go through `key`. Remounting on every ward click tears the
   // layer down and recreates it mid-click, which silently swallows whatever
@@ -291,11 +298,11 @@ export default function WardChoropleth({
   const layerRef = useRef<LeafletGeoJSONLayer | null>(null);
   useEffect(() => {
     if (!layerRef.current) return;
-    if (activeLayer === "hvi") layerRef.current.setStyle(styleHvi(selectedWardId) as (f?: Feature<Geometry>) => PathOptions);
+    if (activeLayer === "hvi") layerRef.current.setStyle(hviStyle as (f?: Feature<Geometry>) => PathOptions);
     else if (activeLayer === "plantability")
-      layerRef.current.setStyle(stylePlantability(selectedWardId) as (f?: Feature<Geometry>) => PathOptions);
-    else layerRef.current.setStyle(styleNdviChange(selectedWardId) as (f?: Feature<Geometry>) => PathOptions);
-  }, [selectedWardId, activeLayer]);
+      layerRef.current.setStyle(plantabilityStyle as (f?: Feature<Geometry>) => PathOptions);
+    else layerRef.current.setStyle(ndviStyle as (f?: Feature<Geometry>) => PathOptions);
+  }, [hviStyle, plantabilityStyle, ndviStyle, activeLayer]);
 
   /** Every layer resolves a click to a ward: the cell layers carry `ward_id`
    *  too, so clicking a grid cell opens its parent ward. */
@@ -368,7 +375,7 @@ export default function WardChoropleth({
             key={`hvi-${isFullscreen}`}
             ref={layerRef}
             data={data as FeatureCollection<Geometry, WardProps>}
-            style={styleHvi(selectedWardId) as (f?: Feature<Geometry>) => PathOptions}
+            style={hviStyle as (f?: Feature<Geometry>) => PathOptions}
             onEachFeature={selectFrom as (f: Feature<Geometry>, l: Layer) => void}
           />
         )}
@@ -377,7 +384,7 @@ export default function WardChoropleth({
             key={`plantability-${isFullscreen}`}
             ref={layerRef}
             data={data as FeatureCollection<Geometry, CellNbsProps>}
-            style={stylePlantability(selectedWardId) as (f?: Feature<Geometry>) => PathOptions}
+            style={plantabilityStyle as (f?: Feature<Geometry>) => PathOptions}
             onEachFeature={selectFrom as (f: Feature<Geometry>, l: Layer) => void}
           />
         )}
@@ -386,7 +393,7 @@ export default function WardChoropleth({
             key={`ndvi_change-${isFullscreen}`}
             ref={layerRef}
             data={data as FeatureCollection<Geometry, CellNdviProps>}
-            style={styleNdviChange(selectedWardId) as (f?: Feature<Geometry>) => PathOptions}
+            style={ndviStyle as (f?: Feature<Geometry>) => PathOptions}
             onEachFeature={selectFrom as (f: Feature<Geometry>, l: Layer) => void}
           />
         )}
