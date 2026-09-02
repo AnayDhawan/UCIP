@@ -1,78 +1,140 @@
 # Pipeline
 
-13 numbered scripts that turn raw Mumbai boundaries + remote-sensing pulls into the GeoJSON / JSON the frontend and Supabase consume. Run sequentially — each stage's output is the next stage's input. No orchestrator yet (see #56); run by hand `00` → `12`.
+Thirteen numbered stages (`00_gee_spike.py` through `12_hero_region.py`) that turn raw
+satellite imagery, WorldPop demographics, and OSM/Datameet vector data into the Heat
+Vulnerability Index, the NBS recommendations, and every JSON/GeoJSON file the frontend
+reads. Each script is documented in its own docstring and is still runnable standalone;
+this page covers running them as one chain, and when that chain should actually run.
 
-## Run order
-
-| # | Script | Purpose (1 line) | Reads | Writes |
-|---|--------|-------------------|-------|--------|
-| 00 | `00_gee_spike.py` | Day-0 GEE go/no-go gate: dry-season LST+NDVI pull for a small central-Mumbai bbox | GEE (live) | stdout + thumbnails (sanity check only) |
-| 01 | `01_grid.py` | Build 1 km fishnet grid clipped to 24 BMC wards | `data/bmc_wards.geojson` | `data/grid_1km.geojson` |
-| 02 | `02_gee_layers.py` | Pull LST, NDVI (current + 2016-17 baseline), impervious proxy from GEE | GEE + `grid_1km.geojson` | `data/grid_1km_gee.geojson` |
-| 03 | `03_vectors.py` | Vector/socio layers: WorldPop density/elderly, Datameet slums, OSM hospitals | GEE (WorldPop) + OSM + `grid_1km_gee.geojson`, `data/slumClusters.geojson` | `data/grid_1km_vectors.geojson` |
-| 04 | `04_zonal.py` | Consolidate to tidy per-cell table (canonical indicator set) | `grid_1km_vectors.geojson` | `data/cells.geojson` |
-| 05 | `05_hvi.py` | HVI: z-score → PCA (Reid et al. 2009) → 0-100 + per-factor `contrib_*` | `cells.geojson` + `bmc_wards.geojson` | `data/cells_hvi.geojson`, `data/wards_hvi.geojson`, `data/hvi_pca_log.json` |
-| 06 | `06_nbs.py` | NBS rule engine + plantability filter (Bastin/Veldman etc.) | `cells_hvi.geojson` + GEE (WorldCover) | `data/cells_nbs.geojson`, `data/nbs_recommendations.json` |
-| 07 | `07_load.py` | Upsert to Supabase + write demo-safe snapshots | `cells_nbs.geojson`, `wards_hvi.geojson`, `nbs_recommendations.json` | Supabase (`wards`, `grid_cells`, `nbs_recommendations`, …) + `data/snapshot_*.geojson` |
-| 08 | `08_sensitivity.py` | Weight perturbation (±20% one-at-a-time) + Kendall τ stability chart | `cells.geojson`, `hvi_pca_log.json` | `data/sensitivity.json`, `data/sensitivity_chart.png` |
-| 09 | `09_ndvi_change.py` | Classify per-cell NDVI delta → `gained/stable/lost` (thr ±0.05) | `cells_hvi.geojson` | `data/cells_ndvi_change.geojson` |
-| 10 | `10_ward_profile.py` | Roll cell indicators to ward profiles (dialog copy context) | `cells_hvi.geojson`, `wards_hvi.geojson`, `bmc_wards.geojson` | `data/ward_profiles.json` |
-| 11 | `11_hero_city.py` | Project + simplify wards for 3D hero (unit-space `[-1,1]`) | `bmc_wards.geojson`, `wards_hvi.geojson` | `data/hero_city.json` |
-| 12 | `12_hero_region.py` | Regional coastline context around Mumbai (Natural Earth) | `hero_city.json` (shared `space`) + Natural Earth cache | `data/hero_region.json` |
-
-Where the pipeline hands off:
-- `data/` snapshots → what the frontend currently reads from `frontend/public/` (copy of `data/` snapshots). After #53, live reads come from Supabase instead.
-- Supabase tables → live source for the dashboard once `07_load` has run against a migrated DB (`supabase/migrations/0001_init.sql`).
-
-## How to run end-to-end (local)
+## Running a refresh
 
 ```bash
-# 1. Python env (3.11+)
+cd pipeline
 python -m venv .venv
-.venv\Scripts\activate        # Windows — or source .venv/bin/activate on macOS/Linux
-pip install -r pipeline/requirements.txt
+.venv\Scripts\activate      # .venv/bin/activate on macOS/Linux
+pip install -r requirements.txt
+earthengine authenticate    # once, needs your own Google Earth Engine account
+cp ../.env.example ../.env.local   # fill in Supabase keys if you want the DB upsert too
 
-# 2. Credentials — see .env.example
-#    Copy to .env.local in repo root (07_load.py loads .env.local):
-#      NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY  (for 07_load.py)
-#      GEE_PROJECT=ucip-mumbai  (also settable as env var; must have run `earthengine authenticate` once)
-cp .env.example .env.local          # then fill values
-# GEE auth (once per machine):
-earthengine authenticate
-
-# 3. Run sequentially
-python pipeline/00_gee_spike.py   # optional spike/gate — skip if GEE already proven
-python pipeline/01_grid.py
-python pipeline/02_gee_layers.py
-python pipeline/03_vectors.py
-python pipeline/04_zonal.py
-python pipeline/05_hvi.py
-python pipeline/06_nbs.py
-python pipeline/07_load.py        # writes snapshots even if Supabase is not configured
-python pipeline/08_sensitivity.py
-python pipeline/09_ndvi_change.py
-python pipeline/10_ward_profile.py
-python pipeline/11_hero_city.py
-python pipeline/12_hero_region.py
-
-# 4. Frontend picks up fresh snapshots (copied or symlinked to frontend/public/)
-#    e.g. copy data/wards_hvi.geojson → frontend/public/wards_hvi.geojson etc.
+python run_pipeline.py
 ```
 
-`07_load.py` is best-effort on Supabase: if `0001_init.sql` hasn't been applied, it logs per-table failures and still writes snapshots — the judged demo survives a dead DB by design.
+`run_pipeline.py` (issue #56) runs stages `01` through `12` in dependency order, stops at
+the first hard failure, and writes a run log to `data/pipeline_run_log.json`. Useful
+flags:
 
-## Env vars / credentials
+| Flag | Effect |
+|------|--------|
+| `--dry-run` | Print the execution plan, run nothing. |
+| `--from 05` | Resume the chain starting at stage `05` (after fixing a failure). |
+| `--only 08,09` | Run just the listed stages. |
+| `--include-spike` | Also run `00_gee_spike.py` first (excluded by default, see below). |
+| `--keep-going` | Don't stop the chain on a hard failure. |
 
-| Var | Where used | Required? |
-|-----|------------|-----------|
-| `GEE_PROJECT` | `00`, `02`, `03`, `06` | Yes for any GEE pull |
-| `NEXT_PUBLIC_SUPABASE_URL` | `07_load.py` (loads `.env.local`) | Only for live DB upsert |
-| `SUPABASE_SERVICE_ROLE_KEY` | `07_load.py` (loads `.env.local`) | Only for live DB upsert |
+`00_gee_spike.py` is a one-time development go/no-go gate, not a stage of a real
+refresh: it queries a small fixed test bbox to sanity-check GEE connectivity and writes
+nothing any later stage reads. It stays in the repo and in `run_pipeline.py`'s stage
+list (so `--include-spike` can still run it, e.g. to smoke-test credentials in CI) but
+is excluded from a plain `python run_pipeline.py`.
 
-Source of truth for env names: `.env.example` at repo root.
+A stage script's exit code means: `0` clean pass, `2` ran but a sanity check flagged
+"CHECK WARNINGS" (non-fatal, e.g. the PCA fallback triggering), `1` hard failure. The
+runner stops the chain on `1` and continues past `2`.
 
-## Notes
+## Frontend sync
 
-- Sequential by construction — later stages assume earlier outputs exist. The planned orchestrator (#56) is one command around this same order.
-- GEE stages use dry-season windows validated in `00_gee_spike.py` (`2025-11-01` → `2026-02-28` current, `2016-11-01` → `2017-02-28` baseline).
-- This doc is the bird's-eye map; per-script docstrings are the per-stage detail (see #19).
+A refresh is only real if the live site actually serves it. The deployed frontend
+reads its data from `frontend/public/`, not from `data/` directly (see
+`frontend/src/lib/useWardData.ts`, `frontend/src/app/components/WardChoropleth.tsx`,
+and `frontend/src/app/page.tsx`), so every stage whose output the browser fetches at
+runtime writes to both places in the same run, not just `data/`:
+
+| Stage | Writes to `data/` | Also copies to `frontend/public/` |
+|-------|--------------------|------------------------------------|
+| `05_hvi.py` | `wards_hvi.geojson` | yes |
+| `06_nbs.py` | `cells_nbs.geojson`, `nbs_recommendations.json` | yes, both |
+| `08_sensitivity.py` | `sensitivity_chart.png` | yes |
+| `09_ndvi_change.py` | `cells_ndvi_change.geojson` | yes |
+| `10_ward_profile.py` | `ward_profiles.json` | yes (already did this before #56) |
+| `11_hero_city.py` | `hero_city.json` | yes (already did this before #56) |
+| `12_hero_region.py` | `hero_region.json` | yes (already did this before #56) |
+
+`sensitivity.json` and `hvi_pca_log.json` are the two exceptions: the methodology page
+(`frontend/src/app/methodology/page.tsx`) reads them server-side straight out of
+`../data/`, so they need no `frontend/public/` copy at all. `sensitivity_chart.png` is
+different from `sensitivity.json` even though both come from `08_sensitivity.py`: the
+chart is rendered as a plain `<img src="/sensitivity_chart.png">`, a browser-fetched
+static asset, so it does need the copy.
+
+Before this, only `10`-`12` copied their own output to `frontend/public/`; `05`, `06`,
+`08`, and `09`'s outputs were kept in sync by a one-time hand copy when the repo was
+first built, not by anything a refresh would repeat. A pipeline run would have quietly
+kept writing correct data to `data/` while the live site kept serving whatever was
+hand-copied into `frontend/public/` at that one point in time, indefinitely. All four
+now copy their own output the same way `10`-`12` already did, so this can't recur
+silently for any stage added later either, as long as it follows the same pattern.
+
+**The copy runs AFTER each stage's own sanity check, and only if it passes.** `05`,
+`06`, `08`, and `09` each already had an end-of-run sanity check (HVI range and ward
+count, recommendation coverage, weight-perturbation stability, NDVI-unknown rate) that
+flags a bad run with a `[WARN]`/exit-code-2 but doesn't stop `run_pipeline.py`'s chain.
+A stage that produces genuinely bad data (fewer than 24 wards, unstable ranking, too
+many "unknown" NDVI cells) writes that bad data to `data/` as always, but its
+`frontend/public/` copy is skipped, with an explicit `[WARN]` saying so. The live site
+keeps serving its previous (last-known-good) file instead of a broken run, with no
+manual rollback needed. `pipeline/_publish.py`'s `publish(src, dest)` is the one place
+this copy actually happens, called from each stage's `if ok:` branch.
+
+## Refresh cadence (issue #57)
+
+**Every stage below runs on a monthly cadence, not daily, because the data underneath
+it does not change daily.**
+
+| Stage | Cadence | Why |
+|-------|---------|-----|
+| `01_grid.py` | Monthly | BMC ward boundaries are static; only changes if `data/bmc_wards.geojson` is re-sourced. |
+| `02_gee_layers.py` | Monthly | Landsat 8/9 dry-season **composite** (`00_gee_spike.py`'s validated recipe), a multi-week median composite by construction, not a daily reading. |
+| `03_vectors.py` | Monthly | WorldPop's age-sex layer is pinned to a single annual vintage (`WORLDPOP_YEAR = "2020"`, see the script); OSM hospitals and slum-cluster boundaries change on the order of months, not days. |
+| `04_zonal.py` | Monthly | Pure consolidation of the two stages above; has nothing new to compute between their refreshes. |
+| `05_hvi.py` | Monthly | Deterministic function of `04`'s output; the PCA weights themselves are also expected to be stable run-to-run (see `docs/HVI-methodology-report.md` section 6, the sensitivity analysis). |
+| `06_nbs.py` | Monthly | Its GEE call is ESA WorldCover, an annual-cadence land-cover product. |
+| `07_load.py` | Monthly | Terminal upsert/snapshot step of the same refresh; runs once per chain, immediately after the stage that changed. |
+| `08_sensitivity.py` | Monthly | Cheap function of `05`'s weights; nothing to recompute until `05` changes. |
+| `09_ndvi_change.py` | Monthly | Function of `02`'s two NDVI composites (current vs. a ~9-year baseline); does not move month to month. |
+| `10_ward_profile.py` | Monthly | Rolls up `05`/`06` output; changes only when they do. |
+| `11_hero_city.py` | Monthly | Geometry + HVI/rank read from `05`; changes only when boundaries or HVI change. |
+| `12_hero_region.py` | Monthly | Natural Earth coastline, effectively static; cached to `data/cache/` after the first fetch. |
+
+Running this chain more often than monthly would re-fetch the same underlying
+satellite/demographic snapshot and re-derive the same numbers, at real GEE-quota cost,
+for a "last updated" timestamp with no real signal behind it: cosmetic freshness, not
+actual freshness. A monthly cron (`.github/workflows/pipeline-refresh.yml`, issue #58)
+matches the data's real cadence.
+
+**The one genuinely fast-changing number in the product, live air temperature, is
+intentionally not a pipeline stage at all.** `frontend/src/lib/weather.ts` fetches it
+client-side from Open-Meteo on every page load: no server, no cron, no committed
+snapshot, no staleness possible. That pattern (fetch live at request time, show an
+honest "unavailable" state on failure, never fabricate or cache a stale number) is the
+template for any future value that is actually fast-changing: extend `weather.ts`'s
+approach for it, rather than adding another monthly-refreshed pipeline stage and
+labeling it "daily" for effect.
+
+## Change diffing (issue #61)
+
+`diff_snapshots.py` compares two runs' worth of pipeline output (a "before" directory
+and an "after" directory, each holding `wards_hvi.geojson`, `nbs_recommendations.json`,
+and `cells_ndvi_change.geojson`) and reports, per ward: HVI rank shifts, NBS
+recommendations added/removed, and green-cover classification flips. It is a plain
+diff over pipeline artifacts, with no notion of user accounts or saved wards. See the
+script's own docstring and the PR description for what is and is not in scope.
+
+Each of the three categories is only diffed if its own file existed in the "before"
+directory (`had_rank_baseline`/`had_nbs_baseline`/`had_green_cover_baseline` in the
+output), independently of the other two. A partial "before" directory, e.g. an
+interrupted first refresh, reports the categories it has no baseline for as not-diffed
+rather than as a false wall of changes for every ward.
+
+```bash
+python diff_snapshots.py --old-dir /path/to/previous/data --new-dir ../data --out ../data/pipeline_diff.json
+```

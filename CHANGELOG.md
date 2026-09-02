@@ -24,7 +24,22 @@ yet — this section covers everything since the project started.
 - Sensitivity analysis: top-ward ranking verified stable under +/-20% weight perturbation.
 - Apache-2.0 license, full brand/design system (Inter + JetBrains Mono, teal/emerald
   tokens), light and dark themes.
+- `pipeline/run_pipeline.py`: an orchestrated runner that chains all 13 pipeline stages
+  in dependency order, stopping on the first hard failure and logging a structured
+  run report, so a data refresh is one command instead of running each stage by hand.
+- `.github/workflows/pipeline-refresh.yml`: a monthly GitHub Actions cron that runs the
+  orchestrated pipeline and opens a PR with the refreshed data, matching the cadence
+  documented in `pipeline/README.md` (satellite/demographic data does not change daily;
+  live weather already updates independently via `frontend/src/lib/weather.ts`).
+- `pipeline/diff_snapshots.py`: a diff-computation step that compares two pipeline runs'
+  output and reports per-ward HVI rank shifts, NBS recommendation changes, and
+  green-cover classification flips, with unit tests under `pipeline/tests/`.
+- `docs/HVI-methodology-report.md`: a standalone technical report expanding the existing
+  methodology and citation docs into a full writeup (PCA weighting, sensitivity
+  analysis, plantability filter, limitations, references).
 
 ### Fixed
+- Missing `python-dotenv` and `scipy` in `pipeline/requirements.txt` (used by
+  `07_load.py` and `08_sensitivity.py` respectively, but not previously listed).
 - Dashboard sidebar scroll, fullscreen popup theming in dark mode, ward search matching
   by locality name as well as ward code.

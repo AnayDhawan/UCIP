@@ -69,6 +69,11 @@ docs/       Methodology, citations, screenshots
   plantability filter, mirroring the in-app `/methodology` page.
 - [docs/references.md](docs/references.md) - the citation table backing every variable and
   weight, with DOIs.
+- [docs/HVI-methodology-report.md](docs/HVI-methodology-report.md) - a standalone technical
+  report expanding the methodology and references above into a full writeup with real
+  pipeline output (PCA weights, sensitivity analysis results, plantability-filter numbers).
+- [pipeline/README.md](pipeline/README.md) - running the pipeline as one orchestrated
+  refresh, the refresh cadence split, and the post-refresh change-diff tool.
 
 ## Contributing
 
