@@ -116,7 +116,7 @@ jobs:
 
       - name: Upload run log and diff as workflow artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pipeline-refresh-${{ github.run_id }}
           path: |
