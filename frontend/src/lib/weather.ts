@@ -40,7 +40,8 @@ export async function fetchCityTemp(city: CityConfig): Promise<CityTemp | null> 
     if (typeof temperatureC !== "number") return null;
 
     return { temperatureC, observedAt: data.current?.time ?? "" };
-  } catch {
+  } catch (err) {
+    console.error("[weather] fetchCityTemp failed:", err);
     return null;
   } finally {
     clearTimeout(timeout);

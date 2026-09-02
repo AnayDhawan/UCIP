@@ -63,6 +63,13 @@ function DialogContent({
   showOverlay = true,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
+  /**
+   * When `false`, the built-in × close button is omitted. The caller MUST
+   * provide an alternative close affordance (e.g. a `DialogClose` wrapper
+   * or a header button calling `onOpenChange(false)`). Without one the
+   * dialog is keyboard-trapped — Escape still works but discoverability
+   * suffers. See WardDialog for the intended pattern.
+   */
   showCloseButton?: boolean
   /** Drop the scrim to let the content float over a still-visible, still
    *  interactive page. Pair with `modal={false}` on the Dialog root. */

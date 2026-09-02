@@ -304,3 +304,11 @@ html {
     @apply font-sans;
   }
 }
+
+/* Keyboard focus for Leaflet ward polygons: the SVG <path> elements get
+   tabindex=0 from WardChoropleth's selectFrom, and this keeps the focus ring
+   visible without touching Leaflet's own path styling. */
+.leaflet-overlay-pane path:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
+}

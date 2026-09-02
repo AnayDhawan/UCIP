@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { GeoJSON, MapContainer, TileLayer, useMap } from "react-leaflet";
 import { geoJSON as leafletGeoJSON } from "leaflet";
 import type { Feature, FeatureCollection, Geometry, Position } from "geojson";
-import type { GeoJSON as LeafletGeoJSONLayer, LatLngBoundsExpression, Layer, PathOptions } from "leaflet";
+import type { GeoJSON as LeafletGeoJSONLayer, LatLngBoundsExpression, Layer, Path, PathOptions } from "leaflet";
 import { Maximize2, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -99,7 +99,7 @@ function Legend({ layer }: { layer: LayerId }) {
       {layer === "hvi" && (
         <>
           <p className="mb-1.5 font-semibold text-foreground">Heat Vulnerability Index (0-100)</p>
-          <div className="flex overflow-hidden rounded-sm">
+          <div className="flex overflow-hidden rounded-sm" aria-hidden="true">
             {HVI_LEGEND_BINS.map((b) => (
               <div key={b.color} className="h-3 flex-1" style={{ background: b.color }} />
             ))}
@@ -115,11 +115,11 @@ function Legend({ layer }: { layer: LayerId }) {
           <p className="mb-1.5 font-semibold text-foreground">Can trees go here?</p>
           <div className="space-y-1 text-foreground">
             <div className="flex items-center gap-2">
-              <span className="h-3 w-3 rounded-sm" style={{ background: "#4ade80" }} />
+              <span className="h-3 w-3 rounded-sm" style={{ background: "#4ade80" }} aria-hidden="true" />
               <span>Yes, suitable for planting</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="h-3 w-3 rounded-sm" style={{ background: "#f87171" }} />
+              <span className="h-3 w-3 rounded-sm" style={{ background: "#f87171" }} aria-hidden="true" />
               <span>No, cool roofs instead</span>
             </div>
           </div>
@@ -130,15 +130,15 @@ function Legend({ layer }: { layer: LayerId }) {
           <p className="mb-1.5 font-semibold text-foreground">Green cover since 2016-17</p>
           <div className="space-y-1 text-foreground">
             <div className="flex items-center gap-2">
-              <span className="h-3 w-3 rounded-sm" style={{ background: "#4ade80" }} />
+              <span className="h-3 w-3 rounded-sm" style={{ background: "#4ade80" }} aria-hidden="true" />
               <span>Gained vegetation</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="h-3 w-3 rounded-sm border border-border" style={{ background: "#d4d4d8" }} />
+              <span className="h-3 w-3 rounded-sm border border-border" style={{ background: "#d4d4d8" }} aria-hidden="true" />
               <span>Stable</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="h-3 w-3 rounded-sm" style={{ background: "#f87171" }} />
+              <span className="h-3 w-3 rounded-sm" style={{ background: "#f87171" }} aria-hidden="true" />
               <span>Lost vegetation</span>
             </div>
           </div>
@@ -309,6 +309,32 @@ export default function WardChoropleth({
   function selectFrom<P extends { ward_id: string }>(feature: Feature<Geometry, P>, layer: Layer) {
     const wardId = feature.properties.ward_id;
     layer.on("click", () => onSelectWard?.(wardId));
+
+    // Keyboard access: Leaflet path layers render as SVG <path> elements that
+    // are not focusable by default. Make each one tabbable and select it on
+    // Enter/Space, mirroring the click handler. The focus ring is drawn with
+    // CSS (see the global rule below) so it stays visible without touching
+    // Leaflet's own styling.
+    // Leaflet calls onEachFeature *before* the layer is added to the map, so
+    // getElement() is undefined at this point — defer until the 'add' event
+    // when the <path> actually exists in the DOM.
+    const pathLayer = layer as Path;
+    const attachKeyboard = () => {
+      const el = pathLayer.getElement?.() as HTMLElement | undefined;
+      if (!el) return;
+      el.setAttribute("tabindex", "0");
+      el.setAttribute("role", "button");
+      el.setAttribute("aria-label", `Select ward ${wardId}`);
+      const onKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelectWard?.(wardId);
+        }
+      };
+      el.addEventListener("keydown", onKeyDown);
+      layer.once("remove", () => el.removeEventListener("keydown", onKeyDown));
+    };
+    layer.once("add", attachKeyboard);
   }
 
   return (

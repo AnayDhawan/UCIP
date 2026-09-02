@@ -47,7 +47,8 @@ function getWebGLSnapshot(): boolean {
     try {
       const canvas = document.createElement("canvas");
       webGLSupport = !!(canvas.getContext("webgl2") || canvas.getContext("webgl"));
-    } catch {
+    } catch (err) {
+      console.warn("[HeroCity] WebGL probe failed:", err);
       webGLSupport = false;
     }
   }
@@ -227,7 +228,9 @@ export default function HeroCity() {
       })
       // The hero still reads without its subject; a failed decorative fetch
       // must never surface an error banner above the fold.
-      .catch(() => undefined);
+      .catch((err) => {
+        console.error("[HeroCity] Ward geometry fetch failed:", err);
+      });
 
     // The city renders on its own if the surrounding coast fails to load.
     fetch(HERO_REGION_URL)
@@ -235,7 +238,9 @@ export default function HeroCity() {
       .then((json) => {
         if (!cancelled && json) setRegion(json);
       })
-      .catch(() => undefined);
+      .catch((err) => {
+        console.error("[HeroCity] Region geometry fetch failed:", err);
+      });
 
     return () => {
       cancelled = true;
