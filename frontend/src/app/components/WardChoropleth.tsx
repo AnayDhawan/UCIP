@@ -376,9 +376,27 @@ export default function WardChoropleth({
         zoomDelta={0.5}
         style={{ height: "100%", width: "100%" }}
       >
+        {/*
+          Esri's free World Light Gray Canvas, split into an unlabelled base
+          plus a transparent label overlay, rather than CARTO's light_all.
+
+          CARTO's basemaps.cartocdn.com free tier now serves a watermarked
+          "API KEY REQUIRED" placeholder for every tile — confirmed 2026-09-03
+          by fetching a tile directly and inspecting the pixels, not just the
+          HTTP status, since the placeholder itself returns 200. This is a
+          change on CARTO's side, not anything specific to this deployment,
+          and every ward polygon, colour and the sidebar were unaffected; only
+          the street-map background was blank.
+
+          Esri's Canvas services need no key and are addressed z/y/x rather
+          than Leaflet's usual z/x/y, hence the swapped template below.
+        */}
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.esri.com">Esri</a> — Esri, HERE, Garmin, FAO, NOAA, USGS'
+          url="https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+        />
+        <TileLayer
+          url="https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
         />
         {data && activeLayer === "hvi" && (
           <GeoJSON
