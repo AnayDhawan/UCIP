@@ -1,0 +1,82 @@
+{
+  "_about": "Unit costs for the budget-constrained allocator (pipeline/15_optimize.py, issue #67). Every entry must carry a real source. Entries with sourced=false are refused by the optimizer rather than guessed at: the budget optimizer was cut from the original build precisely because inventing costs would have produced authoritative-looking allocations resting on nothing.",
+  "currency": "INR",
+  "price_year": 2020,
+  "_price_year_note": "Costs are NOT inflation-adjusted. The allocator compares interventions against each other, so a common price year matters more than currency-of-the-day, but absolute rupee totals should be read as 2020 prices.",
+
+  "interventions": {
+    "cool_roof_lime": {
+      "label": "Cool roof, white lime paint",
+      "sourced": true,
+      "unit": "INR_per_m2",
+      "cost": 5.38,
+      "cost_low": 5.38,
+      "cost_high": 5.38,
+      "lifetime_years": 4.5,
+      "_derivation": "NRDC reports the Ahmedabad Cool Roofs Pilot Program used simple white lime paint at approximately Rs 0.5 per square foot, reapplied every 4-5 years. Converted at 10.7639 sq ft per m2: 0.5 x 10.7639 = Rs 5.38/m2.",
+      "source": "NRDC, 'Frequently Asked Questions (FAQs): Cool Roofs', 2020-05-27, question 11 and Table 1.",
+      "source_url": "https://www.nrdc.org/sites/default/files/india-cool-roofs-faq-20200527.pdf",
+      "notes": "The most defensible figure available here, because it is what an Indian municipality actually paid in a real city-scale programme rather than a retail quote. Cheapest option and the shortest-lived."
+    },
+
+    "cool_roof_coating": {
+      "label": "Cool roof, reflective coating",
+      "sourced": true,
+      "unit": "INR_per_m2",
+      "cost": 322.9,
+      "cost_low": 215.3,
+      "cost_high": 430.6,
+      "lifetime_years": 7,
+      "_derivation": "NRDC Table 1 gives coatings at Rs 20-40 per sq ft. Converted at 10.7639 sq ft per m2: Rs 215.3-430.6/m2, midpoint Rs 322.9.",
+      "source": "NRDC, 'Frequently Asked Questions (FAQs): Cool Roofs', 2020-05-27, Table 1: Indicative costs of cool roofs material types.",
+      "source_url": "https://www.nrdc.org/sites/default/files/india-cool-roofs-faq-20200527.pdf",
+      "notes": "NRDC states a 1.5-2 year payback from cooling-energy savings, which this allocator does not model. Lifetime is indicative; the source gives payback, not lifespan."
+    },
+
+    "cool_roof_tiles": {
+      "label": "Cool roof, tiles",
+      "sourced": true,
+      "unit": "INR_per_m2",
+      "cost": 807.3,
+      "cost_low": 538.2,
+      "cost_high": 1076.4,
+      "lifetime_years": 15,
+      "_derivation": "NRDC Table 1 gives cool roof tiles at Rs 50-100 per sq ft, converted at 10.7639 sq ft per m2.",
+      "source": "NRDC, 'Frequently Asked Questions (FAQs): Cool Roofs', 2020-05-27, Table 1.",
+      "source_url": "https://www.nrdc.org/sites/default/files/india-cool-roofs-faq-20200527.pdf"
+    },
+
+    "native_trees": {
+      "label": "Native tree planting and green corridors",
+      "sourced": false,
+      "unit": "INR_per_tree",
+      "cost": null,
+      "_why_unsourced": "No credible Indian municipal or peer-reviewed unit cost was found. Searches returned commercial nursery and landscaping quotes (roughly Rs 50-800 per sapling) which vary by an order of magnitude, mix retail with programme costs, and exclude the multi-year establishment watering that dominates urban tree survival. Published Indian work reports benefit-cost RATIOS for urban greening (about 3:1 in npj Urban Sustainability 2025 for Lucknow, Chennai and Surat) but not the per-unit costs an allocator needs.",
+      "what_would_close_this": "A BMC or state horticulture schedule of rates, or a published urban-forestry programme cost including establishment maintenance."
+    },
+
+    "pocket_parks": {
+      "label": "Pocket parks and green open space",
+      "sourced": false,
+      "unit": "INR_per_m2",
+      "cost": null,
+      "_why_unsourced": "Dominated by land acquisition, which in Mumbai varies by more than an order of magnitude between wards and swamps construction cost entirely. A single city-wide per-m2 figure would be meaningless."
+    },
+
+    "cooling_centres": {
+      "label": "Cooling centres",
+      "sourced": false,
+      "unit": "INR_per_centre",
+      "cost": null,
+      "_why_unsourced": "Indian heat action plans describe cooling centres qualitatively; no capital or operating cost per centre was found. Cost also depends heavily on whether existing public buildings are retrofitted or new ones built."
+    },
+
+    "rain_gardens": {
+      "label": "Rain gardens and water-sensitive urban design",
+      "sourced": false,
+      "unit": "INR_per_m2",
+      "cost": null,
+      "_why_unsourced": "No Indian unit cost found. Available figures are from US and Australian WSUD programmes with different labour costs and design standards."
+    }
+  }
+}

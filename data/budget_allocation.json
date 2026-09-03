@@ -1,0 +1,70 @@
+{
+  "city": "mumbai",
+  "intervention": {
+    "key": "cool_roof_lime",
+    "label": "Cool roof, white lime paint",
+    "unit": "INR_per_m2",
+    "cost": 5.38,
+    "source": "NRDC, 'Frequently Asked Questions (FAQs): Cool Roofs', 2020-05-27, question 11 and Table 1.",
+    "source_url": "https://www.nrdc.org/sites/default/files/india-cool-roofs-faq-20200527.pdf"
+  },
+  "sourced_cost": true,
+  "illustrative_only": false,
+  "budget_inr": 50000000.0,
+  "spent_inr": 50000000,
+  "unspent_inr": 0,
+  "wards_funded": 3,
+  "wards_fully_funded": 2,
+  "total_benefit_person_degrees": 7444138,
+  "objective": "vulnerability",
+  "objective_description": "Maximise vulnerability-weighted cooling: degrees C x people exposed x ward HVI, allocated by benefit per rupee.",
+  "objective_note": "Allocated by fractional knapsack, provably optimal for a divisible intervention. The choice of objective moves the answer a long way: on a 5 crore budget the exposure objective funded wards ranked 17, 19, 22 and 24 of 24, because dense wards yield the most person-degrees per rupee whether or not they are the wards at risk. That is why the default weights by vulnerability, and why the objective is recorded in the output rather than left implicit.",
+  "assumptions": [
+    "Albedo gain from a cool roof: +0.4. An assumption, not a measurement.",
+    "Cooling: 0.6 C per +0.1 albedo, the conservative end of Santamouris 2014's 0.57-2.3 K range.",
+    "Roof area: 40% of each ward's impervious surface. Imperviousness includes roads and paving, so this is a share of it rather than all of it, and it is an assumption rather than a roof survey.",
+    "Population from WorldPop density times ward area; the same modelled surface the index uses, not a census count.",
+    "Benefit is instantaneous person-degrees. It does not model intervention lifetime, maintenance, discounting, or health outcomes."
+  ],
+  "limitations": [
+    "Only cool roofs can be allocated. Cited cooling coefficients exist for tree canopy (Ziter 2019) and pocket parks (Bowler 2010), but no credible Indian unit COST was found for either, so they cannot enter a budget comparison.",
+    "Costs are 2020 prices and are not inflation-adjusted.",
+    "Even the vulnerability-weighted objective is an aggregate one: it maximises total weighted cooling, not the worst-off ward's outcome. A sparse but severely vulnerable ward can still lose to a dense moderately vulnerable one. A minimax or per-capita-floor objective would answer a different and equally legitimate question."
+  ],
+  "citations": {
+    "cool_roof": "Santamouris 2014, Solar Energy 103:682-703, doi:10.1016/j.solener.2012.07.003"
+  },
+  "allocation": [
+    {
+      "ward_id": "H/E",
+      "rank": 8,
+      "hvi": 58.44,
+      "population_est": 1052716,
+      "spend_inr": 16109379,
+      "share_of_ward_treated": 1.0,
+      "roof_m2_treated": 2994308,
+      "benefit_person_degrees": 2526519
+    },
+    {
+      "ward_id": "F/S",
+      "rank": 5,
+      "hvi": 64.84,
+      "population_est": 926979,
+      "spend_inr": 16233202,
+      "share_of_ward_treated": 1.0,
+      "roof_m2_treated": 3017324,
+      "benefit_person_degrees": 2224749
+    },
+    {
+      "ward_id": "M/W",
+      "rank": 12,
+      "hvi": 54.69,
+      "population_est": 1229691,
+      "spend_inr": 17657419,
+      "share_of_ward_treated": 0.912,
+      "roof_m2_treated": 3282048,
+      "benefit_person_degrees": 2692870
+    }
+  ],
+  "skipped_wards": []
+}
