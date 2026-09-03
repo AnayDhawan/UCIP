@@ -1,9 +1,8 @@
 import type { MetadataRoute } from "next";
 
-// TODO: NEXT_PUBLIC_SITE_URL isn't set anywhere in the repo yet (see
-// layout.tsx's siteUrl), so this falls back to localhost until a production
-// domain is documented.
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+// Falls back to the production domain (see layout.tsx's siteUrl for why), so a
+// deploy with no env vars set still emits real URLs instead of localhost ones.
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://uciplatform.vercel.app";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();

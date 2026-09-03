@@ -1,0 +1,82 @@
+# Supabase keepalive.
+#
+# Why this exists: Supabase pauses free-tier projects after 7 consecutive days
+# with no activity. UCIP's only scheduled database traffic is the pipeline
+# refresh, which runs MONTHLY (see pipeline-refresh.yml), so the project sits
+# idle for ~30 days between runs and gets paused every single cycle. Organic
+# site traffic is far too thin to count on: the repo sees a handful of unique
+# visitors a day and routinely goes a week with none.
+#
+# This matters more than it looks. Issue #53 migrates the frontend from static
+# /public files to live Supabase reads; the moment that ships, a paused project
+# is a broken dashboard, not just a dormant database. Treat this workflow as a
+# prerequisite for #53 rather than a nicety.
+#
+# Cadence: every 3 days, deliberately NOT weekly. GitHub's scheduled workflows
+# are best-effort and can be delayed or dropped entirely under load, so a 7-day
+# cadence against a 7-day pause window has no margin at all. Three days means a
+# single missed run is harmless.
+#
+# Known limitation: GitHub disables scheduled workflows in repos with 60 days of
+# no activity. UCIP is active, so this is a note for a future quiet period, not
+# a live risk.
+#
+# Required secrets: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY.
+# The anon key is public by design (it ships in the browser bundle) and is
+# read-only under the RLS policies in supabase/migrations/0005_add_rls_policies.sql;
+# it lives in Actions secrets for rotation convenience, not confidentiality.
+
+name: Supabase keepalive
+
+on:
+  schedule:
+    # 06:41 UTC every 3rd day.
+    - cron: "41 6 */3 * *"
+  workflow_dispatch:
+
+concurrency:
+  group: supabase-keepalive
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read one row from Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          set -uo pipefail
+
+          if [ -z "${SUPABASE_URL:-}" ] || [ -z "${SUPABASE_ANON_KEY:-}" ]; then
+            echo "::error::Supabase secrets are not configured on this repo."
+            exit 1
+          fi
+
+          # A real SELECT, not just a reachability ping. Hitting the REST API
+          # with a query is what Supabase counts as activity, and it also proves
+          # the table still exists and RLS still permits anon reads, which a
+          # bare health check would not.
+          body=$(mktemp)
+          code=$(curl -sS -o "$body" -w '%{http_code}' --max-time 30 --retry 2 --retry-delay 5 \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            "${SUPABASE_URL}/rest/v1/wards?select=ward_id&limit=1" || echo "000")
+
+          if [ "$code" != "200" ]; then
+            echo "::error::Supabase returned HTTP $code. The project may be paused, or the keys may have rotated."
+            cat "$body"
+            exit 1
+          fi
+
+          # An empty array is a 200 too, and would mean the wards table is
+          # present but unloaded, or that RLS is silently filtering everything.
+          # Both are real problems worth failing on.
+          if grep -q '"ward_id"' "$body"; then
+            echo "ok: Supabase responded 200 with ward data. Project is awake."
+          else
+            echo "::error::Supabase returned 200 but no ward rows. Check the data load and the RLS policies."
+            cat "$body"
+            exit 1
+          fi

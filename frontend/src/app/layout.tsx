@@ -14,7 +14,11 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+// Production domain, confirmed live 2026-09-03. Defaulting to it rather than
+// localhost so canonical URLs, OG images and the sitemap are correct on a
+// deploy with no env vars set; NEXT_PUBLIC_SITE_URL still overrides for
+// previews and local work.
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://uciplatform.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

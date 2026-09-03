@@ -1,0 +1,62 @@
+# Live-site smoke test.
+#
+# Why this exists: the production deployment 404'd on every route for roughly a
+# month (the Vercel Root Directory field pointed at the repo root instead of
+# frontend/) and nothing caught it. The README badge said "prototype-live", the
+# repo homepage linked straight at the dead URL, and CI stayed green the whole
+# time, because CI only ever built the site, it never fetched it.
+#
+# So this checks the thing CI structurally cannot: that the deployed site is
+# actually serving. A build that passes and a site that responds are different
+# claims.
+#
+# Config: repo variable LIVE_URL (Settings > Secrets and variables > Actions >
+# Variables), no trailing slash. Not a secret, the URL is public.
+
+name: Smoke
+
+on:
+  schedule:
+    # Every 6 hours, offset off the hour to dodge GitHub's :00 cron stampede.
+    - cron: "23 */6 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+concurrency:
+  group: smoke
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check the live site responds
+        env:
+          LIVE_URL: ${{ vars.LIVE_URL }}
+        run: |
+          set -uo pipefail
+
+          if [ -z "${LIVE_URL:-}" ]; then
+            echo "::error::LIVE_URL repo variable is not set. Set it under Settings > Secrets and variables > Actions > Variables."
+            exit 1
+          fi
+
+          # One page per major surface, plus a data file. The data file matters
+          # on its own: the dashboard reads its GeoJSON from /public at runtime,
+          # so the HTML can render fine while the map silently has nothing to draw.
+          PATHS="/ /dashboard /methodology /simulate /wards_hvi.geojson /nbs_recommendations.json"
+
+          failed=0
+          for path in $PATHS; do
+            url="${LIVE_URL}${path}"
+            code=$(curl -sS -o /dev/null -w '%{http_code}' -L --max-time 30 --retry 2 --retry-delay 5 "$url" || echo "000")
+            if [ "$code" = "200" ]; then
+              echo "ok    $code  $url"
+            else
+              echo "::error::$code $url"
+              failed=1
+            fi
+          done
+
+          exit $failed

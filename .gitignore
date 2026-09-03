@@ -64,3 +64,6 @@ docs/pitch-brief.md
 docs/prior-art.md
 
 .vercel
+
+# Embedded Python runtime (moved with the repo, never tracked)
+Python/

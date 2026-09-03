@@ -8,13 +8,14 @@
 ![Stack](https://img.shields.io/badge/stack-Next.js%20%2B%20Python%20%2B%20Supabase-38bdf8)
 ![Status](https://img.shields.io/badge/status-prototype--live-brightgreen)
 
+**[Open the live dashboard](https://uciplatform.vercel.app/dashboard)**
+
 </div>
 
 ---
 
-UCIP tells a city planner **which Mumbai wards to cool first, why, what intervention to use, and
-where to spend a fixed budget**, grounded in published climate and ecology literature, not
-arbitrary weights.
+UCIP tells a city planner **which Mumbai wards to cool first, why, and what intervention to use
+there**, grounded in published climate and ecology literature, not arbitrary weights.
 
 > **Status: prototype live.** The full data pipeline, HVI computation, NBS engine, and a working
 > Leaflet frontend (choropleth, plantability layer, green-cover-change layer, ward cards,
