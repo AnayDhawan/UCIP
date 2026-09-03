@@ -64,6 +64,18 @@ data/       Ward boundaries + committed GeoJSON snapshots (demo-safe fallback)
 docs/       Methodology, citations, screenshots
 ```
 
+## API
+
+A read-only public API serves the same data, with no key and open CORS:
+
+```bash
+curl 'https://uciplatform.vercel.app/api/v1/lookup?lat=19.076&lon=72.877'
+```
+
+Endpoints for wards, grid cells, recommendations, and a coordinate lookup that
+answers "which ward am I in and what should be built here". Full reference:
+[docs/api.md](docs/api.md). Spec: [`/api/v1/openapi.json`](https://uciplatform.vercel.app/api/v1/openapi.json).
+
 ## Documentation
 
 - [docs/methodology.md](docs/methodology.md) - the HVI indicators, weights, NBS rules, and
