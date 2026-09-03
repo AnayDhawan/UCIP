@@ -62,7 +62,17 @@ jobs:
           code=$(curl -sS -o "$body" -w '%{http_code}' --max-time 30 --retry 2 --retry-delay 5 \
             -H "apikey: ${SUPABASE_ANON_KEY}" \
             -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
-            "${SUPABASE_URL}/rest/v1/wards?select=ward_id&limit=1" || echo "000")
+            "${SUPABASE_URL}/rest/v1/wards?select=ward_id&limit=1") || code="000"
+
+          # curl emits 000 for anything it never got an HTTP reply from. The
+          # common cause here is not a paused project but a deleted one: a
+          # paused Supabase project still resolves in DNS and answers, whereas a
+          # deleted one NXDOMAINs. Worth separating, because the two need very
+          # different fixes (wait vs. recreate the project and reload the data).
+          if [ "$code" = "000" ]; then
+            echo "::error::No HTTP response from ${SUPABASE_URL}. If the host does not resolve at all, the project has been deleted, not paused, and needs recreating from supabase/migrations/ plus a pipeline/07_load.py run."
+            exit 1
+          fi
 
           if [ "$code" != "200" ]; then
             echo "::error::Supabase returned HTTP $code. The project may be paused, or the keys may have rotated."

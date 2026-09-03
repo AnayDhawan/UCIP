@@ -4,12 +4,13 @@ import "leaflet/dist/leaflet.css";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { GeoJSON, MapContainer, TileLayer, useMap } from "react-leaflet";
 import { geoJSON as leafletGeoJSON } from "leaflet";
-import type { Feature, FeatureCollection, Geometry, Position } from "geojson";
-import type { GeoJSON as LeafletGeoJSONLayer, LatLngBoundsExpression, Layer, Path, PathOptions } from "leaflet";
+import type { Feature, FeatureCollection, Geometry } from "geojson";
+import type { GeoJSON as LeafletGeoJSONLayer, Layer, Path, PathOptions } from "leaflet";
 import { Maximize2, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { boundsOf } from "@/lib/geometry";
 import { hviColor as colorForHvi } from "@/lib/hvi";
 import type { CellNbsProps, CellNdviProps, WardProps } from "@/lib/wardTypes";
 
@@ -146,25 +147,6 @@ function Legend({ layer }: { layer: LayerId }) {
       )}
     </Card>
   );
-}
-
-/** Flattens any GeoJSON Polygon/MultiPolygon ring nesting down to raw [lng,lat] pairs. */
-function flattenPositions(coords: unknown): Position[] {
-  if (!Array.isArray(coords)) return [];
-  if (typeof coords[0] === "number") return [coords as Position];
-  return (coords as unknown[]).flatMap(flattenPositions);
-}
-
-function boundsOf(geometry: Geometry): LatLngBoundsExpression | null {
-  if (geometry.type !== "Polygon" && geometry.type !== "MultiPolygon") return null;
-  const positions = flattenPositions(geometry.coordinates);
-  if (positions.length === 0) return null;
-  const lats = positions.map((p) => p[1]);
-  const lngs = positions.map((p) => p[0]);
-  return [
-    [Math.min(...lats), Math.min(...lngs)],
-    [Math.max(...lats), Math.max(...lngs)],
-  ];
 }
 
 /** Pans/zooms to the selected ward when selection changes and ward-level geometry is available. */

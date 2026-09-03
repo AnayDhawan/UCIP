@@ -137,8 +137,13 @@ export const CITATIONS: CitationEntry[] = [
   },
 ];
 
-const CITATIONS_BY_ID: Record<string, CitationEntry> = Object.fromEntries(
-  CITATIONS.map((c) => [c.id, c])
+// Null-prototype on purpose. A plain object literal inherits Object.prototype,
+// so getCitation("constructor") would hand back the Object constructor typed as
+// a CitationEntry, and the caller would crash reading .authors off a function.
+// Same for "toString", "valueOf" and friends. Found by citations.test.ts.
+const CITATIONS_BY_ID: Record<string, CitationEntry> = Object.assign(
+  Object.create(null) as Record<string, CitationEntry>,
+  Object.fromEntries(CITATIONS.map((c) => [c.id, c]))
 );
 
 export function getCitation(id: string): CitationEntry | undefined {
