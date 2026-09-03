@@ -7,6 +7,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import WardPanel from "../components/WardPanel";
 import WardDialog from "../components/WardDialog";
 import SiteHeader from "../components/SiteHeader";
+import DataVintageBar from "../components/DataVintageBar";
 import {
   parseWardParam,
   readStoredWards,
@@ -216,6 +217,9 @@ function DashboardContent() {
         onSelectWard={selectWard}
         enabled={dialogHandlesWard}
       />
+      {/* The data-vintage bar is dashboard chrome like the header and hint, so
+          it follows the same fullscreen guard (issue #124). */}
+      {!isFullscreen && <DataVintageBar />}
     </div>
   );
 }

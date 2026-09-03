@@ -7,6 +7,11 @@ import SiteFooter from "../components/SiteFooter";
 import { StepCard } from "../components/Card";
 import { CitationList } from "../components/Citation";
 import CoefficientSparkline from "../components/CoefficientSparkline";
+import {
+  formatCompositeWindow,
+  formatRunDate,
+  type RunLog,
+} from "@/lib/runLog";
 
 export const metadata: Metadata = {
   title: "Methodology | UCIP",
@@ -71,6 +76,14 @@ export default function MethodologyPage() {
   const pca = readJson<PcaLog>("hvi_pca_log.json");
   const sensitivity = readJson<Sensitivity>("sensitivity.json");
   const validation = readJsonOptional<LstValidation>("lst_validation.json");
+  // Read from ../data/ like sensitivity.json and hvi_pca_log.json above (see the
+  // "Frontend sync" section of pipeline/README.md). Absent until a pipeline run
+  // commits its log, so the block below renders nothing on a fresh checkout.
+  const runLog = readJsonOptional<RunLog>("pipeline_run_log.json");
+  const refreshedLabel = runLog
+    ? formatRunDate(runLog.finished_at ?? runLog.started_at)
+    : null;
+  const windowLabel = runLog ? formatCompositeWindow(runLog.composite_window) : null;
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -91,6 +104,24 @@ export default function MethodologyPage() {
           city&apos;s 24 BMC wards on a 1km grid, though the approach itself isn&apos;t tied to Mumbai
           specifically, we just haven&apos;t built out other cities yet.
         </p>
+
+        {refreshedLabel && (
+          <div className="mt-8 rounded-xl border border-border bg-surface p-6">
+            <p className="kicker">Data vintage</p>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+              Refreshed{" "}
+              <strong className="font-medium text-foreground">{refreshedLabel}</strong>
+              {windowLabel && (
+                <>
+                  . The underlying measurements come from Landsat imagery captured{" "}
+                  <strong className="font-medium text-foreground">{windowLabel}</strong>
+                  , Mumbai&apos;s most recent complete dry season — the refresh date alone
+                  overstates how current the figures are.
+                </>
+              )}
+            </p>
+          </div>
+        )}
 
         <div className="mt-8 space-y-6">
           <StepCard step={1} title="What we measure" description="Seven standardized indicators, each z-scored.">

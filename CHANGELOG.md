@@ -10,6 +10,11 @@ Prototype under active development ahead of the Aug 8, 2026 submission. No tagge
 yet — this section covers everything since the project started.
 
 ### Added
+- The site now says how old its data is: a "Data vintage" note on /methodology and a
+  footer bar on the dashboard show the last pipeline-refresh date alongside the dry-season
+  imagery window it was computed from (surfaced from the pipeline run log via
+  /api/v1/meta; issue #124). The pipeline run log now records that window and is mirrored
+  to `frontend/public/`, so the note updates itself on every refresh.
 - End-to-end data pipeline: dry-season Landsat 8/9 LST + NDVI composite, WorldPop
   population/elderly layer (pinned to the 2020 vintage), OSM hospital distance, Datameet
   ward + slum-cluster boundaries.

@@ -44,6 +44,40 @@ describe("GET /api/v1/meta", () => {
     expect(json.counts.citations).toBeGreaterThan(0);
     expect(json.license.code).toBe("Apache-2.0");
   });
+
+  it("nulls the data-vintage fields until a committed run log exists", async () => {
+    const json = await body(await getMeta());
+    // The repo has no committed pipeline_run_log.json yet, so the endpoint must
+    // not invent a refresh date. This is the honest answer until the first
+    // refresh run commits one.
+    expect(json.generated_at).toBeNull();
+    expect(json.composite_window).toBeNull();
+  });
+
+  it("reports the refresh date and composite window from the run log", async () => {
+    const fs = await import("node:fs/promises");
+    const path = await import("node:path");
+    const logPath = path.join(process.cwd(), "public", "pipeline_run_log.json");
+    try {
+      await fs.writeFile(
+        logPath,
+        JSON.stringify({
+          started_at: "2026-09-03T04:00:00+00:00",
+          finished_at: "2026-09-03T05:30:00+00:00",
+          composite_window: { start: "2025-11-01", end: "2026-02-28" },
+          stages: [],
+        })
+      );
+      const json = await body(await getMeta());
+      expect(json.generated_at).toBe("2026-09-03T05:30:00+00:00");
+      expect(json.composite_window).toEqual({
+        start: "2025-11-01",
+        end: "2026-02-28",
+      });
+    } finally {
+      await fs.rm(logPath, { force: true });
+    }
+  });
 });
 
 describe("GET /api/v1/wards", () => {

@@ -58,9 +58,17 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
+from _dry_season import most_recent_complete_dry_season
+from _publish import publish
+
 PIPELINE_DIR = Path(__file__).resolve().parent
 DATA_DIR = PIPELINE_DIR.parent / "data"
 RUN_LOG_PATH = DATA_DIR / "pipeline_run_log.json"
+# Mirror for the deployed site, which reads data from frontend/public/ (issue
+# #124); see the "Frontend sync" section of pipeline/README.md.
+RUN_LOG_PUBLIC_PATH = (
+    PIPELINE_DIR.parent / "frontend" / "public" / "pipeline_run_log.json"
+)
 
 
 @dataclass
@@ -148,12 +156,20 @@ class StageResult:
 class RunReport:
     started_at: str
     finished_at: str | None = None
+    # The dry-season Landsat composite window (see _dry_season.py) this run was
+    # made from, as {"start": ..., "end": ...} ISO dates. The site shows the
+    # refresh date and this window as one statement (issue #124), so the run log
+    # is where the window is recorded: the orchestrator and stage 02 share the
+    # same calendar function, and a consumer never has to know which stage
+    # produced it.
+    composite_window: dict[str, str] | None = None
     results: list[StageResult] = field(default_factory=list)
 
     def to_json(self) -> dict:
         return {
             "started_at": self.started_at,
             "finished_at": self.finished_at,
+            "composite_window": self.composite_window,
             "stages": [
                 {
                     "id": r.stage.id,
@@ -251,7 +267,13 @@ def main() -> int:
     for s in stages:
         print(f"  [{s.id}] {s.script:<20s} ({s.cadence})")
 
-    report = RunReport(started_at=datetime.now(timezone.utc).isoformat())
+    # Same function stage 02 calls when it builds its composites, so the window
+    # recorded here always matches the window the run actually used.
+    window_start, window_end = most_recent_complete_dry_season()
+    report = RunReport(
+        started_at=datetime.now(timezone.utc).isoformat(),
+        composite_window={"start": window_start, "end": window_end},
+    )
     exit_code = 0
     for stage in stages:
         result = run_stage(stage, args.dry_run)
@@ -269,6 +291,13 @@ def main() -> int:
         DATA_DIR.mkdir(parents=True, exist_ok=True)
         RUN_LOG_PATH.write_text(json.dumps(report.to_json(), indent=2), encoding="utf-8")
         print(f"\n[ok] wrote run log -> {RUN_LOG_PATH}")
+        # Mirror the log where the deployed site reads data from
+        # (frontend/public/, issue #124): /api/v1/meta and the dashboard footer
+        # serve it from there, exactly like the stage outputs in the "Frontend
+        # sync" table in pipeline/README.md. The methodology page reads the
+        # data/ copy server-side instead, like sensitivity.json and
+        # hvi_pca_log.json.
+        publish(RUN_LOG_PATH, RUN_LOG_PUBLIC_PATH)
 
     print("\n" + "-" * 70)
     print("Summary:")
