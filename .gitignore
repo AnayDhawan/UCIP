@@ -75,3 +75,6 @@ pipeline/cache/gsod/
 # data is committed, since that is what the site serves.
 data/*/
 !data/cache/
+
+# Local Claude Code skills and settings, not part of the project
+.claude/
