@@ -1,16 +1,43 @@
-"""M2 — Vector/socioeconomic layers (proxy-first, locked decision #2).
+"""Stage 03 — Add the population and access layers to the grid.
 
-Planned (sprint Aug 2):
-- Population density: WorldPop (GEE-hosted) or GHS-POP.
-- Elderly %: WorldPop age-sex structure (60+ share) — PROXY, stated openly in methodology.
-  Pinned to WORLDPOP_YEAR below; India's most recent year in this GEE collection is 2020.
-- Slum index: real Datameet slumClusters.geojson boundaries (see below), not a modeled proxy.
-- Hospital access: OSM hospitals via osmnx; per-cell distance to nearest hospital.
-No data.gov.in / Census 2011 wrangling (council + Anay decision, 2026-07-11).
+What it does:
+    Adds the three human-exposure indicators the satellite layers cannot see, one
+    value per cell:
+      - pop_density_km2, from WorldPop's 100 m age-sex rasters via Earth Engine.
+      - elderly_pct, the 60+ share of the same WorldPop surface. This is a
+        modelled proxy, not a census count, and is named as one in the
+        methodology page rather than quietly presented as observed.
+      - slum_pct, the share of each cell covered by mapped Datameet slum-cluster
+        polygons. These are real observed boundaries, which is why they were
+        chosen over the modelled GHS-SMOD proxy originally planned.
+      - hospital_dist_m, straight-line distance from the cell centroid to the
+        nearest OpenStreetMap hospital, pulled with osmnx.
 
-Slum index uses the mapped data/slumClusters.geojson boundaries (Datameet) as the
-primary signal — actual observed cluster polygons, not a modeled proxy — cross-checked
-against WorldPop-density as a secondary signal where cluster data is sparse.
+    Census 2011 ward tables are deliberately not used (decision, 2026-07-11):
+    proxy-first, stated openly, rather than mixing vintages and administrative
+    units. Issue B5 in the roadmap revisits this.
+
+Inputs:
+    ../data/grid_1km_gee.geojson    the grid from stage 02
+    ../data/bmc_wards.geojson       ward boundaries
+    ../data/slumClusters.geojson    mapped slum-cluster polygons (Datameet)
+    Google Earth Engine             WorldPop age-sex rasters (needs auth)
+    OpenStreetMap                   hospital locations, via osmnx (network call)
+
+Outputs:
+    ../data/grid_1km_vectors.geojson    the grid plus pop_density_km2,
+                                        elderly_pct, slum_pct, hospital_dist_m
+
+Notes:
+    WORLDPOP_YEAR is pinned rather than left on .first(). An unpinned call would
+    silently re-target a different vintage the moment WorldPop publishes a newer
+    India image, changing published figures with no code change to notice.
+
+    hospital_dist_m is Euclidean, not network distance. A river or a rail line
+    between a cell and its nearest hospital is not accounted for; stated as a
+    limitation in the methodology rather than modelled.
+
+See docs/methodology.md sections 3 and 10.
 
 Run:
     .venv\\Scripts\\activate

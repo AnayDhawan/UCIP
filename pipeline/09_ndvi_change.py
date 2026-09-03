@@ -1,10 +1,22 @@
-"""F6 — Green-cover change layer: per-cell NDVI delta classified gained/stable/lost.
+"""Stage 09 — Classify green-cover change per cell as gained, stable, or lost.
 
-Planned (methodology.md §7): NDVI at two dates -> per-cell delta -> gained/stable/lost,
-overlaid with HVI.
+What it does:
+    Differences the two NDVI composites stage 02 already computed for every cell
+    (current dry season against a dry-season baseline roughly nine years
+    earlier) and classifies the delta into gained, stable, or lost. That becomes
+    the third map layer on the dashboard, overlaid on the same cells as the
+    index.
 
-`NDVI` (current dry season) and `NDVI_prev` (older dry-season baseline) are already
-computed per cell in 02_gee_layers.py; this script is just the classification step.
+    Purely a classification step: no new satellite data is fetched here, because
+    both NDVI values arrive from stage 02. Comparing dry season to dry season is
+    what makes the difference meaningful rather than seasonal.
+
+Inputs:
+    ../data/cells_hvi.geojson       cells carrying NDVI and NDVI_prev
+
+Outputs:
+    ../data/cells_ndvi_change.geojson        cells plus delta and class
+    frontend/public/cells_ndvi_change.geojson
 
 Threshold: methodology.md specifies the delta-then-classify logic but not the exact
 cutoff, so this documents the choice made here: +/-0.05 NDVI delta, consistent in

@@ -1,14 +1,28 @@
-"""M2 — Zonal statistics: rasters + vectors -> one row per grid cell.
+"""Stage 04 — Consolidate the indicator columns into one clean cells table.
 
-Planned (sprint Aug 2):
-- Aggregate every layer (LST, NDVI, NDVI_prev, pop, elderly, slum, hospital_dist,
-  impervious) to grid cells (mean per cell).
-- Output a tidy cells table (GeoDataFrame) feeding 05_hvi.py.
+What it does:
+    Stages 02 and 03 each write their columns straight onto the grid, so the
+    zonal aggregation is already done by the time this runs. What is left is the
+    tidy-schema pass: select the canonical seven indicators plus the keys and
+    geometry, drop the intermediate columns, enforce dtypes, and drop any cell
+    missing a required indicator.
 
-02_gee_layers.py and 03_vectors.py already write their columns directly onto the
-grid (one row per cell each), so this step is the consolidation + tidy-schema pass:
-select the canonical column set, drop intermediate ones, enforce dtypes, drop any
-cell missing a required indicator (would break z-standardization in 05_hvi.py).
+    That last step matters more than it sounds. Stage 05 standardises every
+    indicator to a z-score, and a single NaN would propagate through the PCA and
+    poison the weights for every ward, so an incomplete cell is removed here
+    rather than silently carried forward.
+
+Inputs:
+    ../data/grid_1km_vectors.geojson    the fully populated grid from stage 03
+
+Outputs:
+    ../data/cells.geojson               one tidy row per complete cell
+
+Notes:
+    INDICATOR_COLS is the canonical seven-indicator set that the index is defined
+    over (methodology.md section 3). Adding an indicator means changing it here
+    and in stage 05 together, or the PCA and the published weight table drift
+    apart.
 
 Run:
     .venv\\Scripts\\activate

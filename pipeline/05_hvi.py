@@ -1,15 +1,46 @@
-"""M3 — Heat Vulnerability Index (locked decision #3: PCA, published fallback).
+"""Stage 05 — Compute the Heat Vulnerability Index. The core of the project.
 
-Planned (sprint Aug 3):
-- Standardize indicators to z-scores; set directions (LST +, NDVI -, density +,
-  elderly +, slum +, hospital_dist +, impervious +).
-- PCA (scikit-learn) per Reid et al. 2009; derive weights from component loadings.
-  Log explained variance + loadings for the methodology page.
-- FALLBACK (if loadings unstable/nonsensical): adopt published HVI weights
-  verbatim with citation; document the trigger.
-- HVI = weighted sum -> rescaled 0-100.
-- Store per-factor contributions (weight x z-score) per cell — this IS the
-  explainability layer (F2). No SHAP, by design.
+What it does:
+    Standardises the seven indicators to z-scores, orients each one so that
+    higher always means more vulnerable (NDVI is inverted; more greenery is less
+    vulnerability), then derives the weights from a PCA over the standardised
+    cells, following Reid et al. 2009. The weighted sum is rescaled to 0-100 and
+    rolled up from cells to the 24 wards, which are then ranked.
+
+    The weights come from the data rather than from judgement. That is the
+    single claim this project rests on, and it is why the PCA loadings and
+    explained variance are logged to disk for the methodology page instead of
+    staying inside the script.
+
+    Per-factor contributions (weight x z-score) are stored per cell and per ward.
+    That IS the explainability layer: the index is a transparent linear
+    combination, so a ward's score decomposes exactly into its drivers with no
+    post-hoc attribution needed. No SHAP, by design, because there is no
+    black box to explain.
+
+    If the PCA loadings come out unstable or with signs that contradict the
+    literature, the script falls back to published weights verbatim and exits 2
+    so the run is flagged rather than silently trusted.
+
+Inputs:
+    ../data/cells.geojson       tidy indicator table from stage 04
+
+Outputs:
+    ../data/cells_hvi.geojson       per-cell HVI and contrib_* breakdown
+    ../data/wards_hvi.geojson       per-ward HVI, rank, n_cells, contributions
+    ../data/hvi_pca_log.json        loadings, explained variance, fallback flag
+    frontend/public/wards_hvi.geojson   same wards file, published for the site
+
+Notes:
+    wards_hvi.geojson is read directly by the browser (useWardData.ts,
+    WardChoropleth.tsx) and server-side by page.tsx, so it must land in
+    frontend/public/ as well as data/ on every refresh. See _publish.py.
+
+    Every number in the pitch deck and on the methodology page traces back to
+    this stage's output. Changing the indicator set, the directions, or the
+    rescaling changes all of them at once.
+
+See docs/methodology.md sections 3 to 5 and docs/references.md (Reid et al. 2009).
 
 Run:
     .venv\\Scripts\\activate

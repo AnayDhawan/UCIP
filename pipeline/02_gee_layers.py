@@ -1,12 +1,36 @@
-"""M2 — Pull raster layers from Google Earth Engine.
+"""Stage 02 — Pull the satellite layers from Google Earth Engine onto the grid.
 
-Planned (sprint Aug 2):
-- Dry-season median LST composite (Landsat 8/9 C2 L2, ST_B10, cloud-masked)
-  reusing the exact recipe validated in 00_gee_spike.py.
-- NDVI composites at TWO dates (e.g. 2018 dry season vs 2025-26 dry season) for
-  the F6 green-cover-change layer.
-- Impervious/built-up proxy (ESA WorldCover or GHSL built-up).
-- Export per-cell zonal-ready rasters or run reduceRegions directly on the grid.
+What it does:
+    Builds three cloud-masked dry-season composites from Landsat 8/9 Collection 2
+    Level 2 and ESA WorldCover, then reduces each one over the grid cells so
+    every cell gains its own measured value. Reduction happens server-side in
+    Earth Engine (reduceRegions) rather than by downloading rasters, so nothing
+    large ever lands on disk.
+
+    Three layers come out of this stage:
+      - LST_C, dry-season median land surface temperature from ST_B10.
+      - NDVI, dry-season median vegetation index for the current window.
+      - NDVI_prev, the same index over a window roughly nine years earlier,
+        which is what stage 09 differences to get green-cover change.
+      - impervious_pct, built-up share from WorldCover class 50.
+
+    Monsoon imagery is excluded on purpose: cloud cover makes wet-season LST
+    unusable, so both windows are dry-season only and therefore comparable.
+
+Inputs:
+    ../data/grid_1km.geojson    the grid from stage 01
+    Google Earth Engine         Landsat 8/9 C2 L2, ESA WorldCover (needs auth)
+
+Outputs:
+    ../data/grid_1km_gee.geojson    the grid plus LST_C, NDVI, NDVI_prev,
+                                    impervious_pct per cell
+
+Notes:
+    The compositing recipe (cloud mask, scale and offset constants, dry-season
+    window) is the one validated end to end by 00_gee_spike.py before the build
+    started. Changing it here changes every published figure downstream.
+
+See docs/methodology.md sections 2 and 7 for the layer definitions.
 
 Run:
     .venv\\Scripts\\activate

@@ -1,16 +1,32 @@
-"""M4 — Nature-Based Solutions rule engine + ecological plantability filter (F3+F4).
+"""Stage 06 — Recommend interventions, gated by an ecological plantability filter.
 
-Planned (sprint Aug 4):
-- Plantability flag per cell/ward: restoration-suitable AND not native
-  grassland/savanna (Bastin 2019 potential, Veldman 2019 constraint).
-- Rules (each fired rule carries a rationale string + citation):
-    HVI high + canopy low + plantable      -> native trees + green corridors [Bastin]
-    HVI high + canopy low + NOT plantable  -> cool roofs + reflective pavements + cooling centres [Veldman]
-    impervious high + flood-prone          -> rain gardens + WSUD
-    density high + open space low          -> pocket parks
-    elderly high + hospital access low     -> cooling centres priority
-- Output: nbs_recommendations rows per ward (intervention, rationale, citation, priority).
-The "ward REJECTED for trees, assigned cool roofs" moment is the headline demo beat.
+What it does:
+    Turns each ward's index into a concrete, cited recommendation. Runs a
+    rule engine over the scored cells where every fired rule carries both a
+    plain-language rationale and the paper backing it:
+
+        HVI high + canopy low + plantable      -> native trees, green corridors  [Bastin]
+        HVI high + canopy low + NOT plantable  -> cool roofs, reflective paving,
+                                                  cooling centres                [Veldman]
+        impervious high + flood-prone          -> rain gardens, WSUD
+        density high + open space low          -> pocket parks
+        elderly high + hospital access far     -> cooling centres, prioritised
+
+    The plantability filter is the part that makes this more than a lookup
+    table. A cell qualifies for tree planting only where restoration literature
+    supports it: Bastin 2019 for where trees can go, constrained by Veldman 2019
+    on not afforesting native grassland and savanna. Where a hot ward fails that
+    test it is refused trees and assigned non-tree cooling instead, which is the
+    honest answer rather than the popular one.
+
+Inputs:
+    ../data/cells_hvi.geojson   scored cells from stage 05
+    Google Earth Engine         ESA WorldCover land cover, water distance
+
+Outputs:
+    ../data/cells_nbs.geojson           cells plus plantable flag and land cover
+    ../data/nbs_recommendations.json    per-ward recommendations, ranked
+    frontend/public/ copies of both     published for the site
 
 Threshold notes (documented here since methodology.md keeps them at the outline level):
 - "high"/"low" cutoffs use the 75th/25th percentile of that indicator across cells

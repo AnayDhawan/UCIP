@@ -1,12 +1,30 @@
-"""M1/M2 — Generate the Mumbai analysis grid.
+"""Stage 01 — Build the Mumbai analysis grid. First stage of a refresh.
 
-Planned (sprint Aug 1):
-- Load BMC 24-ward boundaries from ../data/ (Datameet GeoJSON).
-- Build a 1 km fishnet grid over the Mumbai bounding box (geopandas/shapely).
-- Clip cells to ward geometry; assign each cell its ward_id.
-- Write ../data/grid_1km.geojson.
+What it does:
+    Lays a 1 km fishnet over the bounding box of the 24 BMC ward polygons,
+    clips it to the ward geometry so no cell sits in the sea, and tags each
+    surviving cell with the ward it falls in. Every later stage works one row
+    per cell, so this file defines the unit of analysis for the whole pipeline.
 
-Resolution is a parameter: rerun at 500 m later if time allows (locked decision #4).
+    The fishnet is built in UTM 43N (EPSG:32643) rather than lat/lon, because a
+    1 km cell has to be 1 km on the ground; building it in degrees would give
+    cells that stretch as they move north. Output is reprojected back to WGS84.
+
+Inputs:
+    ../data/bmc_wards.geojson   24 BMC ward boundaries (Datameet)
+
+Outputs:
+    ../data/grid_1km.geojson    one polygon per cell, with grid_id and ward_id
+
+Notes:
+    Resolution is a parameter (CELL_SIZE_M). The locked decision was 1 km first,
+    500 m later if time allowed; 500 m has not been run.
+
+    The bounds check near the end is a plausibility guard, not a hard failure:
+    it warns if the grid lands outside Mumbai's real extent, which is what a
+    wrong boundary file or a CRS mix-up looks like.
+
+See docs/methodology.md for how the grid feeds the index.
 
 Run:
     .venv\\Scripts\\activate

@@ -1,16 +1,38 @@
-"""Day-0 GEE spike — the go/no-go gate.
+"""Stage 00 — Earth Engine connectivity check. Not part of a data refresh.
 
-Pulls a dry-season LST + NDVI composite for ONE small central-Mumbai test area,
-prints region statistics with sanity checks, and saves preview thumbnails.
+What it does:
+    Pulls a dry-season LST and NDVI composite over one small fixed test area in
+    central Mumbai (roughly the Dadar/Sion belt), prints region statistics with
+    sanity checks, and saves preview thumbnails. It writes nothing any later
+    stage reads.
 
-If this runs clean end-to-end (GEE -> Python -> plausible numbers), the live-GEE
-pipeline is a GO. If it fights for a full day, pivot to pre-downloaded
-MODIS/Landsat rasters and drop live GEE (decision logged same night, per plan).
+    Originally the go/no-go gate: if this ran clean end to end, the live-Earth-
+    Engine pipeline was viable, and if it fought back for a day the plan was to
+    pivot to pre-downloaded rasters. It cleared on 2026-07-12 and the pivot was
+    never needed. It stays in the repo as a credentials smoke test, which is
+    the fastest way to tell a broken Earth Engine auth from a broken stage.
+
+    Excluded from a plain `python run_pipeline.py` for that reason; pass
+    --include-spike to run it anyway.
+
+Inputs:
+    Google Earth Engine     Landsat 8/9 C2 L2 over TEST_BBOX (needs auth)
+
+Outputs:
+    pipeline/spike_lst.png, pipeline/spike_ndvi.png     thumbnails, not committed
+    stdout                                              region statistics
+
+Notes:
+    The mean LST this prints is for the small test bbox, NOT for Mumbai. The
+    city-wide figure across all cells comes from stage 05 and is roughly 1.2 C
+    lower. Quoting this number as a city figure has caused a real error in a
+    deck before.
 
 Prereqs:
-    1. GEE account approved (code.earthengine.google.com/register, unpaid usage)
-    2. `earthengine authenticate` run once in this venv
-    3. Set GEE_PROJECT below or via env var
+    1. An approved Earth Engine account (code.earthengine.google.com/register)
+    2. `earthengine authenticate` run once in this venv, or a service account
+       configured per _gee_auth.py
+    3. GEE_PROJECT set below or via env var
 
 Run:
     .venv\\Scripts\\activate

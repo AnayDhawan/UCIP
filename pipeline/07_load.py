@@ -1,15 +1,37 @@
-"""M2-M4 — Load results into Supabase (PostGIS) + write GeoJSON snapshots.
+"""Stage 07 — Publish results to Supabase and write the demo-safe snapshots.
 
-Planned:
-- Upsert grid_cells, wards, nbs_recommendations, interventions, methodology_refs
-  (schema per supabase/migrations/0001_init.sql).
-- ALWAYS also write GeoJSON snapshots to ../data/ — committed to the repo as the
-  demo-safe fallback (judged demo must survive a dead DB; locked decision #6).
+What it does:
+    Upserts the finished dataset into the five Supabase tables (wards,
+    grid_cells, interventions, nbs_recommendations, methodology_refs), and
+    always writes committed GeoJSON snapshots to ../data/ regardless of whether
+    that upsert worked.
 
-Supabase upsert is best-effort: if migration 0001_init.sql hasn't been applied to
-the live project yet (run once via the Supabase SQL editor or `supabase db push`),
-this script logs the failure per table and continues — the GeoJSON snapshot write
-always succeeds regardless, which is the point of the demo-safe-fallback decision.
+    The snapshots are the point. The frontend reads static files, not the
+    database, so the site keeps working with a dead, paused, or unreachable
+    Supabase project. That decision was made for demo-day reliability and has
+    since earned itself twice over.
+
+Inputs:
+    ../data/cells_nbs.geojson           from stage 06
+    ../data/wards_hvi.geojson           from stage 05
+    ../data/nbs_recommendations.json    from stage 06
+    .env.local                          Supabase URL and service-role key
+
+Outputs:
+    ../data/snapshot_cells.geojson              committed fallback copies
+    ../data/snapshot_wards.geojson
+    ../data/snapshot_nbs_recommendations.json
+    Supabase tables                             best-effort upsert
+
+Notes:
+    The upsert is deliberately best-effort. If the migrations in
+    supabase/migrations/ have not been applied to the live project, this logs the
+    failure per table and carries on, because the snapshot write is what the site
+    actually depends on.
+
+    Writes use the service-role key, which bypasses row-level security. The anon
+    key the browser holds is read-only under
+    supabase/migrations/0005_add_rls_policies.sql.
 
 Run:
     .venv\\Scripts\\activate
