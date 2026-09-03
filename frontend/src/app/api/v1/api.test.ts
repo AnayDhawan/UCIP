@@ -24,7 +24,10 @@ import { GET as getSpec } from "./openapi.json/route";
 const BASE = "https://uciplatform.vercel.app";
 
 beforeAll(() => {
-  // Force the snapshot path: no database configured.
+  // Force the snapshot path: no database configured. Both name pairs have to go,
+  // since supabase() falls back from the unprefixed to the NEXT_PUBLIC_ names.
+  delete process.env.SUPABASE_URL;
+  delete process.env.SUPABASE_ANON_KEY;
   delete process.env.NEXT_PUBLIC_SUPABASE_URL;
   delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 });

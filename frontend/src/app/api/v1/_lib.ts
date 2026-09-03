@@ -66,10 +66,25 @@ export function errorResponse(status: number, message: string, hint?: string): R
 
 let cachedClient: SupabaseClient | null = null;
 
-/** The anon-key client, or null when the deployment has no Supabase configured. */
+/**
+ * The anon-key client, or null when the deployment has no Supabase configured.
+ *
+ * Checks the unprefixed names first. `NEXT_PUBLIC_*` variables are inlined into
+ * the bundle at BUILD time, but Vercel deliberately withholds variables marked
+ * Sensitive from the build environment, so a sensitive `NEXT_PUBLIC_SUPABASE_URL`
+ * compiles to undefined and stays undefined at runtime however it is set. That
+ * is exactly what happened on the first deploy of this API: every route silently
+ * served the snapshot fallback and /meta reported database_configured false.
+ *
+ * `SUPABASE_URL` and `SUPABASE_ANON_KEY` are read from the real runtime
+ * environment instead, so a server-side route can reach the database whether or
+ * not the public names were available when the bundle was built. The anon key is
+ * public by design (it ships in the browser bundle and is read-only under the
+ * RLS policies), so nothing is weakened by reading it this way.
+ */
 export function supabase(): SupabaseClient | null {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const url = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return null;
   cachedClient ??= createClient(url, key, {
     auth: { persistSession: false },
