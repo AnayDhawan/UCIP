@@ -1,0 +1,38 @@
+{
+  "_generated": "Mirror of config/cities/. Do not edit; run pipeline/sync_city_config.py.",
+  "slug": "pune",
+  "name": "Pune",
+  "country": "India",
+  "timezone": "Asia/Kolkata",
+  "bbox": [
+    73.7,
+    18.4,
+    74.0,
+    18.65
+  ],
+  "boundaries": {
+    "file": "pune_wards.geojson",
+    "ward_id_field": "name",
+    "source": "Datameet Municipal Spatial Data (PMC admin wards, 2017)",
+    "source_url": "https://github.com/datameet/Municipal_Spatial_Data/tree/master/Pune",
+    "expected_ward_count": 15
+  },
+  "grid": {
+    "cell_size_m": 1000
+  },
+  "gee": {
+    "project": "ucip-mum"
+  },
+  "map": {
+    "center": [
+      18.5204,
+      73.8567
+    ],
+    "zoom": 12
+  },
+  "ecology": {
+    "biome": "Deccan plateau, semi-arid to tropical dry deciduous",
+    "calibrated": false,
+    "notes": "NOT calibrated. Pune sits on the Deccan plateau and its surroundings include genuinely native grassland and scrub, which Mumbai's coastal thresholds were never designed to distinguish. The plantability filter must not be trusted here until reviewed against Deccan restoration literature: applied as-is it risks recommending afforestation of habitat that should stay open, which is exactly the failure Veldman 2019 warns about. See docs/adding-a-city.md."
+  }
+}

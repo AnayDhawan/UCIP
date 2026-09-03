@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AnayDhawan/UCIP/config/city.schema.json",
+  "title": "UCIP city configuration",
+  "description": "Everything the pipeline and the frontend need to know about one city. Validated in CI so a malformed config fails in seconds rather than forty minutes into an Earth Engine run.",
+  "type": "object",
+  "required": ["slug", "name", "timezone", "bbox", "boundaries", "grid", "map"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Filename-safe id, used as --city and as the config filename."
+    },
+    "name": { "type": "string", "minLength": 1 },
+    "country": { "type": "string" },
+    "timezone": {
+      "type": "string",
+      "description": "IANA zone, e.g. Asia/Kolkata. Used by the live-temperature widget."
+    },
+
+    "bbox": {
+      "type": "array",
+      "description": "[min_lon, min_lat, max_lon, max_lat] in WGS84. Doubles as the plausibility bound the grid stage checks its output against.",
+      "items": { "type": "number" },
+      "minItems": 4,
+      "maxItems": 4
+    },
+
+    "boundaries": {
+      "type": "object",
+      "required": ["file", "ward_id_field"],
+      "additionalProperties": false,
+      "properties": {
+        "file": {
+          "type": "string",
+          "description": "GeoJSON filename under data/, holding one polygon per ward."
+        },
+        "ward_id_field": {
+          "type": "string",
+          "description": "Property on each feature carrying the ward code."
+        },
+        "source": { "type": "string" },
+        "source_url": { "type": "string" },
+        "expected_ward_count": { "type": "integer", "minimum": 1 }
+      }
+    },
+
+    "grid": {
+      "type": "object",
+      "required": ["cell_size_m"],
+      "additionalProperties": false,
+      "properties": {
+        "cell_size_m": { "type": "number", "exclusiveMinimum": 0 },
+        "projected_crs": {
+          "type": "string",
+          "pattern": "^EPSG:[0-9]+$",
+          "description": "Metric CRS for area and distance. Omit to derive the UTM zone from the bbox centroid; getting this wrong silently distorts every area in the pipeline."
+        }
+      }
+    },
+
+    "gee": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "project": { "type": "string" }
+      }
+    },
+
+    "map": {
+      "type": "object",
+      "required": ["center"],
+      "additionalProperties": false,
+      "properties": {
+        "center": {
+          "type": "array",
+          "description": "[lat, lon], the order Leaflet takes.",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "zoom": { "type": "number", "minimum": 0, "maximum": 20 }
+      }
+    },
+
+    "ecology": {
+      "type": "object",
+      "description": "Local ecological assumptions behind the plantability filter. These do NOT transfer between cities.",
+      "additionalProperties": true,
+      "properties": {
+        "biome": { "type": "string" },
+        "native_grassland_worldcover_class": { "type": "integer" },
+        "calibrated": {
+          "type": "boolean",
+          "description": "Whether the plantability thresholds have actually been reviewed for this city's ecology, or are inherited from Mumbai and still need checking."
+        },
+        "notes": { "type": "string" }
+      }
+    }
+  }
+}

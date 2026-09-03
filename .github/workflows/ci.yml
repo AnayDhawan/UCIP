@@ -42,3 +42,17 @@ jobs:
       # ee.Initialize is monkeypatched in every test.
       - run: pip install -r pipeline/requirements-dev.txt
       - run: pytest pipeline/tests/
+
+      # City configs are validated on every push (issue #68). A malformed config
+      # should fail here in seconds rather than forty minutes into an Earth
+      # Engine run that then writes half a dataset. Geometry checks are skipped
+      # when a boundary file is absent, since geopandas is not installed in this
+      # job; the structural checks (bbox ordering, slug/filename agreement,
+      # map centre inside the bbox, UTM zone matching the bbox) all still run.
+      - run: python pipeline/validate_cities.py --allow-missing-data
+
+      # The frontend bundles a mirror of config/cities/ (Turbopack cannot import
+      # from outside the Next.js root). Fail if it has drifted, so the site can
+      # never show a different map centre from the one the pipeline validated
+      # its grid against.
+      - run: python pipeline/sync_city_config.py --check

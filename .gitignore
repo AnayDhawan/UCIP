@@ -70,3 +70,8 @@ Python/
 
 # Cached third-party downloads (NOAA GSOD station CSVs, etc)
 pipeline/cache/gsod/
+
+# Non-default cities' pipeline output. Regenerable; only the default city's
+# data is committed, since that is what the site serves.
+data/*/
+!data/cache/

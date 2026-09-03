@@ -1,0 +1,40 @@
+{
+  "_generated": "Mirror of config/cities/. Do not edit; run pipeline/sync_city_config.py.",
+  "slug": "mumbai",
+  "name": "Mumbai",
+  "country": "India",
+  "timezone": "Asia/Kolkata",
+  "bbox": [
+    72.7,
+    18.8,
+    73.0,
+    19.3
+  ],
+  "boundaries": {
+    "file": "bmc_wards.geojson",
+    "ward_id_field": "name",
+    "source": "Datameet Municipal Spatial Data (BMC wards)",
+    "source_url": "https://github.com/datameet/Municipal_Spatial_Data",
+    "expected_ward_count": 24
+  },
+  "grid": {
+    "cell_size_m": 1000,
+    "projected_crs": "EPSG:32643"
+  },
+  "gee": {
+    "project": "ucip-mum"
+  },
+  "map": {
+    "center": [
+      19.076,
+      72.877
+    ],
+    "zoom": 11
+  },
+  "ecology": {
+    "biome": "tropical moist broadleaf / coastal",
+    "native_grassland_worldcover_class": 30,
+    "calibrated": true,
+    "notes": "Plantability thresholds and the PCA weighting are derived from Mumbai's own cells. See docs/adding-a-city.md before reusing either for another city."
+  }
+}

@@ -53,15 +53,17 @@ import geopandas as gpd
 import osmnx as ox
 
 from _gee_auth import init_ee, resolve_project
+from _city import load_city
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 GRID_PATH = DATA_DIR / "grid_1km_gee.geojson"
-WARDS_PATH = DATA_DIR / "bmc_wards.geojson"
+_CITY = load_city()
+WARDS_PATH = _CITY.boundaries_path
 SLUMS_PATH = DATA_DIR / "slumClusters.geojson"
 OUT_PATH = DATA_DIR / "grid_1km_vectors.geojson"
 
 GEE_PROJECT = resolve_project()
-UTM_CRS = "EPSG:32643"
+UTM_CRS = _CITY.projected_crs
 WGS84 = "EPSG:4326"
 
 # Most recent year WorldPop's age-sex collection publishes for India (verified live

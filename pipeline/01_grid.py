@@ -38,42 +38,61 @@ import geopandas as gpd
 import numpy as np
 from shapely.geometry import box
 
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
-WARDS_PATH = DATA_DIR / "bmc_wards.geojson"
-OUT_PATH = DATA_DIR / "grid_1km.geojson"
+from _city import city_from_argv
 
-CELL_SIZE_M = 1000  # 1 km; rerun at 500 later if time allows
-UTM_CRS = "EPSG:32643"  # UTM zone 43N, covers Mumbai — projected, meters
+DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+# Output path resolved per city inside main(); see CityConfig.out().
+
 WGS84 = "EPSG:4326"
 
 
-def build_fishnet(bounds_m: tuple[float, float, float, float], cell_size: float) -> gpd.GeoSeries:
+def build_fishnet(
+    bounds_m: tuple[float, float, float, float], cell_size: float, crs: str
+) -> gpd.GeoSeries:
     minx, miny, maxx, maxy = bounds_m
     xs = np.arange(minx, maxx, cell_size)
     ys = np.arange(miny, maxy, cell_size)
     cells = [box(x, y, x + cell_size, y + cell_size) for x in xs for y in ys]
-    return gpd.GeoSeries(cells, crs=UTM_CRS)
+    return gpd.GeoSeries(cells, crs=crs)
 
 
 def main() -> int:
-    if not WARDS_PATH.exists():
-        print(f"[FAIL] {WARDS_PATH} not found.")
+    city = city_from_argv("Build the analysis grid for a city.")
+    wards_path = city.boundaries_path
+    utm_crs = city.projected_crs
+    cell_size_m = city.cell_size_m
+    print(f"[..] city: {city.name} ({city.slug}), {cell_size_m:.0f} m grid in {utm_crs}")
+
+    out_path = city.out("grid_1km.geojson")
+
+    if not wards_path.exists():
+        print(f"[FAIL] {wards_path} not found.")
         return 1
 
-    wards = gpd.read_file(WARDS_PATH)
+    wards = gpd.read_file(wards_path)
     if wards.crs is None:
         wards = wards.set_crs(WGS84)
-    wards_utm = wards.to_crs(UTM_CRS)
+    wards_utm = wards.to_crs(utm_crs)
     print(f"[ok] loaded {len(wards_utm)} wards")
 
     ward_union = wards_utm.union_all()
-    fishnet = build_fishnet(ward_union.bounds, CELL_SIZE_M)
-    print(f"[ok] built {len(fishnet)} candidate 1km cells over ward bbox")
+    fishnet = build_fishnet(ward_union.bounds, cell_size_m, utm_crs)
+    print(f"[ok] built {len(fishnet)} candidate cells over ward bbox")
 
-    cells_gdf = gpd.GeoDataFrame(geometry=fishnet, crs=UTM_CRS)
+    cells_gdf = gpd.GeoDataFrame(geometry=fishnet, crs=utm_crs)
+    id_field = city.ward_id_field
+    if id_field not in wards_utm.columns:
+        print(f"[FAIL] boundary file has no '{id_field}' column; got {list(wards_utm.columns)}.")
+        return 1
+    # gid is Datameet's own numeric id and is not guaranteed to exist elsewhere,
+    # so synthesise one when a city's boundary file lacks it.
+    if "gid" not in wards_utm.columns:
+        wards_utm = wards_utm.assign(gid=range(1, len(wards_utm) + 1))
     clipped = gpd.overlay(
         cells_gdf.reset_index(names="cell_idx"),
-        wards_utm[["gid", "name", "geometry"]].rename(columns={"gid": "ward_gid", "name": "ward_id"}),
+        wards_utm[["gid", id_field, "geometry"]].rename(
+            columns={"gid": "ward_gid", id_field: "ward_id"}
+        ),
         how="intersection",
     )
     print(f"[ok] {len(clipped)} cell fragments after clipping to ward boundaries")
@@ -87,9 +106,8 @@ def main() -> int:
     out = clipped[["grid_id", "ward_id", "ward_gid", "area_m2", "geometry"]].to_crs(WGS84)
     out = out.sort_values("grid_id").reset_index(drop=True)
 
-    OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    out.to_file(OUT_PATH, driver="GeoJSON")
-    print(f"[ok] wrote {len(out)} grid cells -> {OUT_PATH}")
+    out.to_file(out_path, driver="GeoJSON")
+    print(f"[ok] wrote {len(out)} grid cells -> {out_path}")
 
     # ------------------------------------------------------- sanity checks --
     ok = True
@@ -98,8 +116,12 @@ def main() -> int:
         print(f"[WARN] grid covers {n_wards_covered}/{len(wards)} wards — some ward has no cells")
         ok = False
     minx, miny, maxx, maxy = out.total_bounds
-    if not (72.7 <= minx and maxx <= 73.0 and 18.8 <= miny and maxy <= 19.3):
-        print(f"[WARN] grid bounds {out.total_bounds} outside plausible Mumbai extent")
+    b_minx, b_miny, b_maxx, b_maxy = city.bbox
+    if not (b_minx <= minx and maxx <= b_maxx and b_miny <= miny and maxy <= b_maxy):
+        print(
+            f"[WARN] grid bounds {out.total_bounds} fall outside {city.name}'s configured "
+            f"bbox {city.bbox} — check the boundary file and the config."
+        )
         ok = False
     print(f"\n{'GO' if ok else 'CHECK WARNINGS'}: {len(out)} cells across {n_wards_covered} wards.")
     return 0 if ok else 2

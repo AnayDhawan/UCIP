@@ -56,6 +56,7 @@ import numpy as np
 from sklearn.decomposition import PCA
 
 from _publish import publish
+from _city import load_city
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
@@ -85,7 +86,8 @@ INDICATORS = {
 # for a single-city, single-snapshot sample (documented fallback trigger).
 MIN_EXPLAINED_VARIANCE = 0.30
 
-WARDS_PATH = DATA_DIR / "bmc_wards.geojson"
+_CITY = load_city()
+WARDS_PATH = _CITY.boundaries_path
 
 
 def zscore(series):
@@ -155,7 +157,13 @@ def main() -> int:
     print(f"[ok] wrote {len(gdf)} cells with HVI -> {OUT_CELLS_PATH}")
 
     # ------------------------------------------------- ward-level rollup --
-    wards = gpd.read_file(WARDS_PATH)[["gid", "name", "geometry"]].rename(columns={"gid": "ward_gid", "name": "ward_id"})
+    _id_field = _CITY.ward_id_field
+    _wards_raw = gpd.read_file(WARDS_PATH)
+    if "gid" not in _wards_raw.columns:
+        _wards_raw = _wards_raw.assign(gid=range(1, len(_wards_raw) + 1))
+    wards = _wards_raw[["gid", _id_field, "geometry"]].rename(
+        columns={"gid": "ward_gid", _id_field: "ward_id"}
+    )
     ward_hvi = gdf.groupby("ward_id").agg(
         HVI=("HVI", "mean"),
         n_cells=("HVI", "size"),

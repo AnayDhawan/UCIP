@@ -31,16 +31,18 @@ from pathlib import Path
 
 import geopandas as gpd
 from shapely.geometry import MultiPolygon, Polygon
+from _city import load_city
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
-IN_BOUNDARIES_PATH = DATA_DIR / "bmc_wards.geojson"
+_CITY = load_city()
+IN_BOUNDARIES_PATH = _CITY.boundaries_path
 IN_WARDS_PATH = DATA_DIR / "wards_hvi.geojson"
 OUT_PATH = DATA_DIR / "hero_city.json"
 OUT_PUBLIC_PATH = ROOT / "frontend" / "public" / "hero_city.json"
 
 # Mumbai sits in UTM zone 43N. Metres, so simplify tolerance is in metres too.
-PROJECTED_CRS = "EPSG:32643"
+PROJECTED_CRS = _CITY.projected_crs
 
 # Douglas-Peucker tolerance. At hero scale one ward is roughly 100-200 px wide,
 # so detail below ~150 m is invisible and only costs bytes.
@@ -116,7 +118,11 @@ def main() -> int:
         print(f"[FAIL] {IN_WARDS_PATH} not found — run 05_hvi.py first.")
         return 1
 
-    wards = gpd.read_file(IN_BOUNDARIES_PATH)[["gid", "name", "geometry"]].rename(
+    _id_field = _CITY.ward_id_field
+    _w_raw = gpd.read_file(IN_BOUNDARIES_PATH)
+    if "gid" not in _w_raw.columns:
+        _w_raw = _w_raw.assign(gid=range(1, len(_w_raw) + 1))
+    wards = _w_raw[["gid", _id_field, "geometry"]].rename(
         columns={"gid": "ward_gid", "name": "ward_id"}
     )
     print(f"[ok] loaded {len(wards)} ward boundaries")

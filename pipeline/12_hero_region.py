@@ -31,6 +31,7 @@ from pathlib import Path
 
 import geopandas as gpd
 from shapely.geometry import MultiPolygon, Polygon, Point
+from _city import load_city
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
@@ -43,7 +44,8 @@ NE_BASE = "https://naciscdn.org/naturalearth/10m/physical"
 NE_LAND = "ne_10m_land.zip"
 NE_MINOR_ISLANDS = "ne_10m_minor_islands.zip"
 
-PROJECTED_CRS = "EPSG:32643"
+_CITY = load_city()
+PROJECTED_CRS = _CITY.projected_crs
 
 # How far out the context extends, in metres. About 155 km, which reaches the
 # Western Ghats inland and well past the harbour, without pulling in so much

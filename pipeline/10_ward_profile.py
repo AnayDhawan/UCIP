@@ -39,13 +39,15 @@ import sys
 from pathlib import Path
 
 import geopandas as gpd
+from _city import load_city
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
 IN_CELLS_PATH = DATA_DIR / "cells_hvi.geojson"
 IN_CELLS_FALLBACK = DATA_DIR / "cells_nbs.geojson"
 IN_WARDS_PATH = DATA_DIR / "wards_hvi.geojson"
-IN_BOUNDARIES_PATH = DATA_DIR / "bmc_wards.geojson"
+_CITY = load_city()
+IN_BOUNDARIES_PATH = _CITY.boundaries_path
 OUT_PATH = DATA_DIR / "ward_profiles.json"
 OUT_PUBLIC_PATH = ROOT / "frontend" / "public" / "ward_profiles.json"
 
@@ -119,7 +121,11 @@ def main() -> int:
     wards_hvi = gpd.read_file(IN_WARDS_PATH).drop(columns="geometry")
     print(f"[ok] loaded {len(wards_hvi)} ward records from {IN_WARDS_PATH.name}")
 
-    boundaries = gpd.read_file(IN_BOUNDARIES_PATH)[["gid", "name", "geometry"]].rename(
+    _id_field = _CITY.ward_id_field
+    _b_raw = gpd.read_file(IN_BOUNDARIES_PATH)
+    if "gid" not in _b_raw.columns:
+        _b_raw = _b_raw.assign(gid=range(1, len(_b_raw) + 1))
+    boundaries = _b_raw[["gid", _id_field, "geometry"]].rename(
         columns={"gid": "ward_gid", "name": "ward_id"}
     )
     neighbours = neighbours_by_ward(boundaries)

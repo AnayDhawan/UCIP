@@ -11,12 +11,14 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { boundsOf } from "@/lib/geometry";
+import { ACTIVE_CITY } from "@/lib/city";
 import { hviColor as colorForHvi } from "@/lib/hvi";
 import type { CellNbsProps, CellNdviProps, WardProps } from "@/lib/wardTypes";
 
 type LayerId = "hvi" | "plantability" | "ndvi_change";
 
-const MUMBAI_CENTER: [number, number] = [19.076, 72.877];
+// Map centre now comes from config/cities/<slug>.json, the same file the
+// pipeline reads, rather than a literal that could drift from it (issue #68).
 
 /** Selected-ward outline, layered on top of whichever data layer is active. */
 function selectionStyle(wardId: string, selectedWardId: string | null): Partial<PathOptions> {
@@ -366,8 +368,8 @@ export default function WardChoropleth({
       )}
 
       <MapContainer
-        center={MUMBAI_CENTER}
-        zoom={11}
+        center={ACTIVE_CITY.center}
+        zoom={ACTIVE_CITY.zoom}
         // Quarter-step zooms so fitBounds can actually fill the container
         // instead of rounding down to the next whole level.
         zoomSnap={0.25}
