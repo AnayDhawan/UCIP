@@ -15,6 +15,10 @@ yet — this section covers everything since the project started.
   imagery window it was computed from (surfaced from the pipeline run log via
   /api/v1/meta; issue #124). The pipeline run log now records that window and is mirrored
   to `frontend/public/`, so the note updates itself on every refresh.
+- Find-my-ward on the dashboard: a locate button on the map resolves the visitor's
+  position to the BMC ward containing it via /api/v1/lookup, one tap after arrival (no
+  permission prompt on load), with graceful handling of denial, unavailability, timeout
+  and positions outside Mumbai (issue #116).
 - End-to-end data pipeline: dry-season Landsat 8/9 LST + NDVI composite, WorldPop
   population/elderly layer (pinned to the 2020 vintage), OSM hospital distance, Datameet
   ward + slum-cluster boundaries.
