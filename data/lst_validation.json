@@ -1,0 +1,54 @@
+{
+  "window": {
+    "start": "2024-11-01",
+    "end": "2025-02-28"
+  },
+  "is_pipeline_window": false,
+  "method": "Per-overpass Landsat 8/9 ST_B10 LST, cloud-masked, averaged within 500 m of each station, matched to that day's GSOD mean air temperature.",
+  "interpretation": "Land surface temperature is not air temperature: LST is the radiometric temperature of the ground, station temperature is shaded air at roughly 1.5 m. A large positive bias is expected and is not an error. The figure that matters is the correlation, which tests whether the satellite composite tracks real thermal variation rather than sensor noise or cloud artefacts.",
+  "limitations": [
+    "Two stations, the only long-record GSOD sites in Mumbai.",
+    "Validates the method on the most recent dry season with both satellite and station coverage, not the window the published index is computed from. GSOD publishes on a lag and had no data overlapping the current composite.",
+    "Daily station means are compared against a single mid-morning overpass, so part of the residual is diurnal rather than error."
+  ],
+  "stations": [
+    {
+      "station_id": "43003099999",
+      "name": "Santacruz (Chhatrapati Shivaji Maharaj Intl)",
+      "setting": "inland",
+      "lat": 19.088686,
+      "lon": 72.867919,
+      "n_matched_overpasses": 12,
+      "n_station_days": 115,
+      "pearson_r": 0.719,
+      "rmse_c": 14.07,
+      "mean_bias_c": 13.94,
+      "mean_satellite_lst_c": 41.17,
+      "mean_station_air_c": 27.23
+    },
+    {
+      "station_id": "43057099999",
+      "name": "Colaba",
+      "setting": "coastal",
+      "lat": 18.9,
+      "lon": 72.8166666,
+      "n_matched_overpasses": 11,
+      "n_station_days": 108,
+      "pearson_r": 0.796,
+      "rmse_c": 3.64,
+      "mean_bias_c": 3.43,
+      "mean_satellite_lst_c": 30.17,
+      "mean_station_air_c": 26.74
+    }
+  ],
+  "pooled_within_station": {
+    "n": 23,
+    "pearson_r": 0.716,
+    "note": "Computed on anomalies about each station's own mean, so the two stations' different LST-to-air offsets do not contaminate the correlation. This is the day-to-day tracking skill. Pooling the raw values instead would mix an inland airport site with a coastal one and report a much lower number for a reason unrelated to measurement quality."
+  },
+  "bias_spread_c": {
+    "min": 3.43,
+    "max": 13.94,
+    "note": "Range of the LST-minus-air offset across stations. A wide spread is expected: the offset depends on what the ground is made of. It also means no single additive correction converts this LST layer into air temperature, which is why the index uses LST as a relative indicator rather than as a temperature."
+  }
+}

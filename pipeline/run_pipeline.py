@@ -110,6 +110,12 @@ STAGES: list[Stage] = [
           "Simplified ward geometry for the landing page's 3D hero model."),
     Stage("12", "12_hero_region.py", "monthly",
           "Regional coastline context for the hero model (cached after first fetch)."),
+    # Runs last because it validates rather than produces: nothing downstream
+    # reads its output, and a validation failure should not stop a refresh that
+    # already succeeded. It depends on NOAA GSOD, which publishes on a lag, so
+    # it is also the stage most likely to warn for reasons outside this repo.
+    Stage("13", "13_validate_lst.py", "monthly",
+          "Correlate satellite LST against NOAA GSOD weather stations."),
 ]
 
 STAGE_BY_ID = {s.id: s for s in STAGES}

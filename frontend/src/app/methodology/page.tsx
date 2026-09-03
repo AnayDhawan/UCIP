@@ -26,6 +26,20 @@ type Sensitivity = {
   perturbation_pct: number;
 };
 
+type LstValidation = {
+  window: { start: string; end: string };
+  is_pipeline_window: boolean;
+  stations: {
+    name: string;
+    setting: string;
+    n_matched_overpasses: number;
+    pearson_r: number;
+    mean_bias_c: number;
+  }[];
+  pooled_within_station?: { n: number; pearson_r: number };
+  bias_spread_c?: { min: number; max: number };
+};
+
 const INDICATOR_LABELS: Record<string, { label: string; direction: string }> = {
   LST_C: { label: "Land surface temperature", direction: "+ (higher = more vulnerable)" },
   NDVI: { label: "Green cover (NDVI)", direction: "− (higher = less vulnerable)" },
@@ -43,9 +57,20 @@ function readJson<T>(filename: string): T {
   return JSON.parse(fs.readFileSync(p, "utf-8"));
 }
 
+/** For outputs that may not exist yet on a given checkout, such as a validation
+ *  run that needs Earth Engine credentials to produce. */
+function readJsonOptional<T>(filename: string): T | null {
+  try {
+    return readJson<T>(filename);
+  } catch {
+    return null;
+  }
+}
+
 export default function MethodologyPage() {
   const pca = readJson<PcaLog>("hvi_pca_log.json");
   const sensitivity = readJson<Sensitivity>("sensitivity.json");
+  const validation = readJsonOptional<LstValidation>("lst_validation.json");
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -145,6 +170,97 @@ export default function MethodologyPage() {
               height={370}
               className="mt-3 w-full max-w-2xl rounded border border-border"
             />
+
+            {validation && (
+              <div className="mt-6 border-t border-border pt-4">
+                <h4 className="text-sm font-semibold text-foreground">
+                  Checked against ground weather stations
+                </h4>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  The sensitivity test above asks whether the index is robust to its own
+                  weighting. This asks something different and harder: does the satellite
+                  temperature layer track the real world at all? Per-overpass Landsat land
+                  surface temperature was correlated against daily observations from the two
+                  NOAA GSOD weather stations in Mumbai, over {validation.window.start} to{" "}
+                  {validation.window.end}.
+                </p>
+
+                <div className="mt-3 overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-border text-xs uppercase text-muted-foreground">
+                        <th className="py-1.5 pr-3 font-medium">Station</th>
+                        <th className="py-1.5 pr-3 font-medium">Overpasses</th>
+                        <th className="py-1.5 pr-3 font-medium">Correlation</th>
+                        <th className="py-1.5 font-medium">LST − air</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {validation.stations.map((s) => (
+                        <tr key={s.name} className="border-b border-border/50">
+                          <td className="py-1.5 pr-3 text-foreground">
+                            {s.name}{" "}
+                            <span className="text-muted-foreground">({s.setting})</span>
+                          </td>
+                          <td className="py-1.5 pr-3 font-mono text-muted-foreground">
+                            {s.n_matched_overpasses}
+                          </td>
+                          <td className="py-1.5 pr-3 font-mono text-foreground">
+                            r = {s.pearson_r.toFixed(2)}
+                          </td>
+                          <td className="py-1.5 font-mono text-muted-foreground">
+                            {s.mean_bias_c > 0 ? "+" : ""}
+                            {s.mean_bias_c.toFixed(1)} C
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <p className="mt-3 text-sm text-muted-foreground">
+                  <strong className="text-foreground">Read this carefully.</strong> Land surface
+                  temperature is not air temperature: LST is the radiometric temperature of the
+                  ground seen from orbit, a station measures shaded air about 1.5 m up. The large
+                  positive offset is expected physics, not error, and it is much bigger at
+                  inland Santacruz, which sits over airport tarmac, than at coastal Colaba. That
+                  spread{" "}
+                  {validation.bias_spread_c && (
+                    <>
+                      ({validation.bias_spread_c.min.toFixed(1)} to{" "}
+                      {validation.bias_spread_c.max.toFixed(1)} C){" "}
+                    </>
+                  )}
+                  is also why no single correction turns this layer into air temperature, and why
+                  the index uses it as a relative indicator rather than as a temperature.
+                </p>
+
+                <p className="mt-2 text-sm text-foreground">
+                  What the correlation shows is that the satellite tracks day-to-day thermal
+                  variation at a fixed place
+                  {validation.pooled_within_station && (
+                    <>
+                      {" "}
+                      (pooled within-station r ={" "}
+                      <strong>{validation.pooled_within_station.pearson_r.toFixed(2)}</strong>,
+                      n = {validation.pooled_within_station.n})
+                    </>
+                  )}
+                  , rather than reporting sensor noise or cloud artefacts. That is what the ward
+                  ranking rests on.
+                </p>
+
+                {!validation.is_pipeline_window && (
+                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                    Stated plainly: this validates the method on the most recent dry season where
+                    both satellite and station data exist, not the window the published index is
+                    computed from. NOAA GSOD publishes on a lag and had no records overlapping the
+                    current composite. Two stations is also few, and it is all Mumbai has with a
+                    long record.
+                  </p>
+                )}
+              </div>
+            )}
           </StepCard>
 
           <StepCard
