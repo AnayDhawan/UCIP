@@ -85,6 +85,8 @@ answers "which ward am I in and what should be built here". Full reference:
 - [docs/HVI-methodology-report.md](docs/HVI-methodology-report.md) - a standalone technical
   report expanding the methodology and references above into a full writeup with real
   pipeline output (PCA weights, sensitivity analysis results, plantability-filter numbers).
+- [docs/DATA-DICTIONARY.md](docs/DATA-DICTIONARY.md) - what every dataset column and published
+  file means: unit, range, source, derivation, and limitations.
 - [pipeline/README.md](pipeline/README.md) - running the pipeline as one orchestrated
   refresh, the refresh cadence split, and the post-refresh change-diff tool.
 
