@@ -34,8 +34,29 @@ const profilesFixture = { n_wards: 3, wards: [{ ward_id: "F/N" }] };
 
 const json = (body: unknown) => ({ ok: true, json: async () => body }) as unknown as Response;
 
-/** Routes each of the hook's three fetches to a caller-supplied handler. */
+/** The same three wards as the API returns them: lowercase keys, nested contrib. */
+const apiWardsFixture = {
+  source: "database",
+  count: 3,
+  wards: [
+    { ward_id: "L", hvi: 61, rank: 3, n_cells: 5, contrib: { LST_C: 0.2 }, geom_geojson: { type: "Polygon", coordinates: [] } },
+    { ward_id: "F/N", hvi: 78, rank: 1, n_cells: 9, contrib: { LST_C: 0.4 }, geom_geojson: { type: "Polygon", coordinates: [] } },
+    { ward_id: "G/N", hvi: 70, rank: 2, n_cells: 7, contrib: { LST_C: 0.3 }, geom_geojson: { type: "Polygon", coordinates: [] } },
+  ],
+};
+
+const apiRecsFixture = { source: "database", count: 2, recommendations: recsFixture };
+
+/**
+ * Routes each of the hook's fetches to a caller-supplied handler.
+ *
+ * The hook now tries /api/v1 first and falls back to the static snapshot, so
+ * both routes are stubbed separately and a test can fail one to exercise the
+ * other.
+ */
 function stubFetch(handlers: {
+  apiWards?: () => Promise<Response>;
+  apiRecs?: () => Promise<Response>;
   wards?: () => Promise<Response>;
   recs?: () => Promise<Response>;
   profiles?: () => Promise<Response>;
@@ -43,6 +64,10 @@ function stubFetch(handlers: {
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string) => {
+      if (url.includes("/api/v1/wards"))
+        return (handlers.apiWards ?? (async () => json(apiWardsFixture)))();
+      if (url.includes("/api/v1/recommendations"))
+        return (handlers.apiRecs ?? (async () => json(apiRecsFixture)))();
       if (url.includes("wards_hvi")) return (handlers.wards ?? (async () => json(wardsFixture)))();
       if (url.includes("nbs_recommendations"))
         return (handlers.recs ?? (async () => json(recsFixture)))();
@@ -52,6 +77,12 @@ function stubFetch(handlers: {
     })
   );
 }
+
+/** Makes the API unavailable so the hook has to use the static snapshots. */
+const apiDown = {
+  apiWards: async () => ({ ok: false, status: 503 }) as unknown as Response,
+  apiRecs: async () => ({ ok: false, status: 503 }) as unknown as Response,
+};
 
 beforeEach(() => {
   vi.spyOn(console, "error").mockImplementation(() => {});
@@ -98,6 +129,7 @@ describe("useWardData success state", () => {
 
   it("sorts wards with a missing rank to the end instead of dropping them", async () => {
     stubFetch({
+      ...apiDown,
       wards: async () =>
         json({
           type: "FeatureCollection",
@@ -116,7 +148,12 @@ describe("useWardData success state", () => {
 
 describe("useWardData error state", () => {
   it("sets error and does not hang in loading when the wards fetch fails", async () => {
+    // The hook only surfaces an error when BOTH the API and its snapshot
+    // fallback fail; either one alone is designed to be survivable.
     stubFetch({
+      apiWards: async () => {
+        throw new Error("api down");
+      },
       wards: async () => {
         throw new Error("network down");
       },
@@ -131,6 +168,9 @@ describe("useWardData error state", () => {
 
   it("sets error when the recommendations fetch fails", async () => {
     stubFetch({
+      apiRecs: async () => {
+        throw new Error("api down");
+      },
       recs: async () => {
         throw new Error("recs unavailable");
       },
@@ -173,6 +213,79 @@ describe("useWardData treats the profile fetch as additive", () => {
   });
 });
 
+describe("useWardData reads live data first (#53)", () => {
+  it("prefers the API over the static snapshots", async () => {
+    stubFetch({});
+    const { result } = renderHook(() => useWardData());
+    await waitFor(() => expect(result.current.wards).not.toBeNull());
+
+    const calls = (globalThis.fetch as unknown as { mock: { calls: [string][] } }).mock.calls.map(
+      (c) => c[0]
+    );
+    expect(calls.some((u) => u.includes("/api/v1/wards"))).toBe(true);
+    // The snapshot must not be fetched at all when the API answered.
+    expect(calls.some((u) => u.includes("wards_hvi"))).toBe(false);
+  });
+
+  it("reshapes the API's lowercase keys into the shape components expect", async () => {
+    stubFetch({});
+    const { result } = renderHook(() => useWardData());
+    await waitFor(() => expect(result.current.wards).not.toBeNull());
+
+    const top = result.current.wards![0].properties;
+    expect(top.ward_id).toBe("F/N");
+    // API sends `hvi`; components read `HVI`.
+    expect(top.HVI).toBe(78);
+    expect(top.rank).toBe(1);
+    // API nests contributions; components read flat contrib_* fields.
+    expect(top.contrib_LST_C).toBe(0.4);
+  });
+
+  it("still sorts by rank when the data comes from the API", async () => {
+    stubFetch({});
+    const { result } = renderHook(() => useWardData());
+    await waitFor(() => expect(result.current.wards).not.toBeNull());
+    expect(result.current.wards!.map((w) => w.properties.ward_id)).toEqual(["F/N", "G/N", "L"]);
+  });
+
+  it("falls back to the static snapshots when the API is down", async () => {
+    // The property that matters most: the Supabase project was deleted once
+    // already, and the dashboard has to survive that.
+    stubFetch(apiDown);
+    const { result } = renderHook(() => useWardData());
+    await waitFor(() => expect(result.current.wards).not.toBeNull());
+
+    expect(result.current.wards).toHaveLength(3);
+    expect(result.current.recs).toEqual(recsFixture);
+    expect(result.current.error).toBeNull();
+  });
+
+  it("falls back when the API answers but carries no geometry", async () => {
+    // A ward with no polygon cannot be drawn, so an otherwise-successful
+    // response missing geometry is worse than useless: it would render an empty
+    // map with no error.
+    stubFetch({
+      apiWards: async () =>
+        json({ wards: [{ ward_id: "L", hvi: 61, rank: 1, n_cells: 5, contrib: {} }] }),
+    });
+    const { result } = renderHook(() => useWardData());
+    await waitFor(() => expect(result.current.wards).not.toBeNull());
+
+    // Fell through to the snapshot's three wards rather than accepting the
+    // single geometry-less ward the API returned.
+    expect(result.current.wards).toHaveLength(3);
+    expect(result.current.wards!.map((w) => w.properties.ward_id)).toEqual(["F/N", "G/N", "L"]);
+  });
+
+  it("falls back for recommendations independently of wards", async () => {
+    stubFetch({ apiRecs: async () => ({ ok: false, status: 500 }) as unknown as Response });
+    const { result } = renderHook(() => useWardData());
+    await waitFor(() => expect(result.current.recs).not.toBeNull());
+    expect(result.current.recs).toEqual(recsFixture);
+    expect(result.current.error).toBeNull();
+  });
+});
+
 describe("useWardData fetching discipline", () => {
   it("fetches each file exactly once per mount", async () => {
     // A duplicate nbs_recommendations fetch was removed once already (the
@@ -184,20 +297,20 @@ describe("useWardData fetching discipline", () => {
     const calls = (globalThis.fetch as unknown as { mock: { calls: [string][] } }).mock.calls.map(
       (c) => c[0]
     );
-    expect(calls.filter((u) => u.includes("wards_hvi"))).toHaveLength(1);
-    expect(calls.filter((u) => u.includes("nbs_recommendations"))).toHaveLength(1);
+    expect(calls.filter((u) => u.includes("/api/v1/wards"))).toHaveLength(1);
+    expect(calls.filter((u) => u.includes("/api/v1/recommendations"))).toHaveLength(1);
     expect(calls.filter((u) => u.includes("ward_profiles"))).toHaveLength(1);
   });
 
   it("does not set state after unmount", async () => {
     let resolveWards: (r: Response) => void = () => {};
     stubFetch({
-      wards: () => new Promise<Response>((res) => (resolveWards = res)),
+      apiWards: () => new Promise<Response>((res) => (resolveWards = res)),
     });
 
     const { unmount } = renderHook(() => useWardData());
     unmount();
-    resolveWards(json(wardsFixture));
+    resolveWards(json(apiWardsFixture));
 
     // The hook guards every setState with a `cancelled` flag. If that guard were
     // removed, React would warn here about updating an unmounted component.
