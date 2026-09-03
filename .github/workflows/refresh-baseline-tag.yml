@@ -36,6 +36,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # Default checkout on a pull_request event is refs/pull/<n>/merge —
+          # GitHub's throwaway test-merge commit, which is not on main. The tag
+          # must bookmark the actual merge commit this event is announcing, so
+          # check that commit out explicitly.
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
 
       - name: Move data-refresh-baseline to the merge commit
         run: |

@@ -60,6 +60,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # The diff baseline below can be any earlier commit or tag (git
+          # fetch --tags, then git archive of it), so the default shallow
+          # depth-1 clone is not enough — fetch full history once.
+          fetch-depth: 0
 
       - uses: actions/setup-python@v7
         with:
@@ -81,7 +86,18 @@ jobs:
         run: |
           rm -rf data-baseline
           git fetch --tags --force --quiet origin
-          git fetch --quiet origin automated/pipeline-refresh || true
+          # Priority 1 needs a real remote-tracking ref, but actions/checkout
+          # configures a single-branch refspec (only main is tracked), so a
+          # plain `git fetch origin automated/pipeline-refresh` would write
+          # FETCH_HEAD and nothing else and the rev-parse below could never
+          # fire. Fetch into the tracking ref explicitly instead (issue #126).
+          # Caveat: if the previous refresh PR is ever closed WITHOUT merging,
+          # its branch can be left behind and would keep being preferred here
+          # even though it never landed. Benign in practice — the next refresh
+          # that actually merges force-moves the tag and delete-branch removes
+          # the branch — but it means one diff is computed against an unmerged
+          # refresh.
+          git fetch --quiet origin '+refs/heads/automated/pipeline-refresh:refs/remotes/origin/automated/pipeline-refresh' || true
           if git rev-parse --quiet --verify origin/automated/pipeline-refresh > /dev/null 2>&1; then
             BASELINE_REF=origin/automated/pipeline-refresh
             echo "Diff baseline: open refresh branch (previous refresh not merged yet)"
