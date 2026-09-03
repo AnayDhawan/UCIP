@@ -312,3 +312,21 @@ html {
   outline: 2px solid var(--ring);
   outline-offset: 1px;
 }
+
+/* Mobile: keep Leaflet's zoom control clear of the map layer switcher (issue #55).
+   
+   The layer card is anchored top-right and sized to its content. On desktop it
+   is narrow enough to sit well clear of the zoom buttons at top-left, but at
+   375px the three tab labels make it nearly full-width, so it extends back
+   across the zoom control. The result was that the "Heat vulnerability" tab had
+   its label hidden behind the +/- buttons and could not be tapped at all:
+   document.elementFromPoint over that tab returned the zoom control, not the tab.
+
+   Moving the zoom control rather than displacing the tabs, because on a touch
+   device pinch-to-zoom is the primary gesture and these buttons are the
+   secondary affordance, whereas the layer switcher has no alternative. */
+@media (max-width: 640px) {
+  .leaflet-top.leaflet-left {
+    top: 3rem;
+  }
+}
