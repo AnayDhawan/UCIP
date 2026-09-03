@@ -1,0 +1,2025 @@
+{
+  "city": "mumbai",
+  "years": [
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025,
+    2026
+  ],
+  "years_skipped": [],
+  "scenes_per_year": {
+    "2014": 6,
+    "2015": 6,
+    "2016": 4,
+    "2017": 7,
+    "2018": 7,
+    "2019": 7,
+    "2020": 7,
+    "2021": 6,
+    "2022": 7,
+    "2023": 6,
+    "2024": 7,
+    "2025": 6,
+    "2026": 5
+  },
+  "n_wards": 24,
+  "measures": [
+    "LST_C",
+    "NDVI"
+  ],
+  "what_this_is": "Per-ward dry-season land surface temperature and NDVI, one value per year, with a least-squares trend per ward.",
+  "what_this_is_not": "Not a multi-year Heat Vulnerability Index. Only 2 of the index's 7 indicators are observed annually; population density, elderly share, the slum layer, hospital distance and imperviousness each come from a single snapshot. Recomputing the index per year with five inputs frozen would present a thermal trend as a vulnerability trend.",
+  "limitations": [
+    "Landsat 8 and 9 only, so the record starts at the 2014 season. Landsat 5/7 have different thermal calibration and splicing them would create a step change at the join.",
+    "Dry season only (November to February). Monsoon imagery is unusable for LST, so this is a dry-season trend, not an annual mean.",
+    "A ward-year needs at least 4 scenes to be included, and a ward needs 3 usable years before a trend is fitted.",
+    "Least-squares slope over a short record. It describes the observed period and is not a forecast."
+  ],
+  "wards": [
+    {
+      "ward_id": "A",
+      "n_years": 13,
+      "series": [
+        {
+          "year": 2014,
+          "LST_C": 34.403,
+          "NDVI": 0.2051
+        },
+        {
+          "year": 2015,
+          "LST_C": 33.818,
+          "NDVI": 0.1905
+        },
+        {
+          "year": 2016,
+          "LST_C": 30.088,
+          "NDVI": 0.1518
+        },
+        {
+          "year": 2017,
+          "LST_C": 33.474,
+          "NDVI": 0.1719
+        },
+        {
+          "year": 2018,
+          "LST_C": 32.281,
+          "NDVI": 0.1546
+        },
+        {
+          "year": 2019,
+          "LST_C": 32.204,
+          "NDVI": 0.1743
+        },
+        {
+          "year": 2020,
+          "LST_C": 34.16,
+          "NDVI": 0.1631
+        },
+        {
+          "year": 2021,
+          "LST_C": 33.126,
+          "NDVI": 0.1949
+        },
+        {
+          "year": 2022,
+          "LST_C": 31.994,
+          "NDVI": 0.1995
+        },
+        {
+          "year": 2023,
+          "LST_C": 33.615,
+          "NDVI": 0.1725
+        },
+        {
+          "year": 2024,
+          "LST_C": 32.976,
+          "NDVI": 0.1706
+        },
+        {
+          "year": 2025,
+          "LST_C": 32.644,
+          "NDVI": 0.1638
+        },
+        {
+          "year": 2026,
+          "LST_C": 32.022,
+          "NDVI": 0.1778
+        }
+      ],
+      "trend": {
+        "lst_c_per_decade": -0.43,
+        "lst_stderr_c_per_decade": 0.883,
+        "lst_p_value": 0.6357,
+        "lst_r_squared": 0.021,
+        "lst_significant": false,
+        "ndvi_per_decade": -0.006,
+        "ndvi_p_value": 0.6484,
+        "ndvi_significant": false,
+        "classification": "no detected temperature trend, no detected green-cover trend"
+      }
+    },
+    {
+      "ward_id": "B",
+      "n_years": 13,
+      "series": [
+        {
+          "year": 2014,
+          "LST_C": 39.144,
+          "NDVI": 0.1491
+        },
+        {
+          "year": 2015,
+          "LST_C": 38.166,
+          "NDVI": 0.1521
+        },
+        {
+          "year": 2016,
+          "LST_C": 34.366,
+          "NDVI": 0.1168
+        },
+        {
+          "year": 2017,
+          "LST_C": 37.658,
+          "NDVI": 0.1478
+        },
+        {
+          "year": 2018,
+          "LST_C": 36.215,
+          "NDVI": 0.1427
+        },
+        {
+          "year": 2019,
+          "LST_C": 36.22,
+          "NDVI": 0.1422
+        },
+        {
+          "year": 2020,
+          "LST_C": 38.262,
+          "NDVI": 0.1508
+        },
+        {
+          "year": 2021,
+          "LST_C": 35.679,
+          "NDVI": 0.1751
+        },
+        {
+          "year": 2022,
+          "LST_C": 35.251,
+          "NDVI": 0.1902
+        },
+        {
+          "year": 2023,
+          "LST_C": 37.087,
+          "NDVI": 0.1602
+        },
+        {
+          "year": 2024,
+          "LST_C": 36.489,
+          "NDVI": 0.1477
+        },
+        {
+          "year": 2025,
+          "LST_C": 36.495,
+          "NDVI": 0.1503
+        },
+        {
+          "year": 2026,
+          "LST_C": 36.148,
+          "NDVI": 0.1559
+        }
+      ],
+      "trend": {
+        "lst_c_per_decade": -1.21,
+        "lst_stderr_c_per_decade": 0.959,
+        "lst_p_value": 0.2332,
+        "lst_r_squared": 0.126,
+        "lst_significant": false,
+        "ndvi_per_decade": 0.0176,
+        "ndvi_p_value": 0.1767,
+        "ndvi_significant": false,
+        "classification": "no detected temperature trend, no detected green-cover trend"
+      }
+    },
+    {
+      "ward_id": "C",
+      "n_years": 13,
+      "series": [
+        {
+          "year": 2014,
+          "LST_C": 38.315,
+          "NDVI": 0.1651
+        },
+        {
+          "year": 2015,
+          "LST_C": 37.369,
+          "NDVI": 0.1644
+        },
+        {
+          "year": 2016,
+          "LST_C": 33.649,
+          "NDVI": 0.1216
+        },
+        {
+          "year": 2017,
+          "LST_C": 38.052,
+          "NDVI": 0.1648
+        },
+        {
+          "year": 2018,
+          "LST_C": 36.142,
+          "NDVI": 0.1494
+        },
+        {
+          "year": 2019,
+          "LST_C": 35.392,
+          "NDVI": 0.157
+        },
+        {
+          "year": 2020,
+          "LST_C": 38.171,
+          "NDVI": 0.1571
+        },
+        {
+          "year": 2021,
+          "LST_C": 36.185,
+          "NDVI": 0.1757
+        },
+        {
+          "year": 2022,
+          "LST_C": 35.132,
+          "NDVI": 0.1787
+        },
+        {
+          "year": 2023,
+          "LST_C": 36.076,
+          "NDVI": 0.1509
+        },
+        {
+          "year": 2024,
+          "LST_C": 36.238,
+          "NDVI": 0.1488
+        },
+        {
+          "year": 2025,
+          "LST_C": 36.062,
+          "NDVI": 0.1468
+        },
+        {
+          "year": 2026,
+          "LST_C": 35.853,
+          "NDVI": 0.1532
+        }
+      ],
+      "trend": {
+        "lst_c_per_decade": -0.995,
+        "lst_stderr_c_per_decade": 0.987,
+        "lst_p_value": 0.3351,
+        "lst_r_squared": 0.085,
+        "lst_significant": false,
+        "ndvi_per_decade": -0.0008,
+        "ndvi_p_value": 0.9429,
+        "ndvi_significant": false,
+        "classification": "no detected temperature trend, no detected green-cover trend"
+      }
+    },
+    {
+      "ward_id": "D",
+      "n_years": 13,
+      "series": [
+        {
+          "year": 2014,
+          "LST_C": 34.421,
+          "NDVI": 0.2387
+        },
+        {
+          "year": 2015,
+          "LST_C": 33.815,
+          "NDVI": 0.2363
+        },
+        {
+          "year": 2016,
+          "LST_C": 30.124,
+          "NDVI": 0.1884
+        },
+        {
+          "year": 2017,
+          "LST_C": 33.621,
+          "NDVI": 0.2262
+        },
+        {
+          "year": 2018,
+          "LST_C": 32.404,
+          "NDVI": 0.2036
+        },
+        {
+          "year": 2019,
+          "LST_C": 32.254,
+          "NDVI": 0.2373
+        },
+        {
+          "year": 2020,
+          "LST_C": 34.516,
+          "NDVI": 0.2199
+        },
+        {
+          "year": 2021,
+          "LST_C": 34.024,
+          "NDVI": 0.2503
+        },
+        {
+          "year": 2022,
+          "LST_C": 32.379,
+          "NDVI": 0.2438
+        },
+        {
+          "year": 2023,
+          "LST_C": 32.425,
+          "NDVI": 0.2209
+        },
+        {
+          "year": 2024,
+          "LST_C": 32.825,
+          "NDVI": 0.2168
+        },
+        {
+          "year": 2025,
+          "LST_C": 32.731,
+          "NDVI": 0.2218
+        },
+        {
+          "year": 2026,
+          "LST_C": 32.839,
+          "NDVI": 0.2271
+        }
+      ],
+      "trend": {
+        "lst_c_per_decade": -0.328,
+        "lst_stderr_c_per_decade": 0.9,
+        "lst_p_value": 0.7222,
+        "lst_r_squared": 0.012,
+        "lst_significant": false,
+        "ndvi_per_decade": 0.0027,
+        "ndvi_p_value": 0.8394,
+        "ndvi_significant": false,
+        "classification": "no detected temperature trend, no detected green-cover trend"
+      }
+    },
+    {
+      "ward_id": "E",
+      "n_years": 13,
+      "series": [
+        {
+          "year": 2014,
+          "LST_C": 37.809,
+          "NDVI": 0.2331
+        },
+        {
+          "year": 2015,
+          "LST_C": 36.725,
+          "NDVI": 0.2482
+        },
+        {
+          "year": 2016,
+          "LST_C": 32.858,
+          "NDVI": 0.1736
+        },
+        {
+          "year": 2017,
+          "LST_C": 36.729,
+          "NDVI": 0.2203
+        },
+        {
+          "year": 2018,
+          "LST_C": 35.072,
+          "NDVI": 0.2075
+        },
+        {
+          "year": 2019,
+          "LST_C": 34.555,
+          "NDVI": 0.2172
+        },
+        {
+          "year": 2020,
+          "LST_C": 37.163,
+          "NDVI": 0.2178
+        },
+        {
+          "year": 2021,
+          "LST_C": 34.817,
+          "NDVI": 0.238
+        },
+        {
+          "year": 2022,
+          "LST_C": 34.429,
+          "NDVI": 0.2588
+        },
+        {
+          "year": 2023,
+          "LST_C": 35.051,
+          "NDVI": 0.2097
+        },
+        {
+          "year": 2024,
+          "LST_C": 35.053,
+          "NDVI": 0.2152
+        },
+        {
+          "year": 2025,
+          "LST_C": 34.972,
+          "NDVI": 0.2108
+        },
+        {
+          "year": 2026,
+          "LST_C": 35.064,
+          "NDVI": 0.239
+        }
+      ],
+      "trend": {
+        "lst_c_per_decade": -1.237,
+        "lst_stderr_c_per_decade": 0.968,
+        "lst_p_value": 0.2275,
+        "lst_r_squared": 0.129,
+        "lst_significant": false,
+        "ndvi_per_decade": 0.0058,
+        "ndvi_p_value": 0.7325,
+        "ndvi_significant": false,
+        "classification": "no detected temperature trend, no detected green-cover trend"
+      }
+    },
+    {
+      "ward_id": "F/N",
+      "n_years": 13,
+      "series": [
+        {
+          "year": 2014,
+          "LST_C": 36.929,
+          "NDVI": 0.2905
+        },
+        {
+          "year": 2015,
+          "LST_C": 36.461,
+          "NDVI": 0.292
+        },
+        {
+          "year": 2016,
+          "LST_C": 32.486,
+          "NDVI": 0.2404
+        },
+        {
+          "year": 2017,
+          "LST_C": 35.88,
+          "NDVI": 0.2688
+        },
+        {
+          "year": 2018,
+          "LST_C": 35.069,
+          "NDVI": 0.2783
+        },
+        {
+          "year": 2019,
+          "LST_C": 34.335,
+          "NDVI": 0.2632
+        },
+        {
+          "year": 2020,
+          "LST_C": 36.965,
+          "NDVI": 0.288
+        },
+        {
+          "year": 2021,
+          "LST_C": 34.233,
+          "NDVI": 0.2985
+        },
+        {
+          "year": 2022,
+          "LST_C": 33.047,
+          "NDVI": 0.3198
+        },
+        {
+          "year": 2023,
+          "LST_C": 35.156,
+          "NDVI": 0.2671
+        },
+        {
+          "year": 2024,
+          "LST_C": 34.359,
+          "NDVI": 0.284
+        },
+        {
+          "year": 2025,
+          "LST_C": 35.152,
+          "NDVI": 0.2779
+        },
+        {
+          "year": 2026,
+          "LST_C": 34.324,
+          "NDVI": 0.2995
+        }
+      ],
+      "trend": {
+        "lst_c_per_decade": -1.154,
+        "lst_stderr_c_per_decade": 1.003,
+        "lst_p_value": 0.2742,
+        "lst_r_squared": 0.107,
+        "lst_significant": false,
+        "ndvi_per_decade": 0.0149,
+        "ndvi_p_value": 0.3327,
+        "ndvi_significant": false,
+        "classification": "no detected temperature trend, no detected green-cover trend"
+      }
+    },
+    {
+      "ward_id": "F/S",
+      "n_years": 13,
+      "series": [
+        {
+          "year": 2014,
+          "LST_C": 38.328,
+          "NDVI": 0.2645
+        },
+        {
+          "year": 2015,
+          "LST_C": 37.241,
+          "NDVI": 0.2751
+        },
+        {
+          "year": 2016,
+          "LST_C": 33.382,
+          "NDVI": 0.2024
+        },
+        {
+          "year": 2017,
+          "LST_C": 36.804,
+          "NDVI": 0.2528
+        },
+        {
+          "year": 2018,
+          "LST_C": 35.641,
+          "NDVI": 0.2501
+        },
+        {
+          "year": 2019,
+          "LST_C": 34.962,
+          "NDVI": 0.2466
+        },
+        {
+          "year": 2020,
+          "LST_C": 37.639,
+          "NDVI": 0.2525
+        },
+        {
+          "year": 2021,
+          "LST_C": 35.025,
+          "NDVI": 0.2783
+        },
+        {
+          "year": 2022,
+          "LST_C": 34.565,
+          "NDVI": 0.3007
+        },
+        {
+          "year": 2023,
+          "LST_C": 35.498,
+          "NDVI": 0.2565
+        },
+        {
+          "year": 2024,
+          "LST_C": 35.195,
+          "NDVI": 0.2651
+        },
+        {
+          "year": 2025,
+          "LST_C": 35.393,
+          "NDVI": 0.2586
+        },
+        {
+          "year": 2026,
+          "LST_C": 34.962,
+          "NDVI": 0.2721
+        }
+      ],
+      "trend": {
+        "lst_c_per_decade": -1.549,
+        "lst_stderr_c_per_decade": 0.961,
+        "lst_p_value": 0.1351,
+        "lst_r_squared": 0.191,
+        "lst_significant": false,
+        "ndvi_per_decade": 0.0197,
+        "ndvi_p_value": 0.2573,
+        "ndvi_significant": false,
+        "classification": "no detected temperature trend, no detected green-cover trend"
+      }
+    },
+    {
+      "ward_id": "G/N",
+      "n_years": 13,
+      "series": [
+        {
+          "year": 2014,
+          "LST_C": 36.504,
+          "NDVI": 0.2569
+        },
+        {
+          "year": 2015,
+          "LST_C": 35.987,
+          "NDVI": 0.2566
+        },
+        {
+          "year": 2016,
+          "LST_C": 32.581,
+          "NDVI": 0.2152
+        },
+        {
+          "year": 2017,
+          "LST_C": 35.844,
+          "NDVI": 0.2393
+        },
+        {
+          "year": 2018,
+          "LST_C": 34.888,
+          "NDVI": 0.2205
+        },
+        {
+          "year": 2019,
+          "LST_C": 33.984,
+          "NDVI": 0.2337
+        },
+        {
+          "year": 2020,
+          "LST_C": 36.448,
+          "NDVI": 0.2465
+        },
+        {
+          "year": 2021,
+          "LST_C": 34.539,
+          "NDVI": 0.2586
+        },
+        {
+          "year": 2022,
+          "LST_C": 32.927,
+          "NDVI": 0.2718
+        },
+        {
+          "year": 2023,
+          "LST_C": 34.188,
+          "NDVI": 0.2279
+        },
+        {
+          "year": 2024,
+          "LST_C": 34.042,
+          "NDVI": 0.2505
+        },
+        {
+          "year": 2025,
+          "LST_C": 34.865,
+          "NDVI": 0.2355
+        },
+        {
+          "year": 2026,
+          "LST_C": 34.246,
+          "NDVI": 0.2528
+        }
+      ],
+      "trend": {
+        "lst_c_per_decade": -1.19,
+        "lst_stderr_c_per_decade": 0.889,
+        "lst_p_value": 0.2081,
+        "lst_r_squared": 0.14,
+        "lst_significant": false,
+        "ndvi_per_decade": 0.0057,
+        "ndvi_p_value": 0.6596,
+        "ndvi_significant": false,
+        "classification": "no detected temperature trend, no detected green-cover trend"
+      }
+    },
+    {
+      "ward_id": "G/S",
+      "n_years": 13,
+      "series": [
+        {
+          "year": 2014,
+          "LST_C": 35.86,
+          "NDVI": 0.222
+        },
+        {
+          "year": 2015,
+          "LST_C": 34.934,
+          "NDVI": 0.2298
+        },
+        {
+          "year": 2016,
+          "LST_C": 31.21,
+          "NDVI": 0.174
+        },
+        {
+          "year": 2017,
+          "LST_C": 34.385,
+          "NDVI": 0.2122
+        },
+        {
+          "year": 2018,
+          "LST_C": 33.27,
+          "NDVI": 0.1982
+        },
+        {
+          "year": 2019,
+          "LST_C": 32.729,
+          "NDVI": 0.2095
+        },
+        {
+          "year": 2020,
+          "LST_C": 35.247,
+          "NDVI": 0.2139
+        },
+        {
+          "year": 2021,
+          "LST_C": 33.924,
+          "NDVI": 0.2394
+        },
+        {
+          "year": 2022,
+          "LST_C": 32.906,
+          "NDVI": 0.2554
+        },
+        {
+          "year": 2023,
+          "LST_C": 32.856,
+          "NDVI": 0.2149
+        },
+        {
+          "year": 2024,
+          "LST_C": 33.2,
+          "NDVI": 0.2282
+        },
+        {
+          "year": 2025,
+          "LST_C": 33.626,
+          "NDVI": 0.2118
+        },
+        {
+          "year": 2026,
+          "LST_C": 33.699,
+          "NDVI": 0.2198
+        }
+      ],
+      "trend": {
+        "lst_c_per_decade": -0.861,
+        "lst_stderr_c_per_decade": 0.913,
+        "lst_p_value": 0.3658,
+        "lst_r_squared": 0.075,
+        "lst_significant": false,
+        "ndvi_per_decade": 0.0146,
+        "ndvi_p_value": 0.3361,
+        "ndvi_significant": false,
+        "classification": "no detected temperature trend, no detected green-cover trend"
+      }
+    },
+    {
+      "ward_id": "H/E",
+      "n_years": 13,
+      "series": [
+        {
+          "year": 2014,
+          "LST_C": 37.842,
+          "NDVI": 0.2616
+        },
+        {
+          "year": 2015,
+          "LST_C": 37.131,
+          "NDVI": 0.2533
+        },
+        {
+          "year": 2016,
+          "LST_C": 33.297,
+          "NDVI": 0.2265
+        },
+        {
+          "year": 2017,
+          "LST_C": 36.72,
+          "NDVI": 0.2463
+        },
+        {
+          "year": 2018,
+          "LST_C": 35.486,
+          "NDVI": 0.2433
+        },
+        {
+          "year": 2019,
+          "LST_C": 35.138,
+          "NDVI": 0.2401
+        },
+        {
+          "year": 2020,
+          "LST_C": 36.684,
+          "NDVI": 0.2489
+        },
+        {
+          "year": 2021,
+          "LST_C": 34.962,
+          "NDVI": 0.2656
+        },
+        {
+          "year": 2022,
+          "LST_C": 33.584,
+          "NDVI": 0.292
+        },
+        {
+          "year": 2023,
+          "LST_C": 35.674,
+          "NDVI": 0.2387
+        },
+        {
+          "year": 2024,
+          "LST_C": 34.721,
+          "NDVI": 0.2637
+        },
+        {
+          "year": 2025,
+          "LST_C": 35.361,
+          "NDVI": 0.2479
+        },
+        {
+          "year": 2026,
+          "LST_C": 34.576,
+          "NDVI": 0.2605
+        }
+      ],
+      "trend": {
+        "lst_c_per_decade": -1.641,
+        "lst_stderr_c_per_decade": 0.91,
+        "lst_p_value": 0.0988,
+        "lst_r_squared": 0.228,
+        "lst_significant": false,
+        "ndvi_per_decade": 0.0118,
+        "ndvi_p_value": 0.3488,
+        "ndvi_significant": false,
+        "classification": "no detected temperature trend, no detected green-cover trend"
+      }
+    },
+    {
+      "ward_id": "H/W",
+      "n_years": 13,
+      "series": [
+        {
+          "year": 2014,
+          "LST_C": 35.561,
+          "NDVI": 0.2628
+        },
+        {
+          "year": 2015,
+          "LST_C": 34.865,
+          "NDVI": 0.2592
+        },
+        {
+          "year": 2016,
+          "LST_C": 31.508,
+          "NDVI": 0.2243
+        },
+        {
+          "year": 2017,
+          "LST_C": 34.821,
+          "NDVI": 0.2483
+        },
+        {
+          "year": 2018,
+          "LST_C": 33.456,
+          "NDVI": 0.2382
+        },
+        {
+          "year": 2019,
+          "LST_C": 33.009,
+          "NDVI": 0.256
+        },
+        {
+          "year": 2020,
+          "LST_C": 34.965,
+          "NDVI": 0.2484
+        },
+        {
+          "year": 2021,
+          "LST_C": 34.241,
+          "NDVI": 0.2774
+        },
+        {
+          "year": 2022,
+          "LST_C": 31.709,
+          "NDVI": 0.2788
+        },
+        {
+          "year": 2023,
+          "LST_C": 33.656,
+          "NDVI": 0.2431
+        },
+        {
+          "year": 2024,
+          "LST_C": 32.984,
+          "NDVI": 0.2533
+        },
+        {
+          "year": 2025,
+          "LST_C": 33.83,
+          "NDVI": 0.2348
+        },
+        {
+          "year": 2026,
+          "LST_C": 33.424,
+          "NDVI": 0.248
+        }
+      ],
+      "trend": {
+        "lst_c_per_decade": -0.981,
+        "lst_stderr_c_per_decade": 0.898,
+        "lst_p_value": 0.2979,
+        "lst_r_squared": 0.098,
+        "lst_significant": false,
+        "ndvi_per_decade": -0.0004,
+        "ndvi_p_value": 0.9723,
+        "ndvi_significant": false,
+        "classification": "no detected temperature trend, no detected green-cover trend"
+      }
+    },
+    {
+      "ward_id": "K/E",
+      "n_years": 13,
+      "series": [
+        {
+          "year": 2014,
+          "LST_C": 37.762,
+          "NDVI": 0.2904
+        },
+        {
+          "year": 2015,
+          "LST_C": 37.289,
+          "NDVI": 0.2852
+        },
+        {
+          "year": 2016,
+          "LST_C": 33.562,
+          "NDVI": 0.2447
+        },
+        {
+          "year": 2017,
+          "LST_C": 36.82,
+          "NDVI": 0.2778
+        },
+        {
+          "year": 2018,
+          "LST_C": 36.026,
+          "NDVI": 0.2699
+        },
+        {
+          "year": 2019,
+          "LST_C": 35.296,
+          "NDVI": 0.2631
+        },
+        {
+          "year": 2020,
+          "LST_C": 37.961,
+          "NDVI": 0.2737
+        },
+        {
+          "year": 2021,
+          "LST_C": 35.491,
+          "NDVI": 0.2992
+        },
+        {
+          "year": 2022,
+          "LST_C": 35.13,
+          "NDVI": 0.3255
+        },
+        {
+          "year": 2023,
+          "LST_C": 36.441,
+          "NDVI": 0.2621
+        },
+        {
+          "year": 2024,
+          "LST_C": 35.476,
+          "NDVI": 0.2888
+        },
+        {
+          "year": 2025,
+          "LST_C": 35.985,
+          "NDVI": 0.2638
+        },
+        {
+          "year": 2026,
+          "LST_C": 34.936,
+          "NDVI": 0.2767
+        }
+      ],
+      "trend": {
+        "lst_c_per_decade": -1.019,
+        "lst_stderr_c_per_decade": 0.906,
+        "lst_p_value": 0.2847,
+        "lst_r_squared": 0.103,
+        "lst_significant": false,
+        "ndvi_per_decade": 0.0048,
+        "ndvi_p_value": 0.7635,
+        "ndvi_significant": false,
+        "classification": "no detected temperature trend, no detected green-cover trend"
+      }
+    },
+    {
+      "ward_id": "K/W",
+      "n_years": 13,
+      "series": [
+        {
+          "year": 2014,
+          "LST_C": 35.528,
+          "NDVI": 0.3315
+        },
+        {
+          "year": 2015,
+          "LST_C": 34.985,
+          "NDVI": 0.2981
+        },
+        {
+          "year": 2016,
+          "LST_C": 31.57,
+          "NDVI": 0.278
+        },
+        {
+          "year": 2017,
+          "LST_C": 34.42,
+          "NDVI": 0.3004
+        },
+        {
+          "year": 2018,
+          "LST_C": 33.346,
+          "NDVI": 0.304
+        },
+        {
+          "year": 2019,
+          "LST_C": 32.879,
+          "NDVI": 0.3048
+        },
+        {
+          "year": 2020,
+          "LST_C": 35.85,
+          "NDVI": 0.3098
+        },
+        {
+          "year": 2021,
+          "LST_C": 34.01,
+          "NDVI": 0.3336
+        },
+        {
+          "year": 2022,
+          "LST_C": 32.404,
+          "NDVI": 0.3361
+        },
+        {
+          "year": 2023,
+          "LST_C": 34.157,
+          "NDVI": 0.2964
+        },
+        {
+          "year": 2024,
+          "LST_C": 33.225,
+          "NDVI": 0.3179
+        },
+        {
+          "year": 2025,
+          "LST_C": 33.767,
+          "NDVI": 0.2919
+        },
+        {
+          "year": 2026,
+          "LST_C": 33.2,
+          "NDVI": 0.3079
+        }
+      ],
+      "trend": {
+        "lst_c_per_decade": -0.823,
+        "lst_stderr_c_per_decade": 0.91,
+        "lst_p_value": 0.3852,
+        "lst_r_squared": 0.069,
+        "lst_significant": false,
+        "ndvi_per_decade": 0.0037,
+        "ndvi_p_value": 0.7841,
+        "ndvi_significant": false,
+        "classification": "no detected temperature trend, no detected green-cover trend"
+      }
+    },
+    {
+      "ward_id": "L",
+      "n_years": 13,
+      "series": [
+        {
+          "year": 2014,
+          "LST_C": 39.104,
+          "NDVI": 0.2528
+        },
+        {
+          "year": 2015,
+          "LST_C": 38.242,
+          "NDVI": 0.2527
+        },
+        {
+          "year": 2016,
+          "LST_C": 34.416,
+          "NDVI": 0.2142
+        },
+        {
+          "year": 2017,
+          "LST_C": 37.888,
+          "NDVI": 0.237
+        },
+        {
+          "year": 2018,
+          "LST_C": 36.832,
+          "NDVI": 0.2416
+        },
+        {
+          "year": 2019,
+          "LST_C": 36.382,
+          "NDVI": 0.2342
+        },
+        {
+          "year": 2020,
+          "LST_C": 38.691,
+          "NDVI": 0.2532
+        },
+        {
+          "year": 2021,
+          "LST_C": 36.239,
+          "NDVI": 0.2654
+        },
+        {
+          "year": 2022,
+          "LST_C": 35.989,
+          "NDVI": 0.293
+        },
+        {
+          "year": 2023,
+          "LST_C": 37.047,
+          "NDVI": 0.241
+        },
+        {
+          "year": 2024,
+          "LST_C": 36.296,
+          "NDVI": 0.2535
+        },
+        {
+          "year": 2025,
+          "LST_C": 36.781,
+          "NDVI": 0.2428
+        },
+        {
+          "year": 2026,
+          "LST_C": 35.734,
+          "NDVI": 0.2565
+        }
+      ],
+      "trend": {
+        "lst_c_per_decade": -1.338,
+        "lst_stderr_c_per_decade": 0.923,
+        "lst_p_value": 0.1749,
+        "lst_r_squared": 0.16,
+        "lst_significant": false,
+        "ndvi_per_decade": 0.0152,
+        "ndvi_p_value": 0.2849,
+        "ndvi_significant": false,
+        "classification": "no detected temperature trend, no detected green-cover trend"
+      }
+    },
+    {
+      "ward_id": "M/E",
+      "n_years": 13,
+      "series": [
+        {
+          "year": 2014,
+          "LST_C": 36.178,
+          "NDVI": 0.3973
+        },
+        {
+          "year": 2015,
+          "LST_C": 35.42,
+          "NDVI": 0.389
+        },
+        {
+          "year": 2016,
+          "LST_C": 32.128,
+          "NDVI": 0.336
+        },
+        {
+          "year": 2017,
+          "LST_C": 35.336,
+          "NDVI": 0.3661
+        },
+        {
+          "year": 2018,
+          "LST_C": 34.334,
+          "NDVI": 0.384
+        },
+        {
+          "year": 2019,
+          "LST_C": 35.045,
+          "NDVI": 0.355
+        },
+        {
+          "year": 2020,
+          "LST_C": 36.11,
+          "NDVI": 0.3506
+        },
+        {
+          "year": 2021,
+          "LST_C": 33.724,
+          "NDVI": 0.3746
+        },
+        {
+          "year": 2022,
+          "LST_C": 33.588,
+          "NDVI": 0.4177
+        },
+        {
+          "year": 2023,
+          "LST_C": 34.708,
+          "NDVI": 0.3623
+        },
+        {
+          "year": 2024,
+          "LST_C": 34.555,
+          "NDVI": 0.3729
+        },
+        {
+          "year": 2025,
+          "LST_C": 34.246,
+          "NDVI": 0.3775
+        },
+        {
+          "year": 2026,
+          "LST_C": 33.204,
+          "NDVI": 0.3724
+        }
+      ],
+      "trend": {
+        "lst_c_per_decade": -1.028,
+        "lst_stderr_c_per_decade": 0.842,
+        "lst_p_value": 0.248,
+        "lst_r_squared": 0.119,
+        "lst_significant": false,
+        "ndvi_per_decade": 0.0009,
+        "ndvi_p_value": 0.9573,
+        "ndvi_significant": false,
+        "classification": "no detected temperature trend, no detected green-cover trend"
+      }
+    },
+    {
+      "ward_id": "M/W",
+      "n_years": 13,
+      "series": [
+        {
+          "year": 2014,
+          "LST_C": 36.679,
+          "NDVI": 0.3206
+        },
+        {
+          "year": 2015,
+          "LST_C": 36.03,
+          "NDVI": 0.3141
+        },
+        {
+          "year": 2016,
+          "LST_C": 32.363,
+          "NDVI": 0.2677
+        },
+        {
+          "year": 2017,
+          "LST_C": 35.649,
+          "NDVI": 0.2886
+        },
+        {
+          "year": 2018,
+          "LST_C": 34.65,
+          "NDVI": 0.3051
+        },
+        {
+          "year": 2019,
+          "LST_C": 34.422,
+          "NDVI": 0.2871
+        },
+        {
+          "year": 2020,
+          "LST_C": 36.483,
+          "NDVI": 0.2948
+        },
+        {
+          "year": 2021,
+          "LST_C": 34.142,
+          "NDVI": 0.3067
+        },
+        {
+          "year": 2022,
+          "LST_C": 33.613,
+          "NDVI": 0.3452
+        },
+        {
+          "year": 2023,
+          "LST_C": 35.329,
+          "NDVI": 0.2966
+        },
+        {
+          "year": 2024,
+          "LST_C": 34.307,
+          "NDVI": 0.3075
+        },
+        {
+          "year": 2025,
+          "LST_C": 34.845,
+          "NDVI": 0.3077
+        },
+        {
+          "year": 2026,
+          "LST_C": 33.744,
+          "NDVI": 0.3138
+        }
+      ],
+      "trend": {
+        "lst_c_per_decade": -1.048,
+        "lst_stderr_c_per_decade": 0.899,
+        "lst_p_value": 0.2684,
+        "lst_r_squared": 0.11,
+        "lst_significant": false,
+        "ndvi_per_decade": 0.0115,
+        "ndvi_p_value": 0.4279,
+        "ndvi_significant": false,
+        "classification": "no detected temperature trend, no detected green-cover trend"
+      }
+    },
+    {
+      "ward_id": "N",
+      "n_years": 13,
+      "series": [
+        {
+          "year": 2014,
+          "LST_C": 35.6,
+          "NDVI": 0.4262
+        },
+        {
+          "year": 2015,
+          "LST_C": 34.872,
+          "NDVI": 0.4088
+        },
+        {
+          "year": 2016,
+          "LST_C": 31.132,
+          "NDVI": 0.3685
+        },
+        {
+          "year": 2017,
+          "LST_C": 34.778,
+          "NDVI": 0.3913
+        },
+        {
+          "year": 2018,
+          "LST_C": 33.645,
+          "NDVI": 0.424
+        },
+        {
+          "year": 2019,
+          "LST_C": 34.212,
+          "NDVI": 0.385
+        },
+        {
+          "year": 2020,
+          "LST_C": 35.63,
+          "NDVI": 0.4135
+        },
+        {
+          "year": 2021,
+          "LST_C": 33.353,
+          "NDVI": 0.3926
+        },
+        {
+          "year": 2022,
+          "LST_C": 33.056,
+          "NDVI": 0.4356
+        },
+        {
+          "year": 2023,
+          "LST_C": 34.045,
+          "NDVI": 0.4001
+        },
+        {
+          "year": 2024,
+          "LST_C": 33.844,
+          "NDVI": 0.4208
+        },
+        {
+          "year": 2025,
+          "LST_C": 33.427,
+          "NDVI": 0.4324
+        },
+        {
+          "year": 2026,
+          "LST_C": 32.641,
+          "NDVI": 0.4292
+        }
+      ],
+      "trend": {
+        "lst_c_per_decade": -1.009,
+        "lst_stderr_c_per_decade": 0.905,
+        "lst_p_value": 0.2886,
+        "lst_r_squared": 0.102,
+        "lst_significant": false,
+        "ndvi_per_decade": 0.0221,
+        "ndvi_p_value": 0.1605,
+        "ndvi_significant": false,
+        "classification": "no detected temperature trend, no detected green-cover trend"
+      }
+    },
+    {
+      "ward_id": "P/N",
+      "n_years": 13,
+      "series": [
+        {
+          "year": 2014,
+          "LST_C": 34.405,
+          "NDVI": 0.4102
+        },
+        {
+          "year": 2015,
+          "LST_C": 34.207,
+          "NDVI": 0.3618
+        },
+        {
+          "year": 2016,
+          "LST_C": 31.216,
+          "NDVI": 0.3426
+        },
+        {
+          "year": 2017,
+          "LST_C": 33.56,
+          "NDVI": 0.3789
+        },
+        {
+          "year": 2018,
+          "LST_C": 32.689,
+          "NDVI": 0.3875
+        },
+        {
+          "year": 2019,
+          "LST_C": 32.414,
+          "NDVI": 0.3621
+        },
+        {
+          "year": 2020,
+          "LST_C": 34.482,
+          "NDVI": 0.3904
+        },
+        {
+          "year": 2021,
+          "LST_C": 32.624,
+          "NDVI": 0.4068
+        },
+        {
+          "year": 2022,
+          "LST_C": 31.819,
+          "NDVI": 0.428
+        },
+        {
+          "year": 2023,
+          "LST_C": 33.233,
+          "NDVI": 0.3883
+        },
+        {
+          "year": 2024,
+          "LST_C": 32.306,
+          "NDVI": 0.4133
+        },
+        {
+          "year": 2025,
+          "LST_C": 32.992,
+          "NDVI": 0.3897
+        },
+        {
+          "year": 2026,
+          "LST_C": 32.538,
+          "NDVI": 0.3999
+        }
+      ],
+      "trend": {
+        "lst_c_per_decade": -0.848,
+        "lst_stderr_c_per_decade": 0.725,
+        "lst_p_value": 0.267,
+        "lst_r_squared": 0.111,
+        "lst_significant": false,
+        "ndvi_per_decade": 0.0283,
+        "ndvi_p_value": 0.1092,
+        "ndvi_significant": false,
+        "classification": "no detected temperature trend, no detected green-cover trend"
+      }
+    },
+    {
+      "ward_id": "P/S",
+      "n_years": 13,
+      "series": [
+        {
+          "year": 2014,
+          "LST_C": 34.681,
+          "NDVI": 0.4364
+        },
+        {
+          "year": 2015,
+          "LST_C": 35.024,
+          "NDVI": 0.397
+        },
+        {
+          "year": 2016,
+          "LST_C": 31.932,
+          "NDVI": 0.3553
+        },
+        {
+          "year": 2017,
+          "LST_C": 34.601,
+          "NDVI": 0.4064
+        },
+        {
+          "year": 2018,
+          "LST_C": 33.273,
+          "NDVI": 0.4126
+        },
+        {
+          "year": 2019,
+          "LST_C": 33.687,
+          "NDVI": 0.388
+        },
+        {
+          "year": 2020,
+          "LST_C": 35.934,
+          "NDVI": 0.4154
+        },
+        {
+          "year": 2021,
+          "LST_C": 33.05,
+          "NDVI": 0.4364
+        },
+        {
+          "year": 2022,
+          "LST_C": 32.629,
+          "NDVI": 0.4615
+        },
+        {
+          "year": 2023,
+          "LST_C": 34.077,
+          "NDVI": 0.398
+        },
+        {
+          "year": 2024,
+          "LST_C": 33.27,
+          "NDVI": 0.4366
+        },
+        {
+          "year": 2025,
+          "LST_C": 33.585,
+          "NDVI": 0.4085
+        },
+        {
+          "year": 2026,
+          "LST_C": 32.89,
+          "NDVI": 0.4172
+        }
+      ],
+      "trend": {
+        "lst_c_per_decade": -0.884,
+        "lst_stderr_c_per_decade": 0.804,
+        "lst_p_value": 0.2952,
+        "lst_r_squared": 0.099,
+        "lst_significant": false,
+        "ndvi_per_decade": 0.0213,
+        "ndvi_p_value": 0.2996,
+        "ndvi_significant": false,
+        "classification": "no detected temperature trend, no detected green-cover trend"
+      }
+    },
+    {
+      "ward_id": "R/C",
+      "n_years": 13,
+      "series": [
+        {
+          "year": 2014,
+          "LST_C": 33.039,
+          "NDVI": 0.5166
+        },
+        {
+          "year": 2015,
+          "LST_C": 32.562,
+          "NDVI": 0.4825
+        },
+        {
+          "year": 2016,
+          "LST_C": 29.508,
+          "NDVI": 0.455
+        },
+        {
+          "year": 2017,
+          "LST_C": 32.166,
+          "NDVI": 0.4859
+        },
+        {
+          "year": 2018,
+          "LST_C": 31.474,
+          "NDVI": 0.4937
+        },
+        {
+          "year": 2019,
+          "LST_C": 31.514,
+          "NDVI": 0.4694
+        },
+        {
+          "year": 2020,
+          "LST_C": 32.845,
+          "NDVI": 0.5066
+        },
+        {
+          "year": 2021,
+          "LST_C": 30.892,
+          "NDVI": 0.4933
+        },
+        {
+          "year": 2022,
+          "LST_C": 30.602,
+          "NDVI": 0.5236
+        },
+        {
+          "year": 2023,
+          "LST_C": 31.731,
+          "NDVI": 0.4839
+        },
+        {
+          "year": 2024,
+          "LST_C": 30.803,
+          "NDVI": 0.5136
+        },
+        {
+          "year": 2025,
+          "LST_C": 31.505,
+          "NDVI": 0.493
+        },
+        {
+          "year": 2026,
+          "LST_C": 30.762,
+          "NDVI": 0.4755
+        }
+      ],
+      "trend": {
+        "lst_c_per_decade": -0.958,
+        "lst_stderr_c_per_decade": 0.717,
+        "lst_p_value": 0.2087,
+        "lst_r_squared": 0.139,
+        "lst_significant": false,
+        "ndvi_per_decade": 0.0065,
+        "ndvi_p_value": 0.6757,
+        "ndvi_significant": false,
+        "classification": "no detected temperature trend, no detected green-cover trend"
+      }
+    },
+    {
+      "ward_id": "R/N",
+      "n_years": 13,
+      "series": [
+        {
+          "year": 2014,
+          "LST_C": 34.64,
+          "NDVI": 0.4826
+        },
+        {
+          "year": 2015,
+          "LST_C": 33.753,
+          "NDVI": 0.4509
+        },
+        {
+          "year": 2016,
+          "LST_C": 30.485,
+          "NDVI": 0.445
+        },
+        {
+          "year": 2017,
+          "LST_C": 33.788,
+          "NDVI": 0.4266
+        },
+        {
+          "year": 2018,
+          "LST_C": 32.558,
+          "NDVI": 0.472
+        },
+        {
+          "year": 2019,
+          "LST_C": 32.163,
+          "NDVI": 0.4465
+        },
+        {
+          "year": 2020,
+          "LST_C": 34.128,
+          "NDVI": 0.4795
+        },
+        {
+          "year": 2021,
+          "LST_C": 31.406,
+          "NDVI": 0.4518
+        },
+        {
+          "year": 2022,
+          "LST_C": 31.524,
+          "NDVI": 0.4727
+        },
+        {
+          "year": 2023,
+          "LST_C": 32.979,
+          "NDVI": 0.447
+        },
+        {
+          "year": 2024,
+          "LST_C": 32.087,
+          "NDVI": 0.4723
+        },
+        {
+          "year": 2025,
+          "LST_C": 32.515,
+          "NDVI": 0.4626
+        },
+        {
+          "year": 2026,
+          "LST_C": 31.696,
+          "NDVI": 0.4556
+        }
+      ],
+      "trend": {
+        "lst_c_per_decade": -1.247,
+        "lst_stderr_c_per_decade": 0.862,
+        "lst_p_value": 0.176,
+        "lst_r_squared": 0.16,
+        "lst_significant": false,
+        "ndvi_per_decade": 0.004,
+        "ndvi_p_value": 0.7539,
+        "ndvi_significant": false,
+        "classification": "no detected temperature trend, no detected green-cover trend"
+      }
+    },
+    {
+      "ward_id": "R/S",
+      "n_years": 13,
+      "series": [
+        {
+          "year": 2014,
+          "LST_C": 35.309,
+          "NDVI": 0.4073
+        },
+        {
+          "year": 2015,
+          "LST_C": 35.129,
+          "NDVI": 0.3716
+        },
+        {
+          "year": 2016,
+          "LST_C": 31.861,
+          "NDVI": 0.3384
+        },
+        {
+          "year": 2017,
+          "LST_C": 34.898,
+          "NDVI": 0.3891
+        },
+        {
+          "year": 2018,
+          "LST_C": 33.98,
+          "NDVI": 0.3979
+        },
+        {
+          "year": 2019,
+          "LST_C": 33.699,
+          "NDVI": 0.3695
+        },
+        {
+          "year": 2020,
+          "LST_C": 35.479,
+          "NDVI": 0.3996
+        },
+        {
+          "year": 2021,
+          "LST_C": 33.24,
+          "NDVI": 0.4132
+        },
+        {
+          "year": 2022,
+          "LST_C": 33.168,
+          "NDVI": 0.4388
+        },
+        {
+          "year": 2023,
+          "LST_C": 34.052,
+          "NDVI": 0.3784
+        },
+        {
+          "year": 2024,
+          "LST_C": 32.709,
+          "NDVI": 0.4221
+        },
+        {
+          "year": 2025,
+          "LST_C": 33.858,
+          "NDVI": 0.3875
+        },
+        {
+          "year": 2026,
+          "LST_C": 32.983,
+          "NDVI": 0.395
+        }
+      ],
+      "trend": {
+        "lst_c_per_decade": -1.184,
+        "lst_stderr_c_per_decade": 0.771,
+        "lst_p_value": 0.1528,
+        "lst_r_squared": 0.177,
+        "lst_significant": false,
+        "ndvi_per_decade": 0.0238,
+        "ndvi_p_value": 0.2237,
+        "ndvi_significant": false,
+        "classification": "no detected temperature trend, no detected green-cover trend"
+      }
+    },
+    {
+      "ward_id": "S",
+      "n_years": 13,
+      "series": [
+        {
+          "year": 2014,
+          "LST_C": 35.449,
+          "NDVI": 0.3982
+        },
+        {
+          "year": 2015,
+          "LST_C": 34.787,
+          "NDVI": 0.4082
+        },
+        {
+          "year": 2016,
+          "LST_C": 31.184,
+          "NDVI": 0.3536
+        },
+        {
+          "year": 2017,
+          "LST_C": 34.621,
+          "NDVI": 0.3788
+        },
+        {
+          "year": 2018,
+          "LST_C": 33.626,
+          "NDVI": 0.399
+        },
+        {
+          "year": 2019,
+          "LST_C": 34.279,
+          "NDVI": 0.3784
+        },
+        {
+          "year": 2020,
+          "LST_C": 36.215,
+          "NDVI": 0.3797
+        },
+        {
+          "year": 2021,
+          "LST_C": 32.782,
+          "NDVI": 0.3926
+        },
+        {
+          "year": 2022,
+          "LST_C": 33.222,
+          "NDVI": 0.4337
+        },
+        {
+          "year": 2023,
+          "LST_C": 34.002,
+          "NDVI": 0.3858
+        },
+        {
+          "year": 2024,
+          "LST_C": 33.655,
+          "NDVI": 0.4008
+        },
+        {
+          "year": 2025,
+          "LST_C": 33.614,
+          "NDVI": 0.3959
+        },
+        {
+          "year": 2026,
+          "LST_C": 32.526,
+          "NDVI": 0.3896
+        }
+      ],
+      "trend": {
+        "lst_c_per_decade": -0.971,
+        "lst_stderr_c_per_decade": 0.965,
+        "lst_p_value": 0.3358,
+        "lst_r_squared": 0.084,
+        "lst_significant": false,
+        "ndvi_per_decade": 0.0099,
+        "ndvi_p_value": 0.4996,
+        "ndvi_significant": false,
+        "classification": "no detected temperature trend, no detected green-cover trend"
+      }
+    },
+    {
+      "ward_id": "T",
+      "n_years": 13,
+      "series": [
+        {
+          "year": 2014,
+          "LST_C": 32.17,
+          "NDVI": 0.4646
+        },
+        {
+          "year": 2015,
+          "LST_C": 32.031,
+          "NDVI": 0.4586
+        },
+        {
+          "year": 2016,
+          "LST_C": 28.819,
+          "NDVI": 0.4013
+        },
+        {
+          "year": 2017,
+          "LST_C": 31.51,
+          "NDVI": 0.4374
+        },
+        {
+          "year": 2018,
+          "LST_C": 31.019,
+          "NDVI": 0.4639
+        },
+        {
+          "year": 2019,
+          "LST_C": 31.881,
+          "NDVI": 0.4198
+        },
+        {
+          "year": 2020,
+          "LST_C": 32.837,
+          "NDVI": 0.4376
+        },
+        {
+          "year": 2021,
+          "LST_C": 30.128,
+          "NDVI": 0.4529
+        },
+        {
+          "year": 2022,
+          "LST_C": 30.384,
+          "NDVI": 0.4933
+        },
+        {
+          "year": 2023,
+          "LST_C": 31.024,
+          "NDVI": 0.4379
+        },
+        {
+          "year": 2024,
+          "LST_C": 30.634,
+          "NDVI": 0.4772
+        },
+        {
+          "year": 2025,
+          "LST_C": 31.112,
+          "NDVI": 0.441
+        },
+        {
+          "year": 2026,
+          "LST_C": 29.715,
+          "NDVI": 0.4144
+        }
+      ],
+      "trend": {
+        "lst_c_per_decade": -0.909,
+        "lst_stderr_c_per_decade": 0.807,
+        "lst_p_value": 0.2837,
+        "lst_r_squared": 0.104,
+        "lst_significant": false,
+        "ndvi_per_decade": 0.0004,
+        "ndvi_p_value": 0.9833,
+        "ndvi_significant": false,
+        "classification": "no detected temperature trend, no detected green-cover trend"
+      }
+    }
+  ],
+  "summary": {
+    "n_wards_fitted": 24,
+    "n_wards_significant": 0,
+    "warming": 0,
+    "cooling": 0,
+    "no_detected_trend": 24,
+    "median_lst_c_per_decade_all": -1.009
+  }
+}
