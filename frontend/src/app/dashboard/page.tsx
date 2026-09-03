@@ -15,6 +15,11 @@ import {
   toggleWard,
   writeStoredWards,
 } from "@/lib/savedWards";
+import {
+  findMyWard,
+  isLocateFailure,
+  LOCATE_ERROR_MESSAGE,
+} from "@/lib/findWard";
 
 const WardChoropleth = dynamic(() => import("../components/WardChoropleth"), {
   ssr: false,
@@ -98,6 +103,27 @@ function DashboardContent() {
     [searchParams]
   );
   const [isFullscreen, setIsFullscreen] = useState(false);
+  /** Find-my-ward (issue #116): state for the map's locate button. */
+  const [locating, setLocating] = useState(false);
+  const [locateError, setLocateError] = useState<string | null>(null);
+
+  async function locateMe() {
+    // Only ever called from the button's click handler, so the browser's
+    // location permission prompt is tied to a user gesture and never fires on
+    // page load.
+    setLocating(true);
+    setLocateError(null);
+    try {
+      const wardId = await findMyWard();
+      selectWard(wardId);
+    } catch (err) {
+      setLocateError(
+        isLocateFailure(err) ? LOCATE_ERROR_MESSAGE[err.kind] : LOCATE_ERROR_MESSAGE.lookup
+      );
+    } finally {
+      setLocating(false);
+    }
+  }
   const sidebarVisible = useSyncExternalStore(
     subscribeSidebar,
     getSidebarSnapshot,
@@ -194,6 +220,9 @@ function DashboardContent() {
             onSelectWard={selectWard}
             isFullscreen={isFullscreen}
             onToggleFullscreen={() => setIsFullscreen((v) => !v)}
+            locating={locating}
+            locateError={locateError}
+            onLocate={locateMe}
           />
         </div>
         {!isFullscreen && (
