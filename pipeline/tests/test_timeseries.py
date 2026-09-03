@@ -16,6 +16,31 @@ import pytest
 PIPELINE_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PIPELINE_DIR))
 
+def _stub_heavy_imports():
+    """Let this module import without the geospatial stack installed.
+
+    The functions under test here are pure arithmetic, but they live in a stage
+    module that imports geopandas and ee at the top. CI's pipeline job installs
+    requirements-dev.txt only, deliberately, so that a test run does not pull in
+    geopandas, rasterio and osmnx to check a least-squares fit.
+
+    Stubbing rather than skipping: the significance testing is exactly the logic
+    most worth guarding in CI, since without it this stage published a confident
+    and false claim about every ward in Mumbai.
+    """
+    import types
+
+    for name in ("geopandas", "ee"):
+        if name not in sys.modules:
+            try:
+                __import__(name)
+            except ImportError:
+                sys.modules[name] = types.ModuleType(name)
+
+
+_stub_heavy_imports()
+
+
 
 @pytest.fixture(scope="module")
 def ts():

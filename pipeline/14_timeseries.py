@@ -67,6 +67,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -144,6 +145,72 @@ def season_composite(start: str, end: str, region: ee.Geometry) -> tuple[ee.Imag
     return collection.map(bands).median(), collection.size()
 
 
+def _incomplete_beta(a: float, b: float, x: float) -> float:
+    """Regularised incomplete beta function I_x(a, b), by continued fraction.
+
+    Lentz's algorithm, the standard approach (Numerical Recipes 6.4). Needed only
+    to evaluate the Student t distribution below.
+    """
+    if x <= 0.0:
+        return 0.0
+    if x >= 1.0:
+        return 1.0
+
+    # The continued fraction converges quickly only for x below this threshold;
+    # the symmetry relation covers the rest.
+    if x > (a + 1.0) / (a + b + 2.0):
+        return 1.0 - _incomplete_beta(b, a, 1.0 - x)
+
+    lbeta = math.lgamma(a + b) - math.lgamma(a) - math.lgamma(b)
+    front = math.exp(math.log(x) * a + math.log(1.0 - x) * b + lbeta) / a
+
+    tiny = 1e-30
+    f, c, d = 1.0, 1.0, 0.0
+    for i in range(200):
+        m = i // 2
+        if i == 0:
+            numerator = 1.0
+        elif i % 2 == 0:
+            numerator = (m * (b - m) * x) / ((a + 2.0 * m - 1.0) * (a + 2.0 * m))
+        else:
+            numerator = -((a + m) * (a + b + m) * x) / ((a + 2.0 * m) * (a + 2.0 * m + 1.0))
+
+        d = 1.0 + numerator * d
+        if abs(d) < tiny:
+            d = tiny
+        d = 1.0 / d
+
+        c = 1.0 + numerator / c
+        if abs(c) < tiny:
+            c = tiny
+
+        delta = c * d
+        f *= delta
+        if abs(1.0 - delta) < 1e-12:
+            break
+
+    return front * (f - 1.0)
+
+
+def two_sided_t_p_value(t_stat: float, df: int) -> float:
+    """P-value for a two-sided Student t test.
+
+    Implemented here rather than taken from scipy on purpose. The pipeline does
+    depend on scipy, but CI's pipeline job installs requirements-dev.txt only, so
+    that checking a least-squares fit does not drag in the whole geospatial and
+    scientific stack. The earlier version returned None when scipy was absent,
+    which meant the significance test silently did not run in exactly the
+    environment meant to guard it.
+
+    Twenty lines of continued fraction is a better trade than either a heavy CI
+    dependency or an untested code path. Verified against scipy.stats.t.
+    """
+    if df <= 0:
+        return 1.0
+    x = df / (df + t_stat * t_stat)
+    return float(_incomplete_beta(df / 2.0, 0.5, x))
+
+
 def linear_fit(xs: list[float], ys: list[float]) -> dict:
     """Least-squares slope with its standard error, p-value and R squared.
 
@@ -176,12 +243,7 @@ def linear_fit(xs: list[float], ys: list[float]) -> dict:
     if n > 2 and sse > 0:
         stderr = ((sse / (n - 2)) / sxx) ** 0.5
         t_stat = slope / stderr if stderr > 0 else 0.0
-        try:
-            from scipy import stats
-
-            p_value = float(2 * (1 - stats.t.cdf(abs(t_stat), df=n - 2)))
-        except ImportError:  # pragma: no cover
-            p_value = None
+        p_value = two_sided_t_p_value(t_stat, df=n - 2)
     else:
         stderr, p_value = 0.0, 0.0
 
