@@ -16,7 +16,7 @@
         "categories:accessibility": ["warn", { "minScore": 0.9 }],
         "resource-summary:script:transferSize": ["error", { "maxNumericValue": 2400000 }],
         "total-byte-weight": ["error", { "maxNumericValue": 4500000 }],
-        "lcp": ["error", { "maxNumericValue": 6000 }],
+        "largest-contentful-paint": ["error", { "maxNumericValue": 6000 }],
         "total-blocking-time": ["error", { "maxNumericValue": 1200 }],
         "cumulative-layout-shift": ["error", { "maxNumericValue": 0.25 }]
       }
