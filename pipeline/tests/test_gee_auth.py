@@ -123,13 +123,19 @@ def test_missing_client_email_raises(monkeypatch):
 
 
 def test_resolve_project_falls_back_to_default(monkeypatch):
-    """Regression test for the pre-existing "ucip-mumbai" (00_gee_spike.py, matching
-    .env.example) vs "ucip-mum" (02/03/06, typo) drift: every GEE-calling stage now
-    calls this one function instead of its own os.environ.get(..., "<default>") line,
-    so there is exactly one default left to get right.
+    """Regression test for the "ucip-mumbai" (00_gee_spike.py, matching .env.example)
+    vs "ucip-mum" (02/03/06) drift: every GEE-calling stage now calls this one function
+    instead of its own os.environ.get(..., "<default>") line, so there is exactly one
+    default left to get right.
+
+    The default must be "ucip-mum", the project that actually exists. Verified live on
+    2026-09-03: ee.Initialize on "ucip-mumbai" returns "Project 'projects/ucip-mumbai'
+    not found or deleted". Pinning the literal here rather than only comparing against
+    DEFAULT_PROJECT means editing the constant back to a non-existent id fails this
+    test instead of passing vacuously.
     """
     monkeypatch.delenv("GEE_PROJECT", raising=False)
-    assert _gee_auth.resolve_project() == _gee_auth.DEFAULT_PROJECT == "ucip-mumbai"
+    assert _gee_auth.resolve_project() == _gee_auth.DEFAULT_PROJECT == "ucip-mum"
 
 
 def test_resolve_project_respects_env_var(monkeypatch):
@@ -148,4 +154,4 @@ def test_init_ee_defaults_project_to_resolve_project(monkeypatch, captured_init_
 
     _gee_auth.init_ee()
 
-    assert captured_init_calls == [{"credentials": "persistent", "project": "ucip-mumbai"}]
+    assert captured_init_calls == [{"credentials": "persistent", "project": "ucip-mum"}]

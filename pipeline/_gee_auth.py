@@ -32,15 +32,22 @@ test this path; see the PR description for what remains unverified.
 Project-id resolution is also centralized here (resolve_project()) rather than left to
 each stage's own `os.environ.get("GEE_PROJECT", "<default>")` line: before this module
 existed, that line was copy-pasted into 00, 02, 03, and 06 with two different literal
-defaults ("ucip-mumbai" in 00, matching .env.example; "ucip-mum", missing the second
-syllable, in 02/03/06) that nobody had ever needed to reconcile, since 00 is a
-standalone smoke test that never runs in the same process as the others. Now that
-run_pipeline.py chains all of them in one CI job, and pipeline-refresh.yml's
-GEE_PROJECT resolution step supports leaving the secret unset entirely (issue #58),
-that drift became load-bearing: a run with no GEE_PROJECT secret configured would
-authenticate stage 00 against "ucip-mumbai" and stages 02/03/06 against "ucip-mum" in
-the same CI run. One shared resolve_project() means there is only one default left to
-get right.
+defaults ("ucip-mumbai" in 00, matching .env.example; "ucip-mum" in 02/03/06) that
+nobody had ever needed to reconcile, since 00 is a standalone smoke test that never
+runs in the same process as the others. Now that run_pipeline.py chains all of them in
+one CI job, and pipeline-refresh.yml's GEE_PROJECT resolution step supports leaving the
+secret unset entirely (issue #58), that drift became load-bearing: a run with no
+GEE_PROJECT secret configured would authenticate stage 00 against "ucip-mumbai" and
+stages 02/03/06 against "ucip-mum" in the same CI run. One shared resolve_project()
+means there is only one default left to get right.
+
+That consolidation initially kept "ucip-mumbai", the id .env.example documented. It was
+the wrong one: the Google Cloud project is "ucip-mum", and "ucip-mumbai" has never
+existed. Confirmed live on 2026-09-03, where ee.Initialize on "ucip-mumbai" returns
+"Project 'projects/ucip-mumbai' not found or deleted" while "ucip-mum" authenticates.
+The practical effect was that any GEE stage run without GEE_PROJECT explicitly set in
+the environment failed at init, which is the default configuration described in
+pipeline/README.md. Fixed here and in .env.example.
 """
 
 from __future__ import annotations
@@ -51,8 +58,14 @@ import os
 import ee
 
 # The project id every stage falls back to when GEE_PROJECT isn't set in the
-# environment. Matches .env.example's documented GEE_PROJECT=ucip-mumbai.
-DEFAULT_PROJECT = "ucip-mumbai"
+# environment.
+#
+# This is "ucip-mum", the id that actually exists. Verified live on 2026-09-03:
+# ee.Initialize(project="ucip-mum") authenticates, while "ucip-mumbai" fails with
+# "Project 'projects/ucip-mumbai' not found or deleted". See the note in this
+# module's docstring about the two historical defaults; centralising them left
+# exactly one value to get right and the wrong one was chosen.
+DEFAULT_PROJECT = "ucip-mum"
 
 
 def resolve_project() -> str:
