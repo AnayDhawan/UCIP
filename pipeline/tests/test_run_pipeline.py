@@ -84,3 +84,24 @@ def test_stage_result_status_derived_from_returncode():
     assert rp.StageResult(stage, 1, 1.0).status == "fail"
     assert rp.StageResult(stage, 137, 1.0).status == "fail"
     assert rp.StageResult(stage, None, 0.0).status == "skipped"
+
+
+def test_run_report_serialises_composite_window():
+    """The run log records the dry-season window alongside the run's timestamps
+    (issue #124), so the site can show "refreshed X from imagery captured
+    between A and B" as one statement."""
+    report = rp.RunReport(
+        started_at="2026-09-03T04:00:00+00:00",
+        composite_window={"start": "2025-11-01", "end": "2026-02-28"},
+    )
+    log = report.to_json()
+    assert log["composite_window"] == {"start": "2025-11-01", "end": "2026-02-28"}
+    assert log["started_at"] == "2026-09-03T04:00:00+00:00"
+    assert log["finished_at"] is None
+    assert log["stages"] == []
+
+
+def test_run_log_window_uses_the_shared_dry_season_helper():
+    """run_pipeline must record the same window stage 02 composites, not a copy
+    that could drift: the function it calls is the one defined in _dry_season.py."""
+    assert rp.most_recent_complete_dry_season.__module__ == "_dry_season"

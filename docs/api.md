@@ -32,7 +32,10 @@ Supabase project being deleted in September 2026.
 
 What this deployment is serving: coverage, row counts, the weighting method
 actually used (PCA, or the published-literature fallback if the PCA was
-rejected), licence terms and links.
+rejected), licence terms and links. It also reports `generated_at` (when the
+pipeline last refreshed the data) and `composite_window` (the dry-season Landsat
+window the figures were computed from); both are null until a refresh run has
+committed its run log.
 
 ### `GET /wards`
 

@@ -38,13 +38,13 @@ Run:
 """
 
 import json
-import os
 import sys
-from datetime import date, timedelta
+from datetime import date
 from pathlib import Path
 
 import ee
 
+from _dry_season import most_recent_complete_dry_season
 from _gee_auth import init_ee, resolve_project
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
@@ -53,51 +53,13 @@ OUT_PATH = DATA_DIR / "grid_1km_gee.geojson"
 
 GEE_PROJECT = resolve_project()
 
-# Mumbai's dry season runs November to February. Monsoon imagery is unusable for
-# LST (cloud cover), so every composite in this pipeline is dry-season only, and
-# the current and baseline windows must cover the same months to be comparable.
-DRY_START_MONTH = 11  # November
-DRY_END_MONTH = 2  # February, of the following calendar year
-
 # How far back the NDVI-change baseline sits, in years. Roughly a decade gives a
 # green-cover trend long enough to be a real signal rather than year-to-year
 # weather.
 BASELINE_GAP_YEARS = 9
 
-
-def most_recent_complete_dry_season(today: date | None = None) -> tuple[str, str]:
-    """The latest Nov-Feb window that has actually finished, as ISO date strings.
-
-    The window used to be two hardcoded literals ("2025-11-01", "2026-02-28").
-    That made the pipeline perfectly reproducible, which is genuinely useful, but
-    it also made the monthly refresh in .github/workflows/pipeline-refresh.yml
-    incapable of ever refreshing anything: re-running it re-fetched the same
-    Landsat scenes and produced identical output, so the scheduled job would burn
-    Earth Engine quota and open a pull request of float noise every month,
-    forever. Confirmed on 2026-09-03 by running the full chain: every ward's HVI
-    came back identical to 15 decimal places.
-
-    Deriving the window from the calendar instead means a refresh run after
-    February picks up the season that just ended, and a run before it keeps
-    using the last complete one rather than averaging over a partial season.
-    Composites are never built from a season still in progress, because a
-    half-season mean is not comparable to a full-season baseline.
-
-    Override with GEE_DRY_SEASON_END_YEAR to reproduce a specific past run.
-    """
-    today = today or date.today()
-    # The season labelled Y ends in February of Y. It is complete once March of
-    # that year has started.
-    end_year = today.year if today.month > DRY_END_MONTH else today.year - 1
-    override = os.environ.get("GEE_DRY_SEASON_END_YEAR")
-    if override:
-        end_year = int(override)
-    start = date(end_year - 1, DRY_START_MONTH, 1)
-    # Last day of February, leap years included.
-    end = date(end_year, DRY_END_MONTH + 1, 1) - timedelta(days=1)
-    return start.isoformat(), end.isoformat()
-
-
+# The dry-season window logic lives in _dry_season.py, shared with
+# run_pipeline.py so the run log records the same window this stage composites.
 CURR_START, CURR_END = most_recent_complete_dry_season()
 # Older dry-season baseline for the F6 green-cover-change layer, the same months
 # a fixed number of years earlier so the two composites are comparable.

@@ -20,7 +20,10 @@ python run_pipeline.py
 ```
 
 `run_pipeline.py` (issue #56) runs stages `01` through `12` in dependency order, stops at
-the first hard failure, and writes a run log to `data/pipeline_run_log.json`. Useful
+the first hard failure, and writes a run log to `data/pipeline_run_log.json` (mirrored to
+`frontend/public/`; see "Frontend sync" below). The log records when the run happened and
+the dry-season window it was computed from (issue #124), which is what the site's
+"data vintage" note shows. Useful
 flags:
 
 | Flag | Effect |
@@ -58,10 +61,18 @@ runtime writes to both places in the same run, not just `data/`:
 | `10_ward_profile.py` | `ward_profiles.json` | yes (already did this before #56) |
 | `11_hero_city.py` | `hero_city.json` | yes (already did this before #56) |
 | `12_hero_region.py` | `hero_region.json` | yes (already did this before #56) |
+| `run_pipeline.py` | `pipeline_run_log.json` | yes |
 
-`sensitivity.json` and `hvi_pca_log.json` are the two exceptions: the methodology page
-(`frontend/src/app/methodology/page.tsx`) reads them server-side straight out of
-`../data/`, so they need no `frontend/public/` copy at all. `sensitivity_chart.png` is
+The `run_pipeline.py` row is the orchestrator's own run log rather than a stage output:
+the dashboard footer and `/api/v1/meta` read it from `frontend/public/` (issue #124), and
+it rides the same automated refresh PR as every other file in the table.
+
+`sensitivity.json`, `hvi_pca_log.json` and `pipeline_run_log.json` are the exceptions to
+"the deployed frontend reads from `frontend/public/`": the methodology page reads all
+three server-side straight out of `../data/`, so they need no copy for that page — but
+`pipeline_run_log.json` still gets one, because `/api/v1/meta` and the dashboard footer
+(which are not the methodology page) read it from `frontend/public/` like every other
+route does. `sensitivity_chart.png` is
 different from `sensitivity.json` even though both come from `08_sensitivity.py`: the
 chart is rendered as a plain `<img src="/sensitivity_chart.png">`, a browser-fetched
 static asset, so it does need the copy.
