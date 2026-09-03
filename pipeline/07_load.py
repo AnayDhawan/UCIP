@@ -103,6 +103,13 @@ def get_client() -> Client | None:
 
 
 def upsert_table(client: Client, table: str, rows: list[dict]) -> bool:
+    """Upsert rows keyed on the table's own primary key.
+
+    Only safe for the tables whose primary key the pipeline actually supplies:
+    wards (ward_id), grid_cells (grid_id), interventions (name) and
+    methodology_refs (short_name). For those, re-running a load overwrites in
+    place. See replace_table() for the one table where that is not true.
+    """
     if not rows:
         return True
     try:
@@ -111,6 +118,45 @@ def upsert_table(client: Client, table: str, rows: list[dict]) -> bool:
         return True
     except Exception as exc:
         print(f"[WARN] Supabase upsert to '{table}' failed (migration likely not applied yet): {exc}")
+        return False
+
+
+def replace_table(client: Client, table: str, rows: list[dict]) -> bool:
+    """Delete every row, then insert. For tables with no natural key to upsert on.
+
+    nbs_recommendations is keyed by `id bigint generated always as identity`
+    (supabase/migrations/0001_init.sql), which the pipeline never supplies
+    because the value is generated server-side. That gave upsert() nothing to
+    conflict on, so PostgREST turned every load into a plain INSERT and appended
+    a complete duplicate set on each run.
+
+    That is exactly what happened in production. The table was found holding 162
+    rows on 2026-09-03 against the 81 the pipeline produces: two identical sets,
+    ids offset by 81, every (ward, intervention, priority) present twice. Left
+    alone, the monthly refresh workflow would have added another 81 every month,
+    and issue #53 would have rendered every recommendation twice on the live
+    dashboard.
+
+    Replace rather than upsert because it matches what the data actually is:
+    recommendations are regenerated wholesale from each run, never edited
+    incrementally, and a rule that stops firing should have its row disappear
+    rather than linger from a previous run. A natural unique key would not work
+    cleanly here anyway, since grid_id is nullable and NULLs do not compare equal
+    in a unique constraint.
+
+    Safe to delete first: nbs_recommendations is the child in both its foreign
+    key relationships (to wards and grid_cells), so nothing references it.
+    """
+    if not rows:
+        return True
+    try:
+        # PostgREST refuses an unfiltered delete, so match every row explicitly.
+        client.table(table).delete().gte("id", 0).execute()
+        client.table(table).insert(rows).execute()
+        print(f"[ok] replaced {table} with {len(rows)} rows -> Supabase.{table}")
+        return True
+    except Exception as exc:
+        print(f"[WARN] Supabase replace of '{table}' failed (migration likely not applied yet): {exc}")
         return False
 
 
@@ -175,7 +221,10 @@ def main() -> int:
         db_ok &= upsert_table(client, "interventions", INTERVENTIONS)
         db_ok &= upsert_table(client, "methodology_refs", METHODOLOGY_REFS)
         db_ok &= upsert_table(client, "grid_cells", cell_rows)
-        db_ok &= upsert_table(client, "nbs_recommendations", recs)
+        # Replace, not upsert: this table's identity primary key is generated
+        # server-side, so an upsert has nothing to conflict on and appends a
+        # duplicate set every run. See replace_table().
+        db_ok &= replace_table(client, "nbs_recommendations", recs)
     else:
         db_ok = False
 
