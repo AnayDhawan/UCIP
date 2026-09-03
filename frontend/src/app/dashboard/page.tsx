@@ -1,12 +1,19 @@
 "use client";
 
-import { Suspense, useEffect, useState, useSyncExternalStore } from "react";
+import { Suspense, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import WardPanel from "../components/WardPanel";
 import WardDialog from "../components/WardDialog";
 import SiteHeader from "../components/SiteHeader";
+import {
+  parseWardParam,
+  readStoredWards,
+  serializeWardParam,
+  toggleWard,
+  writeStoredWards,
+} from "@/lib/savedWards";
 
 const WardChoropleth = dynamic(() => import("../components/WardChoropleth"), {
   ssr: false,
@@ -85,6 +92,10 @@ function DashboardContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const selectedWardId = searchParams.get("ward");
+  const trackedWards = useMemo(
+    () => parseWardParam(searchParams.get("wards")),
+    [searchParams]
+  );
   const [isFullscreen, setIsFullscreen] = useState(false);
   const sidebarVisible = useSyncExternalStore(
     subscribeSidebar,
@@ -122,6 +133,40 @@ function DashboardContent() {
   }
 
   /**
+   * Tracking a ward writes to the same URL the selection lives in, so the
+   * tracked set is shareable and bookmarkable by construction. replaceState
+   * rather than pushState: starring wards is not navigation, and each star
+   * should not become a Back-button step.
+   */
+  function toggleTracked(wardId: string) {
+    const next = toggleWard(trackedWards, wardId);
+    const params = new URLSearchParams(searchParams.toString());
+    if (next.length) params.set("wards", serializeWardParam(next));
+    else params.delete("wards");
+    const qs = params.toString();
+    window.history.replaceState(null, "", qs ? `${pathname}?${qs}` : pathname);
+    writeStoredWards(next);
+  }
+
+  /**
+   * On a cold load with no `wards` param, restore whatever this device last
+   * tracked. The URL always wins when it carries a set, so opening someone
+   * else's shared link shows their wards rather than silently merging in yours.
+   */
+  useEffect(() => {
+    if (searchParams.get("wards") !== null) return;
+    const stored = readStoredWards();
+    if (stored.length === 0) return;
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("wards", serializeWardParam(stored));
+    window.history.replaceState(null, "", `${pathname}?${params.toString()}`);
+    // Deliberately mount-only: this restores a starting state, and re-running it
+    // whenever the params change would resurrect the set the moment a user
+    // clears it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /**
    * Escape exits fullscreen, but only when no ward dialog is open. Radix owns
    * Escape while the dialog is up; without this guard a single press would
    * close the dialog and drop out of fullscreen at the same time.
@@ -154,7 +199,12 @@ function DashboardContent() {
           // Narrower than it was: the list is an index into the map, not the
           // main event, and every pixel it gives back goes to the map.
           <aside className="hidden w-72 shrink-0 border-l border-border bg-background md:block lg:w-80">
-            <WardPanel selectedWardId={selectedWardId} onSelectWard={selectWard} />
+            <WardPanel
+              selectedWardId={selectedWardId}
+              onSelectWard={selectWard}
+              trackedWards={trackedWards}
+              onToggleTracked={toggleTracked}
+            />
           </aside>
         )}
       </main>
