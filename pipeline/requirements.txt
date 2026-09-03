@@ -8,3 +8,21 @@ pandas==3.0.5
 osmnx==2.1.1
 matplotlib==3.11.1
 supabase==2.31.0
+
+# Imported directly by pipeline stages, so declared directly rather than relied
+# on as a transitive dependency of something above.
+#
+# python-dotenv is the one that actually broke: 07_load.py imports it to read
+# .env.local, nothing else here depends on it, and it was never declared. A venv
+# built by following pipeline/README.md could run stages 01 to 06 and then fail
+# at 07 with ModuleNotFoundError. Caught on 2026-09-03 by rebuilding the venv
+# from scratch, which is the only way this surfaces: an older environment had it
+# installed incidentally.
+#
+# numpy and scipy do arrive transitively today (via pandas/geopandas and
+# scikit-learn), but 01_grid.py, 05_hvi.py and 08_sensitivity.py import them
+# directly, so a future release dropping either transitive edge would break the
+# pipeline for a reason with no visible connection to the change.
+python-dotenv==1.2.3
+numpy==2.5.2
+scipy==1.18.1
