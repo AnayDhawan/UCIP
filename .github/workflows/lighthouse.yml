@@ -1,0 +1,94 @@
+# Lighthouse CI with a performance budget (issue #119).
+#
+# Why this exists: the landing page ships three.js and the dashboard ships
+# Leaflet plus roughly a megabyte of GeoJSON. Nothing in CI measured any of it,
+# so a change that pushed either page well past a sensible budget would merge
+# with a green build.
+#
+# How it works — build locally, audit locally, no secrets:
+#   The job builds the frontend and serves it with `next start` on the runner,
+#   then audits / and /dashboard with Lighthouse against http://localhost:3000.
+#   Auditing the local build rather than a deployed URL means the budget gates
+#   the exact bundle this PR produced (which a post-deploy audit cannot) and
+#   needs no Vercel preview URL, no LHCI server and no token. PRs from forks
+#   run it with a read-only token by construction.
+#
+# Budgets live in lighthouse-budget.json (bundle-size + Core Web Vitals, what
+# the report's "Performance budgets" tab shows) and are ENFORCED by the
+# assertions in lighthouserc.json, which fail the job when a budget is broken.
+# Both are deliberately visible files so reviewers argue about numbers, not
+# about a hidden workflow.
+#
+# Budget calibration note: the resource-size and Core-Web-Vitals error
+# thresholds are set conservatively (they should pass the current build with
+# headroom, red only on a real regression). Once the first few scheduled runs
+# establish a stable baseline, tighten them in lighthouse-budget.json /
+# lighthouserc.json rather than letting them sit.
+
+name: Lighthouse CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    # Weekly production check on main's own build: 02:17 UTC Mondays, off the
+    # :00 stampede.
+    - cron: "17 2 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: lighthouse-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+
+      # PostHog throws at module evaluation unless a project token is present
+      # (the instrumentation refuses to run silently), which would abort every
+      # page the audit visits. The CI build is not wired to the real project,
+      # so it gets dummy values that make the client boot; nothing is sent.
+      - name: Build
+        env:
+          NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN: "phc_dummy_ci_build"
+          NEXT_PUBLIC_POSTHOG_HOST: "https://us.i.posthog.com"
+        run: npm run build
+
+      # @lhci/cli is fetched on demand rather than added to package.json: it is
+      # a heavy devDependency (bundles a pinned Chrome) that nothing in the app
+      # itself imports, and the repo's dependency wall is already Dependabot's
+      # busiest job. --config is relative to the frontend cwd above.
+      - name: Run Lighthouse (collect + assert)
+        run: |
+          # --budget-path feeds the bundle-size / Core-Web-Vitals budgets above
+          # into each run so the report's "Performance budgets" tab shows them.
+          npx --yes @lhci/cli@0.14.0 collect --config=../lighthouserc.json --budget-path=../lighthouse-budget.json
+          npx --yes @lhci/cli@0.14.0 assert --config=../lighthouserc.json
+
+      # Keep the run reports with the build for 7 days so a red check is
+      # diagnosable from the same PR, no LHCI server required.
+      - name: Upload Lighthouse reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: lighthouse-reports-${{ github.sha }}
+          path: frontend/.lighthouseci
+          retention-days: 7
