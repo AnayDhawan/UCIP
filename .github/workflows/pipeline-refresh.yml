@@ -18,14 +18,20 @@
 #   NEXT_PUBLIC_SUPABASE_URL    Supabase project URL
 #   SUPABASE_SERVICE_ROLE_KEY   Supabase service-role key (server-side upsert only)
 #
-# Known limitation: the diff baseline (see "Snapshot pre-refresh data/" below) is
-# whatever's committed on main when this workflow starts, not necessarily the last
-# MERGED refresh. If a previous automated-refresh PR is still open when the next
-# scheduled run fires, that run diffs against the same stale baseline again instead of
-# against the (still unmerged) previous refresh, so its diff can double-count changes
-# already sitting in the open PR. Not fixed here: doing so needs somewhere to persist
-# "the last refresh actually merged" (e.g. a git tag updated on merge), which is a
-# bigger change than this workflow's first version.
+# Diff baseline (issue #126): a refresh diffs its output against the LAST refresh
+# that actually landed, never against whatever happens to sit on main — see the
+# "Snapshot pre-refresh data/" step below, which picks, in order:
+#   1. origin/automated/pipeline-refresh  — a previous refresh whose PR is still
+#      open. Diffing against it means a run that fires before the previous PR
+#      merges produces non-overlapping changes instead of re-diffing against the
+#      same stale baseline.
+#   2. the data-refresh-baseline tag       — the last refresh that MERGED. The tag
+#      is moved by refresh-baseline-tag.yml whenever an automated refresh PR
+#      merges, so a run never attributes human data edits made between refreshes
+#      to the pipeline.
+#   3. main itself                        — only when neither exists yet (first run).
+# This used to be "copy data/" plain, which double-counted changes from an open
+# refresh PR; fixed by refresh-baseline-tag.yml (issue #126).
 
 name: Pipeline refresh
 
@@ -54,6 +60,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # The diff baseline below can be any earlier commit or tag (git
+          # fetch --tags, then git archive of it), so the default shallow
+          # depth-1 clone is not enough — fetch full history once.
+          fetch-depth: 0
 
       - uses: actions/setup-python@v7
         with:
@@ -67,9 +78,40 @@ jobs:
 
       - name: Snapshot pre-refresh data/ as the diff baseline
         # diff_snapshots.py (#61) needs the PREVIOUS run's output to compare
-        # against. Copying it before run_pipeline.py overwrites data/ is the
-        # cheapest way to have both "before" and "after" on disk at once.
-        run: cp -r data data-baseline
+        # against. "Previous" is decided by refresh-baseline-tag.yml (issue
+        # #126), not by the state of main: see the header comment above. The
+        # baseline is materialised into data-baseline/ via git archive so this
+        # step never touches the working data/ files the pipeline is about to
+        # regenerate.
+        run: |
+          rm -rf data-baseline
+          git fetch --tags --force --quiet origin
+          # Priority 1 needs a real remote-tracking ref, but actions/checkout
+          # configures a single-branch refspec (only main is tracked), so a
+          # plain `git fetch origin automated/pipeline-refresh` would write
+          # FETCH_HEAD and nothing else and the rev-parse below could never
+          # fire. Fetch into the tracking ref explicitly instead (issue #126).
+          # Caveat: if the previous refresh PR is ever closed WITHOUT merging,
+          # its branch can be left behind and would keep being preferred here
+          # even though it never landed. Benign in practice — the next refresh
+          # that actually merges force-moves the tag and delete-branch removes
+          # the branch — but it means one diff is computed against an unmerged
+          # refresh.
+          git fetch --quiet origin '+refs/heads/automated/pipeline-refresh:refs/remotes/origin/automated/pipeline-refresh' || true
+          if git rev-parse --quiet --verify origin/automated/pipeline-refresh > /dev/null 2>&1; then
+            BASELINE_REF=origin/automated/pipeline-refresh
+            echo "Diff baseline: open refresh branch (previous refresh not merged yet)"
+          elif git rev-parse --quiet --verify refs/tags/data-refresh-baseline > /dev/null 2>&1; then
+            BASELINE_REF=data-refresh-baseline
+            echo "Diff baseline: last merged refresh (tag data-refresh-baseline)"
+          else
+            echo "Diff baseline: current main (first run, no merged refresh yet)"
+            cp -r data data-baseline
+            exit 0
+          fi
+          mkdir -p data-baseline
+          git archive --format=tar "$BASELINE_REF" data \
+            | tar -x -C data-baseline --strip-components=1
 
       - name: Resolve GEE_PROJECT
         # An unconfigured secrets.* reference substitutes as an empty string, not as
