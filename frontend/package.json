@@ -11,7 +11,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@paper-design/shaders-react": "0.0.77",
+    "@paper-design/shaders-react": "0.0.80",
     "@react-three/fiber": "^9.6.1",
     "@supabase/supabase-js": "^2.112.3",
     "class-variance-authority": "^0.7.1",
