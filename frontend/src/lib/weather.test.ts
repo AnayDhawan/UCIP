@@ -62,12 +62,21 @@ describe("fetchCityTemp success path", () => {
   });
 
   it("queries the coordinates of the city it is given, not a hardcoded location", async () => {
-    const fetchMock = vi.fn(async () =>
+    const fetchMock = vi.fn<typeof fetch>(async () =>
       okResponse({ current: { temperature_2m: 20, time: "2026-09-03T09:00" } })
     );
     vi.stubGlobal("fetch", fetchMock);
 
-    await fetchCityTemp({ name: "Pune", lat: 18.5204, lon: 73.8567, timezone: "Asia/Kolkata" });
+    await fetchCityTemp({
+      slug: "pune",
+      name: "Pune",
+      center: [18.5204, 73.8567],
+      zoom: 11,
+      bbox: [73.7, 18.4, 74.0, 18.65],
+      lat: 18.5204,
+      lon: 73.8567,
+      timezone: "Asia/Kolkata",
+    });
 
     const url = new URL(fetchMock.mock.calls[0][0] as string);
     expect(url.searchParams.get("latitude")).toBe("18.5204");
@@ -164,7 +173,7 @@ describe("fetchCityTemp failure paths all return null", () => {
 
 describe("fetchCityTemp request shape", () => {
   it("passes an abort signal so the request cannot hang forever", async () => {
-    const fetchMock = vi.fn(async () =>
+    const fetchMock = vi.fn<typeof fetch>(async () =>
       okResponse({ current: { temperature_2m: 30, time: "2026-09-03T09:00" } })
     );
     vi.stubGlobal("fetch", fetchMock);
