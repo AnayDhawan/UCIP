@@ -1,0 +1,50 @@
+# Move the data-refresh-baseline tag when an automated refresh merges (issue #126).
+#
+# pipeline-refresh.yml diffs every scheduled run against \"the last refresh that
+# actually landed\". This workflow is what makes \"landed\" precise: the moment an
+# automated refresh PR (the ones pipeline-refresh.yml opens on branch
+# automated/pipeline-refresh) is merged, the lightweight tag data-refresh-baseline
+# is force-moved to that merge commit. The next scheduled refresh then diffs
+# against it (or against an even newer open refresh branch) instead of against
+# whatever happens to be on main, so it can neither double-count an unmerged
+# refresh's changes nor blame the pipeline for human data edits between
+# refreshes.
+#
+# Lightweight tag on purpose: it is a bookmark for \"this commit is a complete
+# published refresh\", not a release — it is force-moved on every refresh merge,
+# never versioned.
+#
+# Why pull_request.closed and not push-to-main: the push event cannot tell a
+# refresh merge from any other merge, and pinning \"merged branch was named
+# automated/pipeline-refresh\" is exactly the right filter — only refresh PRs
+# should move the baseline. Merges performed manually from any other branch
+# intentionally leave the tag untouched.
+
+name: Update refresh baseline tag
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  move-tag:
+    if: github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'automated/pipeline-refresh'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Default checkout on a pull_request event is refs/pull/<n>/merge —
+          # GitHub's throwaway test-merge commit, which is not on main. The tag
+          # must bookmark the actual merge commit this event is announcing, so
+          # check that commit out explicitly.
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+
+      - name: Move data-refresh-baseline to the merge commit
+        run: |
+          git tag -f data-refresh-baseline
+          git push --force origin refs/tags/data-refresh-baseline
+          echo "data-refresh-baseline -> $(git rev-parse --short HEAD) (merge of automated/pipeline-refresh)"
