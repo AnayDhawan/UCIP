@@ -6,7 +6,7 @@ import { GeoJSON, MapContainer, TileLayer, useMap } from "react-leaflet";
 import { geoJSON as leafletGeoJSON } from "leaflet";
 import type { Feature, FeatureCollection, Geometry } from "geojson";
 import type { GeoJSON as LeafletGeoJSONLayer, Layer, Path, PathOptions } from "leaflet";
-import { Maximize2, Minimize2 } from "lucide-react";
+import { Loader2, LocateFixed, Maximize2, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -242,11 +242,20 @@ export default function WardChoropleth({
   onSelectWard,
   isFullscreen = false,
   onToggleFullscreen,
+  locating = false,
+  locateError = null,
+  onLocate,
 }: {
   selectedWardId?: string | null;
   onSelectWard?: (wardId: string) => void;
   isFullscreen?: boolean;
   onToggleFullscreen?: () => void;
+  /** True while the dashboard's find-my-ward flow is running (issue #116). */
+  locating?: boolean;
+  /** A user-facing find-my-ward failure message, shown over the map. */
+  locateError?: string | null;
+  /** Requests "find the ward I'm in". Only rendered when provided. */
+  onLocate?: () => void;
 }) {
   const [activeLayer, setActiveLayer] = useState<LayerId>("hvi");
   const [cache, setCache] = useState<Partial<Record<LayerId, FeatureCollection>>>({});
@@ -341,6 +350,25 @@ export default function WardChoropleth({
               ))}
             </TabsList>
           </Tabs>
+          {onLocate && (
+            <>
+              <span className="mx-0.5 h-4 w-px bg-border" aria-hidden />
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={onLocate}
+                disabled={locating}
+                aria-label={locating ? "Finding your ward…" : "Find my ward"}
+                title={locating ? "Finding your ward…" : "Find my ward — use your location"}
+              >
+                {locating ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <LocateFixed className="h-3.5 w-3.5" />
+                )}
+              </Button>
+            </>
+          )}
           {onToggleFullscreen && (
             <Button
               variant="ghost"
@@ -361,9 +389,23 @@ export default function WardChoropleth({
 
       <Legend layer={activeLayer} />
 
-      {error && (
-        <div className="absolute inset-x-0 top-12 z-[1000] mx-auto w-fit rounded bg-destructive/10 px-3 py-1 text-sm text-destructive">
-          Failed to load layer: {error}
+      {(error || locateError) && (
+        <div className="absolute inset-x-0 top-12 z-[1000] mx-auto flex w-fit max-w-[90%] flex-col items-center gap-1">
+          {error && (
+            <div className="rounded bg-destructive/10 px-3 py-1 text-sm text-destructive">
+              Failed to load layer: {error}
+            </div>
+          )}
+          {locateError && (
+            <div
+              // Announce the failure rather than leaving a screen-reader user
+              // with a button that silently did nothing (issue #116).
+              role="status"
+              className="rounded border border-border bg-background/95 px-3 py-1 text-center text-sm text-foreground backdrop-blur-sm"
+            >
+              {locateError}
+            </div>
+          )}
         </div>
       )}
 
