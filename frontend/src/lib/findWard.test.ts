@@ -79,7 +79,7 @@ describe("requestLocation", () => {
     ];
     for (const [code, kind] of expectations) {
       removeGeolocationStub();
-      const restore = stubGeolocation((_ok, onErr) => onErr(positionError(code)));
+      const restore = stubGeolocation((_ok, onErr) => onErr!(positionError(code)));
       try {
         await expect(requestLocation()).rejects.toEqual({ kind });
       } finally {
@@ -132,7 +132,7 @@ describe("findMyWard", () => {
   });
 
   it("propagates a permission denial without calling the lookup", async () => {
-    const restore = stubGeolocation((_ok, onErr) => onErr(positionError(1)));
+    const restore = stubGeolocation((_ok, onErr) => onErr!(positionError(1)));
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
     try {
