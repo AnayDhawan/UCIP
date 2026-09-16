@@ -185,9 +185,7 @@ export default function MethodologyPage() {
           >
             <p className="text-sm text-muted-foreground">
               Weights perturbed ±{(sensitivity.perturbation_pct * 100).toFixed(0)}% one-at-a-time
-              ({sensitivity.n_runs} runs); ward priority ranking measured for stability. Addresses
-              the hardest researcher-judge question: did you validate these literature weights for
-              Mumbai?
+              ({sensitivity.n_runs} runs); ward priority ranking measured for stability.
             </p>
             <p className="mt-2 text-sm text-foreground">
               Mean Kendall tau vs. baseline ranking:{" "}

@@ -4,7 +4,12 @@ import { useState } from "react";
 import { Sun, TreePine, Trees } from "lucide-react";
 import Card from "../components/Card";
 import CoefficientSparkline from "../components/CoefficientSparkline";
-import { CANOPY_THRESHOLD_PCT, simulate } from "@/lib/coefficients";
+import {
+  CANOPY_THRESHOLD_PCT,
+  MAX_REALISTIC_CANOPY_PCT,
+  MAX_REALISTIC_PARK_PCT,
+  simulate,
+} from "@/lib/coefficients";
 
 export default function SimulatePanel() {
   const [canopyPct, setCanopyPct] = useState(40);
@@ -26,7 +31,7 @@ export default function SimulatePanel() {
               id="canopy"
               type="range"
               min={0}
-              max={100}
+              max={MAX_REALISTIC_CANOPY_PCT}
               step={1}
               value={canopyPct}
               onChange={(e) => setCanopyPct(Number(e.target.value))}
@@ -72,7 +77,7 @@ export default function SimulatePanel() {
               id="park"
               type="range"
               min={0}
-              max={100}
+              max={MAX_REALISTIC_PARK_PCT}
               step={1}
               value={parkAreaPct}
               onChange={(e) => setParkAreaPct(Number(e.target.value))}
@@ -81,7 +86,9 @@ export default function SimulatePanel() {
             <p className="mt-1 font-mono text-sm text-muted-foreground">{parkAreaPct}% of ward area</p>
             <p className="mt-2 text-xs text-muted-foreground">
               Bowler et al. 2010&apos;s meta-analysis found parks average ~0.94°C cooler than their
-              surroundings in the day; scaled here by the share of ward area converted.
+              surroundings in the day; scaled here by the share of ward area converted. Capped at
+              {" "}{MAX_REALISTIC_PARK_PCT}%: no ward can convert its roads, buildings, and hospitals
+              into parkland.
             </p>
           </div>
         </div>

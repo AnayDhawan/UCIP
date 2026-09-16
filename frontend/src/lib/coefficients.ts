@@ -108,3 +108,15 @@ export function simulate(
 }
 
 export const CANOPY_THRESHOLD_PCT = 40;
+
+/**
+ * UI slider ceilings, not model clamps: the functions above already cap their
+ * science at their own limits (canopy cooling saturates at 80%, per Ziter et
+ * al.'s data ceiling). These bound what a user can *select*, since no ward can
+ * physically convert 100% of its area to canopy or parkland once roads,
+ * buildings, and hospitals stay standing. Even the least built-up of the 24
+ * wards in `data/ward_profiles.json` is still ~14% impervious surface, so 80%
+ * and 60% leave real headroom below what any ward could plausibly reach.
+ */
+export const MAX_REALISTIC_CANOPY_PCT = 80;
+export const MAX_REALISTIC_PARK_PCT = 60;
