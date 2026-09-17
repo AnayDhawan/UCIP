@@ -6,10 +6,18 @@ All notable changes to this project are documented here. Format based on
 
 ## [Unreleased]
 
-Prototype under active development ahead of the Aug 8, 2026 submission. No tagged release
-yet — this section covers everything since the project started.
+## [1.0.0] - 2026-09-18
+
+First tagged release. Nothing below is new work done for the tag; it's everything built
+since the project started, with a version number finally attached to it. The "Aug 8, 2026
+submission" line that used to sit here is gone because that deadline came and went and the
+project kept going past it.
 
 ### Added
+- A fourth map layer on the dashboard, Heat grid, draws the 541-cell HVI grid directly.
+  The grid was already computed and already served over `/api/v1/cells`; only the map
+  itself was ward-polygons-only before this. Clicking a cell selects its parent ward, same
+  as clicking a ward polygon does.
 - The site now says how old its data is: a "Data vintage" note on /methodology and a
   footer bar on the dashboard show the last pipeline-refresh date alongside the dry-season
   imagery window it was computed from (surfaced from the pipeline run log via
@@ -52,3 +60,48 @@ yet — this section covers everything since the project started.
   `07_load.py` and `08_sensitivity.py` respectively, but not previously listed).
 - Dashboard sidebar scroll, fullscreen popup theming in dark mode, ward search matching
   by locality name as well as ward code.
+- A maintainer-facing proofreading note ("did you validate these literature weights for
+  Mumbai?") was shipping on the live `/methodology` page, addressed to whoever read it as
+  if they were the maintainer. Removed.
+- The `/simulate` sliders accepted physically impossible inputs: up to 100% canopy
+  conversion and 100% pocket-park conversion. Clamped to the range the underlying
+  literature (Ziter et al.) actually covers, grounded in the 24 wards' real
+  impervious-surface data instead of an arbitrary ceiling.
+
+### Known limitations
+
+Stated here instead of only on the methodology page, because a changelog is where people
+check what changed before they trust a number, and burying the caveats where nobody reads
+them first is its own kind of dishonesty.
+
+- The land-surface-to-air-temperature relationship is validated against two weather
+  stations, the only long-record NOAA GSOD sites in Mumbai (`data/lst_validation.json`).
+  Pooled Pearson r = 0.716 on anomalies about each station's own mean. That number says the
+  satellite composite tracks real thermal variation instead of sensor noise. It does not
+  say the LST layer converts into a temperature you could read off a thermometer; the
+  bias between the two ranges from 3.4°C to 13.9°C depending on what the ground is made of,
+  and no single correction fixes that.
+- Land surface temperature is daytime only, one dry-season composite. Nighttime heat is
+  what actually drives heat mortality, and this pipeline does not touch it.
+- Every HVI number is a point estimate. There is no uncertainty band anywhere, so a ward
+  ranked 3rd and a ward ranked 5th might not be meaningfully different and the site
+  currently has no way to tell you that.
+- HVI measures vulnerability per ward, not people exposed. It is not population-weighted,
+  so a small high-vulnerability ward and a large one read identically.
+- No forecast coupling, no alert delivery, no municipal counterparty on the other end.
+  This is a dataset meant to be cited, not an early-warning system, and it does not claim
+  to be one anywhere in the app.
+- `pipeline/14_timeseries.py` and `pipeline/15_optimize.py` run and produce real, committed
+  output (`ward_timeseries.json`, `budget_allocation.json`). Neither is wired into
+  `run_pipeline.py`'s orchestrated stage list or read by anything the live site or API
+  serves. The numbers are real, they're just not reachable from anywhere a visitor would
+  find them.
+- `supabase/migrations/0006_postgis_geometry.sql` is written. `/api/v1/lookup` prefers it
+  and falls back to a JavaScript point-in-polygon test when it isn't applied, so the
+  endpoint works either way, but whether that migration is actually running against the
+  live database is not something a changelog entry can confirm from a repo checkout alone.
+- `.github/workflows/pipeline-refresh.yml` has a monthly schedule and has never executed
+  against real Earth Engine or Supabase credentials. It exists and is wired up; nobody has
+  watched it run.
+- 30 open issues as of this tag. Most are scoped, real work, not noise, and this release
+  does not pretend the backlog is empty.

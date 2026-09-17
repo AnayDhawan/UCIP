@@ -95,6 +95,10 @@ answers "which ward am I in and what should be built here". Full reference:
 See [CONTRIBUTING.md](CONTRIBUTING.md). Please read the [Code of Conduct](CODE_OF_CONDUCT.md)
 first.
 
+## Contact
+
+Bugs, data questions, or a ward that wants this used for real, open an issue.
+
 ## License
 
 Apache 2.0, see [LICENSE](LICENSE).
