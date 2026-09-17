@@ -15,7 +15,7 @@ import { ACTIVE_CITY } from "@/lib/city";
 import { hviColor as colorForHvi } from "@/lib/hvi";
 import type { CellNbsProps, CellNdviProps, WardProps } from "@/lib/wardTypes";
 
-type LayerId = "hvi" | "plantability" | "ndvi_change";
+type LayerId = "hvi" | "hvi_grid" | "plantability" | "ndvi_change";
 
 // Map centre now comes from config/cities/<slug>.json, the same file the
 // pipeline reads, rather than a literal that could drift from it (issue #68).
@@ -32,6 +32,24 @@ function styleHvi(selectedWardId: string | null) {
     fillOpacity: 0.75,
     color: "#333333",
     weight: 1,
+    ...selectionStyle(feature?.properties?.ward_id ?? "", selectedWardId),
+  });
+}
+
+/**
+ * The 541-cell grid, colored by the same continuous HVI ramp as the ward
+ * layer instead of the ward-level average. This is the layer the r/gis
+ * critique asked for: the computation was already gridded (`05_hvi.py`
+ * scores every cell before the ward rollup averages them), only the
+ * rendering was ward-only. Thinner strokes than the 24-ward layer, since
+ * 541 adjacent cell borders at ward-layer weight tile into a solid mesh.
+ */
+function styleHviGrid(selectedWardId: string | null) {
+  return (feature?: Feature<Geometry, CellNbsProps>): PathOptions => ({
+    fillColor: colorForHvi(feature?.properties?.HVI ?? null),
+    fillOpacity: 0.8,
+    color: "#333333",
+    weight: 0.3,
     ...selectionStyle(feature?.properties?.ward_id ?? "", selectedWardId),
   });
 }
@@ -75,6 +93,13 @@ const LAYER_META: Record<LayerId, { label: string; url: string; caption: string 
     url: "/wards_hvi.geojson",
     caption: "How urgently each ward needs cooling, combining heat, people, and access to help.",
   },
+  hvi_grid: {
+    label: "Heat grid",
+    // Same file the plantability layer reads: cells_nbs.geojson already
+    // carries HVI per cell, alongside plantable/worldcover_class.
+    url: "/cells_nbs.geojson",
+    caption: "The same index at the 1 km cell it's measured at, before 541 cells are averaged into 24 wards.",
+  },
   plantability: {
     label: "Plantability",
     url: "/cells_nbs.geojson",
@@ -111,6 +136,23 @@ function Legend({ layer }: { layer: LayerId }) {
             <span>Less vulnerable</span>
             <span>Most vulnerable</span>
           </div>
+        </>
+      )}
+      {layer === "hvi_grid" && (
+        <>
+          <p className="mb-1.5 font-semibold text-foreground">HVI, 1 km grid (0-100)</p>
+          <div className="flex overflow-hidden rounded-sm" aria-hidden="true">
+            {HVI_LEGEND_BINS.map((b) => (
+              <div key={b.color} className="h-3 flex-1" style={{ background: b.color }} />
+            ))}
+          </div>
+          <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
+            <span>Less vulnerable</span>
+            <span>Most vulnerable</span>
+          </div>
+          <p className="mt-1.5 text-[10px] text-muted-foreground">
+            541 cells, the same score a ward is averaged from.
+          </p>
         </>
       )}
       {layer === "plantability" && (
@@ -279,6 +321,7 @@ export default function WardChoropleth({
   // unless selectedWardId actually changed (#35). Otherwise every render
   // creates a new function and forces an unnecessary GeoJSON restyle.
   const hviStyle = useMemo(() => styleHvi(selectedWardId), [selectedWardId]);
+  const hviGridStyle = useMemo(() => styleHviGrid(selectedWardId), [selectedWardId]);
   const plantabilityStyle = useMemo(() => stylePlantability(selectedWardId), [selectedWardId]);
   const ndviStyle = useMemo(() => styleNdviChange(selectedWardId), [selectedWardId]);
 
@@ -292,10 +335,12 @@ export default function WardChoropleth({
   useEffect(() => {
     if (!layerRef.current) return;
     if (activeLayer === "hvi") layerRef.current.setStyle(hviStyle as (f?: Feature<Geometry>) => PathOptions);
+    else if (activeLayer === "hvi_grid")
+      layerRef.current.setStyle(hviGridStyle as (f?: Feature<Geometry>) => PathOptions);
     else if (activeLayer === "plantability")
       layerRef.current.setStyle(plantabilityStyle as (f?: Feature<Geometry>) => PathOptions);
     else layerRef.current.setStyle(ndviStyle as (f?: Feature<Geometry>) => PathOptions);
-  }, [hviStyle, plantabilityStyle, ndviStyle, activeLayer]);
+  }, [hviStyle, hviGridStyle, plantabilityStyle, ndviStyle, activeLayer]);
 
   /** Every layer resolves a click to a ward: the cell layers carry `ward_id`
    *  too, so clicking a grid cell opens its parent ward. */
@@ -446,6 +491,15 @@ export default function WardChoropleth({
             ref={layerRef}
             data={data as FeatureCollection<Geometry, WardProps>}
             style={hviStyle as (f?: Feature<Geometry>) => PathOptions}
+            onEachFeature={selectFrom as (f: Feature<Geometry>, l: Layer) => void}
+          />
+        )}
+        {data && activeLayer === "hvi_grid" && (
+          <GeoJSON
+            key={`hvi_grid-${isFullscreen}`}
+            ref={layerRef}
+            data={data as FeatureCollection<Geometry, CellNbsProps>}
+            style={hviGridStyle as (f?: Feature<Geometry>) => PathOptions}
             onEachFeature={selectFrom as (f: Feature<Geometry>, l: Layer) => void}
           />
         )}
