@@ -190,6 +190,42 @@ html {
   color: var(--foreground);
 }
 
+.ward-static-map {
+  display: none;
+}
+
+.embed-card {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 1.25rem;
+  background: var(--background);
+  color: var(--foreground);
+  font: 14px var(--font-inter), sans-serif;
+}
+.embed-kicker { margin: 0; color: var(--muted-foreground); font: 600 11px var(--font-jetbrains-mono), monospace; letter-spacing: .08em; text-transform: uppercase; }
+.embed-title-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: .75rem; }
+.embed-title-row h1 { margin: 0; font-size: 1.3rem; }
+.embed-score { border-radius: 999px; padding: .35rem .6rem; color: #111827; font-family: var(--font-jetbrains-mono), monospace; font-weight: 700; }
+.embed-card > p:not(.embed-kicker) { color: var(--muted-foreground); }
+.embed-card a { color: var(--brand-teal); font-weight: 600; }
+
+@page {
+  margin: 12mm;
+}
+
+@media print {
+  body { background: white !important; color: black !important; }
+  header, .leaflet-container, .ward-static-map ~ * .print-hidden { display: none !important; }
+  main > div:first-child { display: none !important; }
+  main, main > aside { display: block !important; width: 100% !important; border: 0 !important; }
+  [data-slot="dialog-portal"], [data-slot="dialog-content"], .ward-scroll { display: block !important; position: static !important; transform: none !important; max-height: none !important; overflow: visible !important; width: 100% !important; max-width: none !important; box-shadow: none !important; border: 0 !important; }
+  .ward-static-map { display: flex !important; align-items: center; gap: 1rem; margin: 1rem; color: black; }
+  .ward-static-map svg { width: 6rem; height: 6rem; }
+  .ward-static-map figcaption { font-size: 0.75rem; color: #333; }
+  .ward-scroll { scrollbar-width: none; }
+  .citation-chip { color: black; border-color: #777; }
+}
+
 /* Legibility scrim over HeroGradient's animated backdrop, opacity-only (no blur).
    Kept light so the gradient reads as a real, visible presence, not a tint.
    Light mode gets a bit more than dark mode: since light-mode text is solid

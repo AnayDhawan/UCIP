@@ -22,6 +22,7 @@
  */
 
 import mumbai from "./cities/mumbai.json";
+import pune from "./cities/pune.json";
 
 export type CityConfig = {
   slug: string;
@@ -65,3 +66,10 @@ export const MUMBAI: CityConfig = toCityConfig(mumbai as RawCityConfig);
 
 /** The city this deployment is showing. */
 export const ACTIVE_CITY: CityConfig = MUMBAI;
+
+/** Publication metadata belongs beside the mirrored city configs. A city is
+ * only marked live once it has a calibrated, published dataset. */
+export const CITY_REGISTRY = [
+  { ...MUMBAI, country: "India", published: true, lastRefreshed: "23 Sep 2026", maintainer: "Anay Dhawan", note: "Mumbai ward dataset" },
+  { ...toCityConfig(pune as RawCityConfig), country: "India", published: false, lastRefreshed: null, maintainer: "Anay Dhawan", note: "Ecological calibration and first published run pending" },
+];

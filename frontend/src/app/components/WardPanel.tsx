@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Check, Search, Star, Link2 } from "lucide-react";
+import { Check, Columns3, Search, Star, Link2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { areasForWard } from "@/lib/wardAreas";
@@ -9,6 +9,7 @@ import { hviColor } from "@/lib/hvi";
 import { useWardData } from "@/lib/useWardData";
 import WardDetail from "./WardDetail";
 import WardDetailHeader from "./WardDetailHeader";
+import WardStaticMap from "./WardStaticMap";
 
 /**
  * The dashboard sidebar: a ranked, searchable ward list that hands the whole
@@ -25,12 +26,14 @@ export default function WardPanel({
   onSelectWard,
   trackedWards = [],
   onToggleTracked,
+  onCompare,
 }: {
   selectedWardId: string | null;
   onSelectWard: (wardId: string | null) => void;
   /** Ward ids the visitor is following, from the `wards` URL param. */
   trackedWards?: string[];
   onToggleTracked?: (wardId: string) => void;
+  onCompare?: () => void;
 }) {
   const { wards, recs, profiles, error } = useWardData();
   const [search, setSearch] = useState("");
@@ -97,6 +100,7 @@ export default function WardPanel({
             taller than the panel and needs an unambiguous, always-present
             scrollbar rather than an overlay one. */}
         <div className="ward-scroll min-h-0 flex-1 overflow-y-auto">
+          {selected.geometry && <WardStaticMap geometry={selected.geometry} hvi={props.HVI} label={`Ward ${props.ward_id}`} />}
           <WardDetail
             ward={props}
             profile={profiles?.wards.find((w) => w.ward_id === props.ward_id) ?? null}
@@ -138,13 +142,20 @@ export default function WardPanel({
               {trackedWards.length} ward{trackedWards.length === 1 ? "" : "s"}
             </span>
           </p>
-          <button
-            onClick={copyTrackedLink}
-            className="flex shrink-0 items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-          >
-            {copied ? <Check className="h-3 w-3" aria-hidden /> : <Link2 className="h-3 w-3" aria-hidden />}
-            {copied ? "Copied" : "Copy link"}
-          </button>
+          <div className="flex shrink-0 items-center gap-1">
+            {trackedWards.length >= 2 && onCompare && (
+              <button onClick={onCompare} className="flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
+                <Columns3 className="h-3 w-3" aria-hidden /> Compare
+              </button>
+            )}
+            <button
+              onClick={copyTrackedLink}
+              className="flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            >
+              {copied ? <Check className="h-3 w-3" aria-hidden /> : <Link2 className="h-3 w-3" aria-hidden />}
+              {copied ? "Copied" : "Copy link"}
+            </button>
+          </div>
         </div>
       )}
       <ScrollArea className="min-h-0 flex-1">
