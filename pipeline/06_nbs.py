@@ -49,6 +49,7 @@ from pathlib import Path
 
 import ee
 import geopandas as gpd
+import pandas as pd
 
 from _gee_auth import init_ee, resolve_project
 from _publish import publish
@@ -68,10 +69,16 @@ OUT_WARD_RECS_PUBLIC_PATH = ROOT / "frontend" / "public" / "nbs_recommendations.
 GEE_PROJECT = resolve_project()
 ZONAL_SCALE = 10  # WorldCover native resolution
 
-WORLDCOVER_GRASSLAND = 30
-WORLDCOVER_NONPLANTABLE = {50, 80, 90, 95}  # built-up, water, wetland, mangrove
-WORLDCOVER_WATER_LIKE = {80, 90, 95}
-FLOOD_PRONE_DIST_M = 500
+# The decision logic lives in _nbs.py, which has no geospatial dependencies, so
+# CI can test the part of this stage that would fail silently (issue #98).
+from _nbs import (  # noqa: E402
+    FLOOD_PRONE_DIST_M,
+    WORLDCOVER_GRASSLAND,
+    WORLDCOVER_NONPLANTABLE,
+    WORLDCOVER_WATER_LIKE,
+    fire_rules,
+    is_plantable,
+)
 
 
 def load_grid_fc(gdf: gpd.GeoDataFrame) -> ee.FeatureCollection:
@@ -99,56 +106,6 @@ def pull_landcover_and_flood_proxy(gdf: gpd.GeoDataFrame) -> dict:
     return landcover_by_id, dist_by_id
 
 
-def fire_rules(row, thresholds) -> list[dict]:
-    recs = []
-    hvi_high = row.HVI >= thresholds["hvi_p75"]
-    canopy_low = row.NDVI <= thresholds["ndvi_p25"]
-    density_high = row.pop_density_km2 >= thresholds["density_p75"]
-    open_space_low = row.NDVI <= thresholds["ndvi_p25"]
-    elderly_high = row.elderly_pct >= thresholds["elderly_p75"]
-    hospital_access_low = row.hospital_dist_m >= thresholds["hospital_p75"]
-    impervious_high = row.impervious_pct >= thresholds["impervious_p75"]
-    flood_prone = row.dist_to_water_m <= FLOOD_PRONE_DIST_M
-
-    if hvi_high and canopy_low and row.plantable:
-        recs.append({
-            "intervention": "Native tree planting + green corridors",
-            "rationale": "High vulnerability, low canopy, ecologically suitable for restoration",
-            "citation": "Bastin et al. 2019, Science",
-            "priority": 1,
-        })
-    elif hvi_high and canopy_low and not row.plantable:
-        recs.append({
-            "intervention": "Cool roofs + reflective pavements + cooling centres",
-            "rationale": "High vulnerability, low canopy, but native-grassland/built-up cell: "
-                         "afforestation would backfire ecologically",
-            "citation": "Veldman et al. 2019, Science (response to Bastin 2019)",
-            "priority": 1,
-        })
-    if impervious_high and flood_prone:
-        recs.append({
-            "intervention": "Rain gardens + water-sensitive urban design (WSUD)",
-            "rationale": "Highly impervious cell near mapped water/wetland: runoff and heat compound risk",
-            "citation": "Methodology proxy: WorldCover water-distance < 500m (no dedicated hydrology layer in P0)",
-            "priority": 2,
-        })
-    if density_high and open_space_low:
-        recs.append({
-            "intervention": "Pocket parks",
-            "rationale": "High population density with little existing green/open space",
-            "citation": "C40 Urban Cooling Toolbox",
-            "priority": 3,
-        })
-    if elderly_high and hospital_access_low:
-        recs.append({
-            "intervention": "Cooling centres, priority siting",
-            "rationale": "High elderly share combined with poor hospital access",
-            "citation": "Knowlton et al. 2014 (Ahmedabad HAP impact study)",
-            "priority": 1,
-        })
-    return recs
-
-
 def main() -> int:
     if not IN_PATH.exists():
         print(f"[FAIL] {IN_PATH} not found — run 05_hvi.py first.")
@@ -172,11 +129,17 @@ def main() -> int:
     }
     print("[ok] thresholds (75th/25th percentile):", {k: round(v, 2) for k, v in thresholds.items()})
 
-    gdf["plantable"] = (
-        ~gdf["worldcover_class"].isin(WORLDCOVER_NONPLANTABLE)
-        & (gdf["worldcover_class"] != WORLDCOVER_GRASSLAND)
-        & (gdf["impervious_pct"] < thresholds["impervious_p75"])
-    )
+    # Routed through _nbs.is_plantable rather than expressed as a vectorised
+    # mask here, so the filter that decides whether this tool recommends
+    # planting on native grassland is the same code CI tests (issue #98).
+    gdf["plantable"] = [
+        is_plantable(
+            None if pd.isna(wc) else wc,
+            None if pd.isna(imp) else imp,
+            thresholds["impervious_p75"],
+        )
+        for wc, imp in zip(gdf["worldcover_class"], gdf["impervious_pct"])
+    ]
     n_rejected_grassland = (gdf["worldcover_class"] == WORLDCOVER_GRASSLAND).sum()
     print(f"[ok] {gdf['plantable'].sum()}/{len(gdf)} cells plantable "
           f"({n_rejected_grassland} rejected as native grassland)")
