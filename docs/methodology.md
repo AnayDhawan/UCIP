@@ -28,6 +28,39 @@
 - Adjacency for the neighbour comparison is polygon touching on the BMC boundaries (stage 12 uses the same source for the landing-page coastline).
 - Caveats carried over from section 10: `elderly_pct` varies only about 1.6 points across the whole city, so it separates wards weakly and the copy does not lean on it; NDVI is reported as an index, never as a canopy percentage.
 
+## 4c. How precise is a ward's score, really
+
+`pipeline/uncertainty.py`, output `data/hvi_uncertainty.json`.
+
+A ward gets a single HVI to one decimal place and a rank out of 24, which
+implies a precision the method does not have. The weights come from a PCA over
+541 cells, and that PCA has sampling uncertainty. So the cells are resampled
+with replacement 1000 times and the whole chain is rerun on each resample
+(z-scores, PCA, weights, per-cell index, 0-100 rescale, ward rollup, rank),
+giving a 95% percentile interval per ward.
+
+Rerunning the whole chain matters. Holding the z-scores and the rescale fixed
+and varying only the weights would understate the uncertainty while looking
+rigorous.
+
+**The result is a real qualification of the ranking, not a formality:**
+
+| | |
+|---|---|
+| Median rank interval | **6 places** |
+| Widest | 14 places (ward B, ranked 6th, interval 1st to 15th) |
+| Wards whose rank is certain | **0 of 24** |
+
+Read the ranking as broad bands rather than an ordering. "C is the most
+vulnerable ward" survives (interval 1st to 3rd) and "T and R/C are among the
+least" survives, but the difference between 8th and 12th does not: those
+intervals overlap almost entirely. A planner choosing between two
+mid-table wards should treat them as tied and decide on other grounds.
+
+This captures sampling uncertainty in the cells only. It does not capture
+measurement error in the indicators, the choice of indicators, or the decision
+to weight by PCA at all, which is quantified separately in §5.
+
 ## 5. Sensitivity / validity
 - Weights perturbed +/-20%; ward priority ranking shown stable (chart). Addresses weight-transfer validity for Mumbai.
 - **PCA weighting vs the published fallback** (`pipeline/compare_weightings.py`, output `data/weighting_comparison.json`). The obvious challenge to a data-derived weighting is "how much does it change the answer versus just using the published weights?", so both are run over the same cells and compared:

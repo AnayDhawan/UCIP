@@ -1,0 +1,232 @@
+{
+  "method": "Non-parametric bootstrap: the 541 cells are resampled with replacement and the whole scoring chain is rerun on each resample, including the z-scores, the PCA weights and the 0-100 rescale. Intervals are 2.5th to 97.5th percentiles across replicates.",
+  "captures": "Sampling uncertainty in the cells: how much the answer depends on which cells happened to be measured.",
+  "does_not_capture": "Measurement error in the indicators, the choice of indicators, and the decision to weight by PCA at all. That last one is quantified separately in weighting_comparison.json.",
+  "replicates": 1000,
+  "seed": 20260923,
+  "confidence": 0.95,
+  "summary": {
+    "median_rank_interval_width": 6.0,
+    "widest_rank_interval": 14,
+    "wards_whose_rank_is_certain": 0,
+    "n_wards": 24
+  },
+  "per_ward": [
+    {
+      "ward_id": "C",
+      "hvi": 73.56,
+      "hvi_ci_low": 68.36,
+      "hvi_ci_high": 82.09,
+      "rank": 1,
+      "rank_ci_low": 1,
+      "rank_ci_high": 3
+    },
+    {
+      "ward_id": "G/N",
+      "hvi": 69.67,
+      "hvi_ci_low": 62.69,
+      "hvi_ci_high": 80.14,
+      "rank": 2,
+      "rank_ci_low": 1,
+      "rank_ci_high": 6
+    },
+    {
+      "ward_id": "L",
+      "hvi": 65.85,
+      "hvi_ci_low": 57.89,
+      "hvi_ci_high": 75.82,
+      "rank": 3,
+      "rank_ci_low": 1,
+      "rank_ci_high": 8
+    },
+    {
+      "ward_id": "E",
+      "hvi": 65.04,
+      "hvi_ci_low": 59.96,
+      "hvi_ci_high": 73.63,
+      "rank": 4,
+      "rank_ci_low": 2,
+      "rank_ci_high": 7
+    },
+    {
+      "ward_id": "F/S",
+      "hvi": 64.84,
+      "hvi_ci_low": 59.19,
+      "hvi_ci_high": 74.25,
+      "rank": 5,
+      "rank_ci_low": 2,
+      "rank_ci_high": 7
+    },
+    {
+      "ward_id": "B",
+      "hvi": 64.82,
+      "hvi_ci_low": 43.15,
+      "hvi_ci_high": 80.9,
+      "rank": 6,
+      "rank_ci_low": 1,
+      "rank_ci_high": 15
+    },
+    {
+      "ward_id": "G/S",
+      "hvi": 59.25,
+      "hvi_ci_low": 53.53,
+      "hvi_ci_high": 66.65,
+      "rank": 7,
+      "rank_ci_low": 5,
+      "rank_ci_high": 11
+    },
+    {
+      "ward_id": "H/E",
+      "hvi": 58.44,
+      "hvi_ci_low": 49.16,
+      "hvi_ci_high": 68.59,
+      "rank": 8,
+      "rank_ci_low": 4,
+      "rank_ci_high": 14
+    },
+    {
+      "ward_id": "K/E",
+      "hvi": 57.85,
+      "hvi_ci_low": 50.99,
+      "hvi_ci_high": 66.42,
+      "rank": 9,
+      "rank_ci_low": 5,
+      "rank_ci_high": 14
+    },
+    {
+      "ward_id": "F/N",
+      "hvi": 57.76,
+      "hvi_ci_low": 50.73,
+      "hvi_ci_high": 66.58,
+      "rank": 10,
+      "rank_ci_low": 5,
+      "rank_ci_high": 14
+    },
+    {
+      "ward_id": "A",
+      "hvi": 55.82,
+      "hvi_ci_low": 48.74,
+      "hvi_ci_high": 63.71,
+      "rank": 11,
+      "rank_ci_low": 7,
+      "rank_ci_high": 14
+    },
+    {
+      "ward_id": "M/W",
+      "hvi": 54.69,
+      "hvi_ci_low": 48.33,
+      "hvi_ci_high": 62.2,
+      "rank": 12,
+      "rank_ci_low": 7,
+      "rank_ci_high": 14
+    },
+    {
+      "ward_id": "D",
+      "hvi": 54.24,
+      "hvi_ci_low": 44.8,
+      "hvi_ci_high": 65.06,
+      "rank": 13,
+      "rank_ci_low": 6,
+      "rank_ci_high": 15
+    },
+    {
+      "ward_id": "H/W",
+      "hvi": 53.71,
+      "hvi_ci_low": 48.8,
+      "hvi_ci_high": 60.84,
+      "rank": 14,
+      "rank_ci_low": 9,
+      "rank_ci_high": 14
+    },
+    {
+      "ward_id": "K/W",
+      "hvi": 45.31,
+      "hvi_ci_low": 38.78,
+      "hvi_ci_high": 51.56,
+      "rank": 15,
+      "rank_ci_low": 14,
+      "rank_ci_high": 18
+    },
+    {
+      "ward_id": "R/S",
+      "hvi": 43.27,
+      "hvi_ci_low": 31.43,
+      "hvi_ci_high": 53.35,
+      "rank": 16,
+      "rank_ci_low": 14,
+      "rank_ci_high": 21
+    },
+    {
+      "ward_id": "M/E",
+      "hvi": 42.05,
+      "hvi_ci_low": 34.94,
+      "hvi_ci_high": 49.01,
+      "rank": 17,
+      "rank_ci_low": 14,
+      "rank_ci_high": 20
+    },
+    {
+      "ward_id": "S",
+      "hvi": 40.37,
+      "hvi_ci_low": 31.64,
+      "hvi_ci_high": 48.64,
+      "rank": 18,
+      "rank_ci_low": 15,
+      "rank_ci_high": 21
+    },
+    {
+      "ward_id": "N",
+      "hvi": 39.27,
+      "hvi_ci_low": 29.16,
+      "hvi_ci_high": 48.36,
+      "rank": 19,
+      "rank_ci_low": 15,
+      "rank_ci_high": 22
+    },
+    {
+      "ward_id": "P/S",
+      "hvi": 37.51,
+      "hvi_ci_low": 28.47,
+      "hvi_ci_high": 45.11,
+      "rank": 20,
+      "rank_ci_low": 16,
+      "rank_ci_high": 22
+    },
+    {
+      "ward_id": "P/N",
+      "hvi": 36.57,
+      "hvi_ci_low": 28.97,
+      "hvi_ci_high": 43.08,
+      "rank": 21,
+      "rank_ci_low": 17,
+      "rank_ci_high": 22
+    },
+    {
+      "ward_id": "R/N",
+      "hvi": 30.76,
+      "hvi_ci_low": 20.26,
+      "hvi_ci_high": 40.15,
+      "rank": 22,
+      "rank_ci_low": 18,
+      "rank_ci_high": 24
+    },
+    {
+      "ward_id": "R/C",
+      "hvi": 26.89,
+      "hvi_ci_low": 19.77,
+      "hvi_ci_high": 30.97,
+      "rank": 23,
+      "rank_ci_low": 21,
+      "rank_ci_high": 24
+    },
+    {
+      "ward_id": "T",
+      "hvi": 26.8,
+      "hvi_ci_low": 19.16,
+      "hvi_ci_high": 31.42,
+      "rank": 24,
+      "rank_ci_low": 22,
+      "rank_ci_high": 24
+    }
+  ]
+}

@@ -96,6 +96,20 @@ Per-ward ranked recommendations (`pipeline/06_nbs.py` rule engine). Fields: `war
 | `summary` | Per-ward least-squares slope and classification for each measure. |
 | `what_this_is`, `what_this_is_not`, `limitations` | Honest framing; the other five index indicators are frozen snapshots, so only the thermal/vegetation trend is published. |
 
+### `hvi_uncertainty.json` (`pipeline/uncertainty.py`)
+
+95% bootstrap intervals for every ward's score and rank (issue #87). Fields:
+`method`, `captures`, `does_not_capture`, `replicates`, `seed`, `confidence`,
+`summary` (`median_rank_interval_width`, `widest_rank_interval`,
+`wards_whose_rank_is_certain`, `n_wards`), and `per_ward` (`ward_id`, `hvi`,
+`hvi_ci_low`, `hvi_ci_high`, `rank`, `rank_ci_low`, `rank_ci_high`).
+
+`hvi` and `rank` are the published point estimates and match `wards_hvi.geojson`
+exactly. The intervals come from resampling the 541 cells with replacement and
+rerunning the whole scoring chain, so they reflect sampling uncertainty in the
+cells and nothing else. **No ward's rank is certain**: the median interval spans
+6 places. Treat the ranking as bands, not an order.
+
 ### `weighting_comparison.json` (`pipeline/compare_weightings.py`)
 
 The ward ranking under the PCA-derived weights against the published equal
