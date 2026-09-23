@@ -78,3 +78,7 @@ data/*/
 
 # Local Claude Code skills and settings, not part of the project
 .claude/
+
+# Pitch-deck build workspace. Large binaries (a 55MB demo video, the pptx and
+# its exported PNGs) that do not belong in git history. Kept local.
+deck/

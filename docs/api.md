@@ -6,9 +6,11 @@ nature-based cooling recommendations derived from it.
 **Base URL:** `https://uciplatform.vercel.app/api/v1`
 **Spec:** [`/api/v1/openapi.json`](https://uciplatform.vercel.app/api/v1/openapi.json) (OpenAPI 3.1)
 
-No authentication, no key, no rate limit today. Open CORS, so browser code can
-call it directly. Everything served here is already public: the same numbers sit
-in the committed GeoJSON snapshots in this repository and on the dashboard.
+No authentication and no key. Open CORS, so browser code can call it directly.
+There is a per-IP ceiling of 120 requests a minute, well above anything normal
+use produces; see [Rate limiting](#rate-limiting). Everything served here is
+already public: the same numbers sit in the committed GeoJSON snapshots in this
+repository and on the dashboard.
 
 Want all of it? Use [`/export`](#get-exportdatasetformat), one request for the
 whole dataset as GeoJSON or CSV. What `v1` guarantees, and what would require a
@@ -178,9 +180,29 @@ visible through [`/meta`](#get-meta).
 
 | Date | Change |
 |---|---|
+| 2026-09-23 | Added per-IP [rate limiting](#rate-limiting) at 120 requests a minute. Normal use is well under it. |
 | 2026-09-23 | Added [`/export`](#get-exportdatasetformat) for bulk access as GeoJSON or CSV. Additive, no existing response changed. |
 | 2026-09-23 | Documented this versioning policy. No behaviour change. |
 | 2026-09-18 | `v1` published with `/meta`, `/wards`, `/wards/{wardId}`, `/lookup`, `/recommendations`, `/cells` and `/openapi.json`. |
+
+## Rate limiting
+
+120 requests a minute per client. Cache headers do most of the work: responses
+are edge-cached for an hour, so repeated requests for the same thing never
+reach the limiter. It exists for traffic that defeats caching, such as walking
+every ward in a loop.
+
+Exceeding it returns `429` with `Retry-After` and `X-RateLimit-Limit` /
+`X-RateLimit-Remaining`. If you want the whole dataset, one call to
+[`/export`](#get-exportdatasetformat) costs one request against the limit
+rather than 24 or 541.
+
+IPv6 clients are counted on their `/64` prefix rather than their exact address,
+since an ISP hands a whole `/64` to one line.
+
+If the limiter's backing store is unreachable, requests are allowed through. A
+read-only public API going down because the thing protecting it is down would
+be the worse failure.
 
 ## Limits and honesty
 

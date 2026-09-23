@@ -38,7 +38,7 @@ const body = async (res: Response) => JSON.parse(await res.text());
 
 describe("GET /api/v1/meta", () => {
   it("reports coverage, counts and method", async () => {
-    const res = await getMeta();
+    const res = await getMeta(req("/api/v1/meta"));
     expect(res.status).toBe(200);
     const json = await body(res);
     expect(json.counts.wards).toBe(24);
@@ -47,7 +47,7 @@ describe("GET /api/v1/meta", () => {
   });
 
   it("nulls the data-vintage fields until a committed run log exists", async () => {
-    const json = await body(await getMeta());
+    const json = await body(await getMeta(req("/api/v1/meta")));
     // The repo has no committed pipeline_run_log.json yet, so the endpoint must
     // not invent a refresh date. This is the honest answer until the first
     // refresh run commits one.
@@ -69,7 +69,7 @@ describe("GET /api/v1/meta", () => {
           stages: [],
         })
       );
-      const json = await body(await getMeta());
+      const json = await body(await getMeta(req("/api/v1/meta")));
       expect(json.generated_at).toBe("2026-09-03T05:30:00+00:00");
       expect(json.composite_window).toEqual({
         start: "2025-11-01",

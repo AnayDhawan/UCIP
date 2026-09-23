@@ -28,6 +28,7 @@ import {
   jsonResponse,
   optionsResponse,
   readSnapshot,
+  rateLimited,
 } from "../_lib";
 
 export const revalidate = 3600;
@@ -138,6 +139,9 @@ export function OPTIONS() {
 }
 
 export async function GET(request: Request) {
+  const limited = await rateLimited(request);
+  if (limited) return limited;
+
   const url = new URL(request.url);
 
   const rawDataset = (url.searchParams.get("dataset") ?? "cells").toLowerCase();

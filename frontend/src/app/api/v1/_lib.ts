@@ -31,6 +31,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { checkRateLimit } from "@/lib/rateLimit";
 
 export const API_VERSION = "v1";
 
@@ -128,6 +129,43 @@ export function parseCoordinate(raw: string | null, min: number, max: number): n
   const n = Number(raw);
   if (!Number.isFinite(n) || n < min || n > max) return null;
   return n;
+}
+
+/**
+ * Applies the per-IP limit to a request, returning a 429 when it is exceeded
+ * and null when the request should proceed (issue #101).
+ *
+ * Every route calls this first. Cache headers mean most traffic never reaches
+ * it, so this is for the requests that defeat caching: a crawler walking every
+ * ward, or a script varying a parameter in a loop.
+ *
+ * Returns null when no limiter is configured, so the API behaves exactly as it
+ * did before until the Upstash credentials exist.
+ */
+export async function rateLimited(request: Request): Promise<Response | null> {
+  const result = await checkRateLimit(request.headers);
+  if (!result || result.ok) return null;
+
+  return jsonResponse(
+    {
+      error: {
+        status: 429,
+        message: "Too many requests.",
+        hint:
+          "The whole dataset is one request to /api/v1/export. If you need it " +
+          "repeatedly, cache it rather than polling.",
+      },
+    },
+    {
+      status: 429,
+      headers: {
+        "cache-control": "no-store",
+        "retry-after": String(result.retryAfterSeconds),
+        "x-ratelimit-limit": String(result.limit),
+        "x-ratelimit-remaining": String(result.remaining),
+      },
+    }
+  );
 }
 
 export function optionsResponse(): Response {

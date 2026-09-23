@@ -16,7 +16,7 @@
 import type { FeatureCollection, Geometry } from "geojson";
 import type { NbsRec, WardProps } from "@/lib/wardTypes";
 import type { RunLog } from "@/lib/runLog";
-import { API_VERSION, jsonResponse, optionsResponse, readSnapshot, supabase } from "../_lib";
+import { API_VERSION, jsonResponse, optionsResponse, rateLimited, readSnapshot, supabase } from "../_lib";
 import { CITATIONS } from "@/lib/citations";
 import { MUMBAI } from "@/lib/city";
 
@@ -26,7 +26,10 @@ export function OPTIONS() {
   return optionsResponse();
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const limited = await rateLimited(request);
+  if (limited) return limited;
+
   const [wards, recs, runLog] = await Promise.all([
     readSnapshot<FeatureCollection<Geometry, WardProps>>("wards_hvi.geojson").catch(() => null),
     readSnapshot<NbsRec[]>("nbs_recommendations.json").catch(() => null),
