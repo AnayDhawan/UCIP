@@ -12,15 +12,15 @@
 # open issue instead of a second issue, so a broken monthly job does not turn
 # into a wall of duplicates.
 #
-# Watched workflows are the three scheduled ones. CI and Lighthouse are left
-# out: they run on pull requests where the failure is already in front of
-# whoever opened it.
+# Watched workflows are the scheduled ones. CI and Lighthouse are left out:
+# they run on pull requests where the failure is already in front of whoever
+# opened it.
 
 name: Alert on failure
 
 on:
   workflow_run:
-    workflows: [Pipeline refresh, Smoke, Supabase keepalive]
+    workflows: [Pipeline refresh, Smoke, Supabase keepalive, Supabase sync, Supabase backup]
     types: [completed]
 
 permissions:

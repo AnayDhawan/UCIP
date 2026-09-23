@@ -1,0 +1,68 @@
+# Weekly data backup of the Supabase project (issue #127).
+#
+# The project was found deleted on 2026-09-03 and nothing was lost, because the
+# site reads committed snapshots and the pipeline can regenerate the database.
+# That is a good architecture and it is not a backup: it assumes every row is
+# derivable from a pipeline run, and the moment the database holds anything
+# that is not, losing it means losing it.
+#
+# It is also slow. Regenerating costs a full Earth Engine run, about forty
+# minutes and real quota, to recover from something a file fixes in seconds.
+#
+# Data only. Schema is already version controlled in supabase/migrations/, so
+# the pair is complete: migrations rebuild the shape, these files rebuild the
+# contents. Reading through PostgREST with the anon key rather than pg_dump
+# keeps a second, more powerful credential out of CI; everything exported is
+# already public.
+
+name: Supabase backup
+
+on:
+  schedule:
+    # Sundays, 05:17 UTC. After the week's syncs, before the month's refresh.
+    - cron: "17 5 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+
+      - name: Export every table
+        # Standard library only, so there is nothing to install.
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: python pipeline/backup_supabase.py --out-dir backups
+
+      - name: Summarise what was captured
+        run: |
+          set -euo pipefail
+          manifest=$(find backups -name manifest.json | head -1)
+          echo "### Supabase backup" >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          cat "$manifest" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: supabase-backup-${{ github.run_id }}
+          path: backups/
+          # The ceiling GitHub allows. Beyond that the answer is not a longer
+          # retention setting, it is somewhere that is not GitHub, which is
+          # worth doing once the database holds anything the pipeline cannot
+          # regenerate. Today it does not.
+          retention-days: 90
+          if-no-files-found: error

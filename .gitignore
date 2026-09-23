@@ -82,3 +82,7 @@ data/*/
 # Pitch-deck build workspace. Large binaries (a 55MB demo video, the pptx and
 # its exported PNGs) that do not belong in git history. Kept local.
 deck/
+
+# Local Supabase exports from pipeline/backup_supabase.py. Backups belong in
+# workflow artifacts, not in git history.
+backups/
