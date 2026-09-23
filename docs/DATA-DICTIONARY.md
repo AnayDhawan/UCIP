@@ -139,6 +139,20 @@ Satellite-vs-station validation (stage 13): `window`, **`is_pipeline_window` (fa
 
 Illustrative budget-allocation model (stage 15, issue #67): `city`, the chosen `intervention` (with `cost` in `INR_per_m2` and `sourced_cost` / `source` / `source_url` — gated on sourced costs), `budget_inr`, `spent_inr`, `unspent_inr`, `wards_funded` / `wards_fully_funded`, `total_benefit_person_degrees`, `objective`, and the per-ward allocation. `illustrative_only` is false only when the cost is sourced.
 
+### Earth Engine result cache (`pipeline/cache/gee/`, not committed)
+
+Zonal statistics from stage 02, keyed by everything that can change them
+(issue #93): region bounds, both date windows, the collection ids, the reducer
+scale, the cloud threshold, and a fingerprint of the grid's ids and geometry.
+
+A hit skips the `reduceRegions` call entirely, which is the expensive part of a
+refresh. Within a dry season the composite window is fixed, so the twice-weekly
+refresh pays Earth Engine once per season rather than twice a week.
+
+There is no expiry. The key already changes when anything affecting the result
+changes, so a time-to-live would only expire valid entries or serve stale ones.
+`python 02_gee_layers.py --no-cache` forces a refetch.
+
 ### Per-stage provenance (inside `pipeline_run_log.json`)
 
 Each stage entry may carry a `provenance` object recording what that stage

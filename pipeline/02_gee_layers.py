@@ -37,12 +37,14 @@ Run:
     python 02_gee_layers.py
 """
 
+import argparse
 import json
 import sys
 from datetime import date
 from pathlib import Path
 
 import ee
+import _gee_cache
 import _provenance
 
 from _dry_season import most_recent_complete_dry_season
@@ -108,7 +110,17 @@ def load_grid_fc(path: Path) -> ee.FeatureCollection:
     return ee.FeatureCollection(features)
 
 
-def main() -> int:
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--no-cache",
+        action="store_true",
+        help="Refetch from Earth Engine even when a cached result matches (issue #93).",
+    )
+    return parser.parse_args()
+
+
+def main(args: argparse.Namespace) -> int:
     if not GRID_PATH.exists():
         print(f"[FAIL] {GRID_PATH} not found — run 01_grid.py first.")
         return 1
@@ -157,8 +169,41 @@ def main() -> int:
         scale=ZONAL_SCALE,
     )
 
-    print("[..] running reduceRegions over all cells (may take a minute)")
-    result = zonal.getInfo()
+    # Everything that can change the answer goes into the key (issue #93).
+    # Miss one and a hit would serve numbers computed for a different
+    # question, which is worse than no cache at all.
+    with open(GRID_PATH, encoding="utf-8") as f:
+        _grid_for_key = json.load(f)
+    key = _gee_cache.cache_key(
+        bbox=region.bounds().getInfo()["coordinates"],
+        current_window=[CURR_START, CURR_END],
+        previous_window=[PREV_START, PREV_END],
+        collections=[
+            "LANDSAT/LC08/C02/T1_L2",
+            "LANDSAT/LC09/C02/T1_L2",
+            "ESA/WorldCover/v200",
+        ],
+        scale=ZONAL_SCALE,
+        max_cloud=MAX_CLOUD,
+        grid=_gee_cache.grid_fingerprint(_grid_for_key["features"]),
+    )
+
+    result = None if args.no_cache else _gee_cache.load(key)
+    if result is not None:
+        print(f"[ok] reusing cached zonal statistics for this window ({key[:12]})")
+    else:
+        print("[..] running reduceRegions over all cells (may take a minute)")
+        result = zonal.getInfo()
+        _gee_cache.store(
+            key,
+            result,
+            describe={
+                "window": f"{CURR_START}..{CURR_END}",
+                "cells": n_cells,
+                "scenes": n_curr,
+            },
+        )
+        print(f"[ok] cached zonal statistics ({key[:12]})")
 
     props_by_id = {}
     for feat in result["features"]:
@@ -217,4 +262,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(parse_args()))
