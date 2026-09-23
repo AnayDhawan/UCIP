@@ -13,7 +13,7 @@ Deliberately additive:
     Recomputes nothing. HVI and rank are read straight out of wards_hvi.geojson.
 
 Output coordinate space:
-    Projected to EPSG:32643 (UTM zone 43N, metres, correct for Mumbai) so the
+    Projected to the city's own CRS in metres (EPSG:32643, UTM 43N, for Mumbai) so the
     city's real shape is preserved, then centred on the city centroid and
     scaled so the longer axis spans exactly 2.0 units, i.e. x and y both land
     in about [-1, 1]. The renderer can treat it as unitless. Ring winding is
@@ -41,7 +41,8 @@ IN_WARDS_PATH = DATA_DIR / "wards_hvi.geojson"
 OUT_PATH = DATA_DIR / "hero_city.json"
 OUT_PUBLIC_PATH = ROOT / "frontend" / "public" / "hero_city.json"
 
-# Mumbai sits in UTM zone 43N. Metres, so simplify tolerance is in metres too.
+# The city's UTM zone, from its config. Metres, so the simplify tolerance below
+# is in metres too.
 PROJECTED_CRS = _CITY.projected_crs
 
 # Douglas-Peucker tolerance. At hero scale one ward is roughly 100-200 px wide,

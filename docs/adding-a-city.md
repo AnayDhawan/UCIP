@@ -1,7 +1,7 @@
 # Adding a city
 
 UCIP's pipeline is city-agnostic: everything city-specific lives in one JSON
-file, and the twelve stages read it. This page is how to stand up a new one.
+file, and every stage reads it. This page is how to stand up a new one.
 
 Be realistic about effort. This is a few hours of work plus a Google Cloud
 project, not a five-minute setup, and the last section is the part most people

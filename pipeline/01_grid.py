@@ -6,9 +6,11 @@ What it does:
     surviving cell with the ward it falls in. Every later stage works one row
     per cell, so this file defines the unit of analysis for the whole pipeline.
 
-    The fishnet is built in UTM 43N (EPSG:32643) rather than lat/lon, because a
-    1 km cell has to be 1 km on the ground; building it in degrees would give
-    cells that stretch as they move north. Output is reprojected back to WGS84.
+    The fishnet is built in the city's projected CRS rather than lat/lon,
+    because a 1 km cell has to be 1 km on the ground; building it in degrees
+    would give cells that stretch as they move north. The CRS comes from the
+    city config, derived from the bounding box centroid when it is not declared
+    (EPSG:32643, UTM 43N, for Mumbai). Output is reprojected back to WGS84.
 
 Inputs:
     ../data/bmc_wards.geojson   24 BMC ward boundaries (Datameet)
