@@ -142,7 +142,9 @@ this reason. The Deccan plateau has genuinely native grassland and scrub that
 Mumbai's coastal thresholds were never designed to tell apart from degraded
 land.
 
-What to do:
+**The full procedure is in [`calibrating-ecology.md`](calibrating-ecology.md)**,
+which goes through each of the three assumptions the filter makes, why each is
+Mumbai-specific, and how to decide for your city. The short version:
 
 1. Read the restoration and land-cover literature for the city's biome.
 2. Decide which WorldCover classes are native open habitat there, not
