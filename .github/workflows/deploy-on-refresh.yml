@@ -1,0 +1,48 @@
+# Publish a merged data refresh (issue #123).
+#
+# The refresh loop was automated right up to the last step and then stopped:
+# pipeline-refresh.yml runs, opens a PR, the PR merges, and the live site kept
+# serving the previously built data until someone redeployed by hand. A refresh
+# nobody can see is not a refresh.
+#
+# Same trigger as refresh-baseline-tag.yml, and separate from it on purpose:
+# moving the diff baseline and publishing the site are different jobs that fail
+# for different reasons, and a deploy hook that 500s should not leave the
+# baseline tag unmoved.
+#
+# Config: repo secret VERCEL_DEPLOY_HOOK_URL (already set).
+
+name: Deploy on refresh merge
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    if: github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'automated/pipeline-refresh'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fire the Vercel deploy hook
+        env:
+          HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${HOOK_URL:-}" ]; then
+            echo "VERCEL_DEPLOY_HOOK_URL is not set, nothing to fire."
+            exit 1
+          fi
+
+          # --fail turns an HTTP error into a non-zero exit. Without it curl
+          # reports success on a 404 hook URL, which is the one failure that
+          # would silently reproduce the exact bug this workflow fixes.
+          status=$(curl --silent --show-error --fail \
+            --request POST "$HOOK_URL" \
+            --write-out '%{http_code}' --output /dev/null)
+
+          echo "Deploy hook accepted, HTTP $status."

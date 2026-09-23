@@ -1,0 +1,63 @@
+# Say something when a scheduled run fails (issue #125).
+#
+# Every scheduled workflow here fails silently unless somebody opens the Actions
+# tab. Combined with a monthly refresh cadence, a broken refresh could sit
+# unnoticed for months, which is exactly how the deployment 404 lasted about a
+# month.
+#
+# The notification is a GitHub issue rather than email, Slack or Discord. It
+# needs no new secret and no external service to stay alive, it reaches the
+# repo owner through normal notifications, and it leaves a record that outlives
+# the 90-day Actions log retention. A failure that repeats gets a comment on the
+# open issue instead of a second issue, so a broken monthly job does not turn
+# into a wall of duplicates.
+#
+# Watched workflows are the three scheduled ones. CI and Lighthouse are left
+# out: they run on pull requests where the failure is already in front of
+# whoever opened it.
+
+name: Alert on failure
+
+on:
+  workflow_run:
+    workflows: [Pipeline refresh, Smoke, Supabase keepalive]
+    types: [completed]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  alert:
+    if: github.event.workflow_run.conclusion == 'failure'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Open or update the failure issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          WORKFLOW: ${{ github.event.workflow_run.name }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          RUN_NUMBER: ${{ github.event.workflow_run.run_number }}
+          STARTED: ${{ github.event.workflow_run.run_started_at }}
+        run: |
+          set -euo pipefail
+
+          title="Scheduled run failed: $WORKFLOW"
+
+          body=$(printf '%s\n\n%s\n\n%s\n' \
+            "\`$WORKFLOW\` run #$RUN_NUMBER failed, started $STARTED." \
+            "Run log: $RUN_URL" \
+            "Opened automatically by \`alert-on-failure.yml\` (#125). Close it once the cause is fixed; the next failure reopens the conversation on a fresh issue.")
+
+          existing=$(gh issue list --repo "$REPO" --state open --label ci-failure \
+            --search "$title in:title" --json number,title \
+            --jq "[.[] | select(.title == \"$title\")] | .[0].number // empty")
+
+          if [ -n "$existing" ]; then
+            echo "Commenting on existing issue #$existing."
+            gh issue comment "$existing" --repo "$REPO" --body "$body"
+          else
+            echo "Opening a new issue."
+            gh issue create --repo "$REPO" --title "$title" --label ci-failure --body "$body"
+          fi
