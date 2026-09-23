@@ -57,6 +57,7 @@ from sklearn.decomposition import PCA
 
 from _publish import publish
 from _city import load_city
+from _boundaries import load_boundaries
 import _provenance
 from _hvi import DOMINANCE_THRESHOLD, factor_dominance
 
@@ -159,13 +160,9 @@ def main() -> int:
     print(f"[ok] wrote {len(gdf)} cells with HVI -> {OUT_CELLS_PATH}")
 
     # ------------------------------------------------- ward-level rollup --
-    _id_field = _CITY.ward_id_field
-    _wards_raw = gpd.read_file(WARDS_PATH)
-    if "gid" not in _wards_raw.columns:
-        _wards_raw = _wards_raw.assign(gid=range(1, len(_wards_raw) + 1))
-    wards = _wards_raw[["gid", _id_field, "geometry"]].rename(
-        columns={"gid": "ward_gid", _id_field: "ward_id"}
-    )
+    # Normalised to ward_id/ward_gid by the boundary adapter (issue #111), so
+    # this stage does not need to know where the boundaries came from.
+    wards = load_boundaries(_CITY)
     ward_hvi = gdf.groupby("ward_id").agg(
         HVI=("HVI", "mean"),
         n_cells=("HVI", "size"),

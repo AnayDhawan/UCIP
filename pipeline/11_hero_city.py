@@ -32,6 +32,7 @@ from pathlib import Path
 import geopandas as gpd
 from shapely.geometry import MultiPolygon, Polygon
 from _city import load_city
+from _boundaries import load_boundaries
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
@@ -119,13 +120,7 @@ def main() -> int:
         print(f"[FAIL] {IN_WARDS_PATH} not found — run 05_hvi.py first.")
         return 1
 
-    _id_field = _CITY.ward_id_field
-    _w_raw = gpd.read_file(IN_BOUNDARIES_PATH)
-    if "gid" not in _w_raw.columns:
-        _w_raw = _w_raw.assign(gid=range(1, len(_w_raw) + 1))
-    wards = _w_raw[["gid", _id_field, "geometry"]].rename(
-        columns={"gid": "ward_gid", "name": "ward_id"}
-    )
+    wards = load_boundaries(_CITY)
     print(f"[ok] loaded {len(wards)} ward boundaries")
 
     scores = gpd.read_file(IN_WARDS_PATH).drop(columns="geometry")

@@ -52,6 +52,12 @@ class CityConfig:
     boundaries_path: Path
     ward_id_field: str
     expected_ward_count: int | None
+    # Which loader reads this city's boundaries (issue #111). "file" is every
+    # city today; see pipeline/_boundaries.py for the alternatives.
+    boundaries_adapter: str
+    # The whole boundaries block, so an adapter can read its own keys without
+    # every one of them becoming a field here.
+    boundaries_config: dict
     cell_size_m: float
     projected_crs: str
     gee_project: str | None
@@ -152,9 +158,11 @@ def load_city(slug: str | None = None) -> CityConfig:
         name=raw["name"],
         timezone=raw.get("timezone", "UTC"),
         bbox=bbox,  # type: ignore[arg-type]
-        boundaries_path=DATA_DIR / boundaries["file"],
+        boundaries_path=DATA_DIR / boundaries.get("file", ""),
         ward_id_field=boundaries["ward_id_field"],
         expected_ward_count=boundaries.get("expected_ward_count"),
+        boundaries_adapter=boundaries.get("adapter", "file"),
+        boundaries_config=boundaries,
         cell_size_m=float(grid.get("cell_size_m", 1000)),
         # Derived when absent, so a new city cannot silently inherit Mumbai's zone.
         projected_crs=grid.get("projected_crs") or utm_crs_for(bbox),  # type: ignore[arg-type]
