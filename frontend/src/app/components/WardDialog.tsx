@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import WardDetail from "./WardDetail";
 import WardDetailHeader from "./WardDetailHeader";
 import WardStaticMap from "./WardStaticMap";
+import WardTrend from "./WardTrend";
 import { useWardData } from "@/lib/useWardData";
 
 /**
@@ -84,6 +85,12 @@ export default function WardDialog({
                 totalWards={totalWards}
                 onSelectWard={onSelectWard}
               />
+              {/* Multi-year trend (issue #89). Renders nothing when the time
+                  series is absent, so a checkout without a stage 14 run shows
+                  the dialog exactly as before. */}
+              <div className="px-4 pb-4">
+                <WardTrend wardId={props.ward_id} />
+              </div>
             </>
           )}
         </div>
