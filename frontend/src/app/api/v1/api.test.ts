@@ -20,6 +20,7 @@ import { GET as getLookup } from "./lookup/route";
 import { GET as getRecs } from "./recommendations/route";
 import { GET as getCells } from "./cells/route";
 import { GET as getSpec } from "./openapi.json/route";
+import { GET as getExport } from "./export/route";
 
 const BASE = "https://uciplatform.vercel.app";
 
@@ -270,6 +271,7 @@ describe("GET /api/v1/openapi.json", () => {
       "/lookup",
       "/recommendations",
       "/cells",
+      "/export",
     ]) {
       expect(json.paths[path], `spec is missing ${path}`).toBeDefined();
     }
@@ -278,5 +280,73 @@ describe("GET /api/v1/openapi.json", () => {
   it("points its server URL at the requesting origin", async () => {
     const json = await body(await getSpec(req("/api/v1/openapi.json")));
     expect(json.servers[0].url).toBe(`${BASE}/api/v1`);
+  });
+});
+
+describe("GET /api/v1/export", () => {
+  it("returns every cell as GeoJSON by default", async () => {
+    const res = await getExport(req("/api/v1/export"));
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.type).toBe("FeatureCollection");
+    expect(json.features).toHaveLength(541);
+  });
+
+  it("merges the NDVI change columns into the cell properties", async () => {
+    const json = await (await getExport(req("/api/v1/export"))).json();
+    const props = json.features[0].properties;
+    expect(props).toHaveProperty("ndvi_delta");
+    expect(props).toHaveProperty("change_class");
+    // Present in cells_nbs, so the merge must not have replaced the base props.
+    expect(props).toHaveProperty("HVI");
+  });
+
+  it("serves CSV with a header row and one row per cell", async () => {
+    const res = await getExport(req("/api/v1/export?format=csv"));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("text/csv");
+    expect(res.headers.get("content-disposition")).toContain("ucip_cells.csv");
+
+    const lines = (await res.text()).trim().split(/\r?\n/);
+    expect(lines).toHaveLength(542);
+    expect(lines[0].startsWith("grid_id,lon,lat,")).toBe(true);
+  });
+
+  it("puts a usable lon/lat on every CSV row, so no geometry library is needed", async () => {
+    const text = await (await getExport(req("/api/v1/export?format=csv"))).text();
+    const [header, ...rows] = text.trim().split(/\r?\n/);
+    const columns = header.split(",");
+    const lon = columns.indexOf("lon");
+    const lat = columns.indexOf("lat");
+
+    for (const row of rows) {
+      const cells = row.split(",");
+      // Mumbai's bbox, loosely. A centre outside it means the geometry
+      // handling is wrong, which is the failure worth catching here.
+      expect(Number(cells[lon])).toBeGreaterThan(72);
+      expect(Number(cells[lon])).toBeLessThan(73.5);
+      expect(Number(cells[lat])).toBeGreaterThan(18.5);
+      expect(Number(cells[lat])).toBeLessThan(19.8);
+    }
+  });
+
+  it("exports the 24 wards too", async () => {
+    const json = await (await getExport(req("/api/v1/export?dataset=wards"))).json();
+    expect(json.features).toHaveLength(24);
+  });
+
+  it("rejects an unknown dataset or format by name", async () => {
+    const badDataset = await getExport(req("/api/v1/export?dataset=nope"));
+    expect(badDataset.status).toBe(400);
+    expect(JSON.stringify(await badDataset.json())).toContain("nope");
+
+    const badFormat = await getExport(req("/api/v1/export?format=xlsx"));
+    expect(badFormat.status).toBe(400);
+    expect(JSON.stringify(await badFormat.json())).toContain("xlsx");
+  });
+
+  it("is edge-cached like the rest of the API", async () => {
+    const res = await getExport(req("/api/v1/export?format=csv"));
+    expect(res.headers.get("cache-control")).toContain("s-maxage=3600");
   });
 });

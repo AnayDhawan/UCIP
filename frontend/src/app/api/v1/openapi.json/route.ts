@@ -195,6 +195,29 @@ export async function GET(request: Request) {
           responses: { "200": { description: "Grid cells" }, "400": { description: "Bad bbox" } },
         },
       },
+      "/export": {
+        get: {
+          summary: "The whole dataset in one call",
+          description:
+            "The complete published dataset as GeoJSON or CSV. The preferred route for bulk access: one cached request instead of paging the other endpoints. CSV rows carry the feature centre as lon/lat columns, so no geometry library is needed.",
+          parameters: [
+            {
+              name: "dataset",
+              in: "query",
+              schema: { type: "string", enum: ["cells", "wards"], default: "cells" },
+            },
+            {
+              name: "format",
+              in: "query",
+              schema: { type: "string", enum: ["geojson", "csv"], default: "geojson" },
+            },
+          ],
+          responses: {
+            "200": { description: "The full dataset" },
+            "400": { description: "Unknown dataset or format" },
+          },
+        },
+      },
     },
     components: {
       schemas: { Ward: wardSchema, Recommendation: recommendationSchema },

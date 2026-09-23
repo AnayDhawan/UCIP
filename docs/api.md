@@ -10,6 +10,10 @@ No authentication, no key, no rate limit today. Open CORS, so browser code can
 call it directly. Everything served here is already public: the same numbers sit
 in the committed GeoJSON snapshots in this repository and on the dashboard.
 
+Want all of it? Use [`/export`](#get-exportdatasetformat), one request for the
+whole dataset as GeoJSON or CSV. What `v1` guarantees, and what would require a
+`v2`, is written down under [Versioning](#versioning).
+
 ## Two things to know before you start
 
 **Ward codes contain slashes.** Mumbai's BMC wards include split wards like
@@ -94,6 +98,33 @@ from. Use this to check the working rather than trusting the ward rollup.
 curl 'https://uciplatform.vercel.app/api/v1/cells?bbox=72.80,19.00,72.95,19.15'
 ```
 
+### `GET /export?dataset=&format=`
+
+The whole dataset in one cached call. **This is the preferred route for bulk
+access**, rather than paging the endpoints above.
+
+| Parameter | Values | Default |
+|---|---|---|
+| `dataset` | `cells` (541 grid cells), `wards` (24 BMC wards) | `cells` |
+| `format` | `geojson`, `csv` | `geojson` |
+
+```
+/api/v1/export?dataset=cells&format=csv
+```
+
+CSV rows lead with the identifier and the feature centre as plain `lon` and
+`lat` columns, so the data plots in pandas or R without a geometry library. For
+cells that centre is exact to well under a metre, since the cells are squares;
+for wards it is a rough label point, not a centroid.
+
+Served from the published snapshots rather than the database, on purpose. A bulk
+export is by definition the complete published dataset, which is exactly what
+the snapshots are, and routing the heaviest response in the API around the
+free-tier database keeps it available for everything else.
+
+Column meanings, units, valid ranges and known limitations are in
+[`DATA-DICTIONARY.md`](DATA-DICTIONARY.md).
+
 ## Caching
 
 Responses are edge-cached for an hour with a day of stale-while-revalidate. The
@@ -101,8 +132,55 @@ underlying data changes monthly at most (see
 [`pipeline/README.md`](../pipeline/README.md) on refresh cadence), so this keeps
 the free-tier database out of the request path for nearly all traffic.
 
-Please do not poll. If you want the whole dataset, take it in one request rather
-than iterating the endpoints.
+Please do not poll. If you want the whole dataset, use
+[`/export`](#get-exportdatasetformat), which is one request instead of many.
+
+## Versioning
+
+`v1` is in the path, and this is what it promises.
+
+**These can change without a new version.** Build against the API expecting
+them:
+
+- New endpoints.
+- New fields on an existing response. Read by name and ignore what you do not
+  recognise.
+- New values in a `dataset`, `format` or similar parameter.
+- Data values changing on a refresh. The numbers are recomputed monthly at
+  most; a ward's score moving is the API working, not breaking. Every response
+  carries the refresh date via [`/meta`](#get-meta).
+- Cache durations, error message wording, and the order of items in a list
+  where no order is documented.
+
+**These need `v2`.** They will not happen inside `v1`:
+
+- Removing or renaming a field.
+- Changing a field's type, or its units. `hospital_dist_m` will not quietly
+  become kilometres.
+- Changing what a field means while keeping its name.
+- Removing an endpoint or a parameter, or making an optional parameter
+  required.
+- Changing the shape of an error response.
+
+**Deprecation.** If `v2` arrives, `v1` keeps serving for at least six months
+from the day `v2` ships, and during that window `v1` responses carry a
+`Deprecation` header with the removal date. A version is never withdrawn
+without that notice.
+
+**Where changes are announced.** In the changelog below, in
+[`CHANGELOG.md`](../CHANGELOG.md), and in the GitHub release notes for the
+version that carries them.
+
+### API changelog
+
+Changes to this API, newest first. Data refreshes are not listed here; they are
+visible through [`/meta`](#get-meta).
+
+| Date | Change |
+|---|---|
+| 2026-09-23 | Added [`/export`](#get-exportdatasetformat) for bulk access as GeoJSON or CSV. Additive, no existing response changed. |
+| 2026-09-23 | Documented this versioning policy. No behaviour change. |
+| 2026-09-18 | `v1` published with `/meta`, `/wards`, `/wards/{wardId}`, `/lookup`, `/recommendations`, `/cells` and `/openapi.json`. |
 
 ## Limits and honesty
 
@@ -116,7 +194,8 @@ than iterating the endpoints.
 - **Not validated against ground stations yet.** Land surface temperature is
   satellite-derived and is not air temperature. Issue #65 tracks correlating it
   against weather-station observations.
-- **No stability guarantee yet.** `v1` is new. Versioning policy is issue #108.
+- **`v1` is young.** The stability promise is real and written down under
+  [Versioning](#versioning), but it has not been tested by a second version yet.
 
 ## Licence
 
