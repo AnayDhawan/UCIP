@@ -1,0 +1,86 @@
+# Cut a release from a tag (issue #129).
+#
+# Push a v-prefixed tag and the whole chain fires: the release is created from
+# the changelog entry for that version, the dataset is regenerated and attached,
+# and Zenodo mints a DOI off the release once the repo is linked there (#84).
+#
+# Release notes come from CHANGELOG.md rather than from commit subjects. The
+# changelog says what changed and why in whole sentences; commit subjects say
+# what the commits were called. Generating the second and publishing it as
+# release notes would be a downgrade, so this publishes what is already written
+# and fails loudly if the entry is missing.
+#
+# The dataset is rebuilt here rather than trusted from the commit, so the
+# attached CSV always matches the data/ directory at the tag.
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+
+      - name: Resolve the version
+        id: version
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME}"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Build the release notes from CHANGELOG.md
+        run: |
+          set -euo pipefail
+          python pipeline/changelog_section.py "${{ steps.version.outputs.version }}" > release-notes.md
+          echo "Release notes: $(wc -l < release-notes.md) lines."
+
+      - name: Check CITATION.cff matches the tag
+        # Zenodo reads CITATION.cff for the DOI's metadata, so a stale version
+        # there mints a DOI describing the wrong release. Cheap to check here,
+        # awkward to correct once the DOI exists.
+        run: |
+          set -euo pipefail
+          cff_version=$(grep -E '^version:' CITATION.cff | head -1 | sed 's/^version:[[:space:]]*//')
+          if [ "$cff_version" != "${{ steps.version.outputs.version }}" ]; then
+            echo "::error::CITATION.cff says version $cff_version but the tag is ${{ steps.version.outputs.version }}. Update it before tagging."
+            exit 1
+          fi
+          echo "CITATION.cff version matches the tag."
+
+      - name: Regenerate the flat dataset
+        # export_dataset.py is stdlib only, so there is nothing to install.
+        # Exit 2 means it wrote the file but flagged something, which should not
+        # block a release.
+        run: |
+          set -uo pipefail
+          python pipeline/export_dataset.py
+          code=$?
+          if [ "$code" -ne 0 ] && [ "$code" -ne 2 ]; then
+            exit "$code"
+          fi
+
+      - name: Create the release and attach the dataset
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh release create "${{ steps.version.outputs.tag }}" \
+            --repo "${{ github.repository }}" \
+            --title "${{ steps.version.outputs.tag }}" \
+            --notes-file release-notes.md \
+            data/wards_hvi.geojson \
+            data/cells.csv \
+            data/nbs_recommendations.json
