@@ -3,6 +3,7 @@ import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import { CitationList } from "../components/Citation";
 import SimulatePanel from "./SimulatePanel";
+import BudgetAllocation from "./BudgetAllocation";
 import { CITATIONS } from "@/lib/citations";
 
 export const metadata: Metadata = {
@@ -27,6 +28,12 @@ export default function SimulatePage() {
         <div className="mt-8">
           <SimulatePanel />
         </div>
+
+        {/* The published budget scenario (issue #157). It sits below the
+            simulator because it answers the next question: the sliders show
+            what cooling costs in degrees, this shows what it costs in rupees
+            and who would get it. */}
+        <BudgetAllocation />
 
         <div className="mt-10">
           <h2 className="text-lg font-semibold text-foreground">Sources for this estimate</h2>
