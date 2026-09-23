@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import WardPanel from "../components/WardPanel";
 import WardDialog from "../components/WardDialog";
+import WardCompare from "../components/WardCompare";
 import SiteHeader from "../components/SiteHeader";
 import DataVintageBar from "../components/DataVintageBar";
 import {
@@ -20,6 +21,7 @@ import {
   isLocateFailure,
   LOCATE_ERROR_MESSAGE,
 } from "@/lib/findWard";
+import { parseMapLayer, parseMapView, writeMapView, type MapLayer, type MapView } from "@/lib/mapState";
 
 const WardChoropleth = dynamic(() => import("../components/WardChoropleth"), {
   ssr: false,
@@ -102,6 +104,12 @@ function DashboardContent() {
     () => parseWardParam(searchParams.get("wards")),
     [searchParams]
   );
+  const activeLayer = parseMapLayer(searchParams.get("layer"));
+  const mapView = parseMapView(searchParams);
+  const comparedWards = useMemo(
+    () => parseWardParam(searchParams.get("compare")).slice(0, 4),
+    [searchParams]
+  );
   const [isFullscreen, setIsFullscreen] = useState(false);
   /** Find-my-ward (issue #116): state for the map's locate button. */
   const [locating, setLocating] = useState(false);
@@ -175,6 +183,30 @@ function DashboardContent() {
     writeStoredWards(next);
   }
 
+  /** The map owns its pixels, the URL owns its durable state. Replacing avoids
+   * putting every drag and zoom into the Back-button history. */
+  function updateMapState(layer: MapLayer, view: MapView | null) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (layer === "hvi") params.delete("layer");
+    else params.set("layer", layer);
+    if (view) writeMapView(params, view);
+    const qs = params.toString();
+    window.history.replaceState(null, "", qs ? `${pathname}?${qs}` : pathname);
+  }
+
+  function openComparison() {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("compare", serializeWardParam(trackedWards.slice(0, 4)));
+    window.history.pushState(null, "", `${pathname}?${params.toString()}`);
+  }
+
+  function closeComparison() {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("compare");
+    const qs = params.toString();
+    window.history.replaceState(null, "", qs ? `${pathname}?${qs}` : pathname);
+  }
+
   /**
    * On a cold load with no `wards` param, restore whatever this device last
    * tracked. The URL always wins when it carries a set, so opening someone
@@ -214,7 +246,7 @@ function DashboardContent() {
       {!isFullscreen && <SiteHeader compact />}
       {!isFullscreen && <FirstVisitHint />}
       <main className="relative flex flex-1 overflow-hidden">
-        <div className="relative flex-1">
+        <div className="dashboard-map relative flex-1">
           <WardChoropleth
             selectedWardId={selectedWardId}
             onSelectWard={selectWard}
@@ -223,6 +255,10 @@ function DashboardContent() {
             locating={locating}
             locateError={locateError}
             onLocate={locateMe}
+            activeLayer={activeLayer}
+            onLayerChange={(layer) => updateMapState(layer, mapView)}
+            mapView={mapView}
+            onMapViewChange={(view) => updateMapState(activeLayer, view)}
           />
         </div>
         {!isFullscreen && (
@@ -234,6 +270,7 @@ function DashboardContent() {
               onSelectWard={selectWard}
               trackedWards={trackedWards}
               onToggleTracked={toggleTracked}
+              onCompare={openComparison}
             />
           </aside>
         )}
@@ -246,6 +283,7 @@ function DashboardContent() {
         onSelectWard={selectWard}
         enabled={dialogHandlesWard}
       />
+      <WardCompare wardIds={comparedWards} onClose={closeComparison} />
       {/* The data-vintage bar is dashboard chrome like the header and hint, so
           it follows the same fullscreen guard (issue #124). */}
       {!isFullscreen && <DataVintageBar />}

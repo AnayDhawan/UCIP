@@ -13,9 +13,10 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { boundsOf } from "@/lib/geometry";
 import { ACTIVE_CITY } from "@/lib/city";
 import { hviColor as colorForHvi } from "@/lib/hvi";
+import type { MapLayer, MapView } from "@/lib/mapState";
 import type { CellNbsProps, CellNdviProps, WardProps } from "@/lib/wardTypes";
 
-type LayerId = "hvi" | "hvi_grid" | "plantability" | "ndvi_change";
+type LayerId = MapLayer;
 
 // Map centre now comes from config/cities/<slug>.json, the same file the
 // pipeline reads, rather than a literal that could drift from it (issue #68).
@@ -250,11 +251,17 @@ function InvalidateSizeOnChange({ dep }: { dep: unknown }) {
  * Thane/Panvel/ocean. Runs once (a ref guard, not state) so it never fights
  * a user's own pan/zoom or the ward-selection FlyToSelection above.
  */
-function FitToWardExtent({ wardsGeo }: { wardsGeo: FeatureCollection<Geometry, WardProps> | null }) {
+function FitToWardExtent({
+  wardsGeo,
+  enabled,
+}: {
+  wardsGeo: FeatureCollection<Geometry, WardProps> | null;
+  enabled: boolean;
+}) {
   const map = useMap();
   const fitted = useRef(false);
   useEffect(() => {
-    if (fitted.current || !wardsGeo) return;
+    if (!enabled || fitted.current || !wardsGeo) return;
     const bounds = leafletGeoJSON(wardsGeo as GeoJSON.GeoJsonObject).getBounds();
     if (bounds.isValid()) {
       // Tight padding plus the map's fractional zoomSnap: with the default
@@ -263,7 +270,41 @@ function FitToWardExtent({ wardsGeo }: { wardsGeo: FeatureCollection<Geometry, W
       map.fitBounds(bounds, { padding: [10, 10] });
       fitted.current = true;
     }
-  }, [wardsGeo, map]);
+  }, [enabled, wardsGeo, map]);
+  return null;
+}
+
+/** Keeps Leaflet's imperative viewport in sync with the URL without making a
+ * drag produce a React remount. The map emits on moveend, not every mousemove. */
+function MapUrlState({
+  view,
+  onViewChange,
+}: {
+  view: MapView | null;
+  onViewChange?: (view: MapView) => void;
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!view) return;
+    const center = map.getCenter();
+    if (center.lat !== view.lat || center.lng !== view.lng || map.getZoom() !== view.zoom) {
+      map.setView([view.lat, view.lng], view.zoom, { animate: false });
+    }
+  }, [map, view]);
+
+  useEffect(() => {
+    if (!onViewChange) return;
+    const report = () => {
+      const center = map.getCenter();
+      onViewChange({ lat: center.lat, lng: center.lng, zoom: map.getZoom() });
+    };
+    map.on("moveend", report);
+    return () => {
+      map.off("moveend", report);
+    };
+  }, [map, onViewChange]);
+
   return null;
 }
 
@@ -287,6 +328,10 @@ export default function WardChoropleth({
   locating = false,
   locateError = null,
   onLocate,
+  activeLayer = "hvi",
+  onLayerChange,
+  mapView = null,
+  onMapViewChange,
 }: {
   selectedWardId?: string | null;
   onSelectWard?: (wardId: string) => void;
@@ -298,8 +343,13 @@ export default function WardChoropleth({
   locateError?: string | null;
   /** Requests "find the ward I'm in". Only rendered when provided. */
   onLocate?: () => void;
+  /** Current layer, controlled by the dashboard URL. */
+  activeLayer?: LayerId;
+  onLayerChange?: (layer: LayerId) => void;
+  /** Current centre and zoom, controlled by the dashboard URL. */
+  mapView?: MapView | null;
+  onMapViewChange?: (view: MapView) => void;
 }) {
-  const [activeLayer, setActiveLayer] = useState<LayerId>("hvi");
   const [cache, setCache] = useState<Partial<Record<LayerId, FeatureCollection>>>({});
   const [error, setError] = useState<string | null>(null);
 
@@ -379,7 +429,7 @@ export default function WardChoropleth({
     <div className="absolute inset-0">
       <Card className="absolute right-2 top-2 z-[1000] w-fit gap-0 bg-background/95 p-1 backdrop-blur-sm">
         <div className="flex items-center gap-0.5">
-          <Tabs value={activeLayer} onValueChange={(v: string) => setActiveLayer(v as LayerId)}>
+          <Tabs value={activeLayer} onValueChange={(v: string) => onLayerChange?.(v as LayerId)}>
             {/* Height is overridden through the same group-data variant the
                 primitive uses, so it wins rather than sitting alongside it. */}
             <TabsList aria-label="Map layer" className="group-data-horizontal/tabs:h-7">
@@ -455,8 +505,8 @@ export default function WardChoropleth({
       )}
 
       <MapContainer
-        center={ACTIVE_CITY.center}
-        zoom={ACTIVE_CITY.zoom}
+        center={mapView ? [mapView.lat, mapView.lng] : ACTIVE_CITY.center}
+        zoom={mapView?.zoom ?? ACTIVE_CITY.zoom}
         // Quarter-step zooms so fitBounds can actually fill the container
         // instead of rounding down to the next whole level.
         zoomSnap={0.25}
@@ -523,7 +573,8 @@ export default function WardChoropleth({
         )}
         <FlyToSelection selectedWardId={selectedWardId} wardsGeo={wardsGeo} />
         <InvalidateSizeOnChange dep={isFullscreen} />
-        <FitToWardExtent wardsGeo={wardsGeo} />
+        <FitToWardExtent wardsGeo={wardsGeo} enabled={!mapView} />
+        <MapUrlState view={mapView} onViewChange={onMapViewChange} />
         <MapAccessibleName />
       </MapContainer>
     </div>

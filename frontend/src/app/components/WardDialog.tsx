@@ -3,6 +3,7 @@
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import WardDetail from "./WardDetail";
 import WardDetailHeader from "./WardDetailHeader";
+import WardStaticMap from "./WardStaticMap";
 import { useWardData } from "@/lib/useWardData";
 
 /**
@@ -73,14 +74,17 @@ export default function WardDialog({
             <p className="px-4 py-4 text-sm text-muted-foreground">Loading ward…</p>
           )}
           {props && (
-            <WardDetail
-              ward={props}
-              profile={profiles?.wards.find((w) => w.ward_id === props.ward_id) ?? null}
-              city={profiles?.city ?? null}
-              recs={wardRecs}
-              totalWards={totalWards}
-              onSelectWard={onSelectWard}
-            />
+            <>
+              {selected.geometry && <WardStaticMap geometry={selected.geometry} hvi={props.HVI} label={`Ward ${props.ward_id}`} />}
+              <WardDetail
+                ward={props}
+                profile={profiles?.wards.find((w) => w.ward_id === props.ward_id) ?? null}
+                city={profiles?.city ?? null}
+                recs={wardRecs}
+                totalWards={totalWards}
+                onSelectWard={onSelectWard}
+              />
+            </>
           )}
         </div>
       </DialogContent>

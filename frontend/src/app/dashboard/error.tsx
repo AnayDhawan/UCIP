@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import posthog from "posthog-js";
 import { Button } from "@/components/ui/button";
 
 export default function DashboardError({
@@ -11,7 +12,10 @@ export default function DashboardError({
   reset: () => void;
 }) {
   useEffect(() => {
-    // TODO: hook up real error tracking (Sentry, etc.) here once one exists.
+    // PostHog is initialized globally in instrumentation-client.ts; this
+    // boundary catches an error before it reaches window.onerror, so report it
+    // explicitly rather than relying on automatic exception capture.
+    posthog.captureException(error, { route: "/dashboard", digest: error.digest });
     console.error("Dashboard render error:", error);
   }, [error]);
 
