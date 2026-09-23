@@ -1,0 +1,106 @@
+# Twice-weekly republish of the dataset to Supabase.
+#
+# Two jobs in one, both of which the project needs:
+#
+# 1. Activity. A Supabase free-tier project pauses after a week of inactivity,
+#    and this one was found deleted outright on 2026-09-03. A write every few
+#    days is a much stronger signal than the read that supabase-keepalive.yml
+#    already does, and it exercises the service-role path the refresh depends
+#    on rather than only the public read path.
+#
+# 2. Agreement. The site reads committed snapshots, so a Supabase project that
+#    silently drifted from data/ would not show up anywhere. This republishes
+#    data/ into the tables, so the database is never more than a few days from
+#    matching what the site is serving.
+#
+# What it deliberately does NOT do: re-run the pipeline. Stage 07 reads the
+# committed output and upserts it. None of the Earth Engine stages run, so this
+# costs no GEE quota. Running the full chain twice a week would refetch the same
+# dry-season composite and produce identical numbers, because the imagery behind
+# the index is seasonal. Real new data comes from pipeline-refresh.yml, and the
+# reasoning for that cadence is in pipeline/README.md (issue #57).
+
+name: Supabase sync
+
+on:
+  schedule:
+    # Monday and Thursday, 04:23 UTC. Off the hour to dodge the cron stampede,
+    # and spaced so the longest gap between writes is four days, comfortably
+    # inside the free tier's inactivity window.
+    - cron: "23 4 * * 1,4"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+
+      - name: Install what stage 07 needs
+        # Not requirements.txt. Publishing the committed output needs geopandas
+        # to read it and the Supabase client to write it, and none of the Earth
+        # Engine, raster or modelling stack that a real refresh pulls in.
+        run: pip install geopandas supabase
+
+      - name: Publish data/ to Supabase
+        working-directory: pipeline
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: python 07_load.py
+
+      - name: Check the snapshots still match what is committed
+        # Stage 07 rewrites the demo-safe snapshots from the same inputs, so
+        # they should come out byte-identical. If they do not, data/ changed
+        # without going through a refresh PR, which is worth knowing about
+        # rather than committing quietly from a scheduled job.
+        run: |
+          if ! git diff --quiet -- data/; then
+            echo "::warning::Snapshots changed during sync. data/ has drifted from its last refresh:"
+            git diff --stat -- data/
+          else
+            echo "Snapshots unchanged, so data/ and Supabase agree."
+          fi
+
+      - name: Read back through the public path
+        # The upsert used the service-role key. This confirms the same rows are
+        # visible to the anon key the site and the API actually use, which is
+        # what a reader would get. An RLS change that locked out anonymous
+        # reads would pass the write above and fail here.
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          set -euo pipefail
+
+          body=$(mktemp)
+          code=$(curl -sS -o "$body" -w '%{http_code}' --max-time 30 --retry 2 --retry-delay 5 \
+            "${SUPABASE_URL}/rest/v1/wards?select=ward_id,hvi,rank&order=rank.asc&limit=3" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}")
+
+          if [ "$code" != "200" ]; then
+            echo "::error::Anon read returned HTTP $code after a successful write."
+            cat "$body"
+            exit 1
+          fi
+
+          count=$(python -c "import json,sys; print(len(json.load(open(sys.argv[1]))))" "$body")
+          if [ "$count" -eq 0 ]; then
+            echo "::error::Wrote to Supabase but the anon key reads back nothing. Check RLS."
+            exit 1
+          fi
+
+          echo "Anon read returned $count ward(s):"
+          cat "$body"
