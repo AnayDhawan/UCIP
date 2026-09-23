@@ -22,10 +22,31 @@
 create extension if not exists postgis;
 
 -- ---------------------------------------------------------------- columns ----
--- Ward boundaries are MultiPolygon (several BMC wards are split across
--- non-contiguous parts); grid cells are always a single square Polygon.
+-- Both are MultiPolygon.
+--
+-- Wards obviously so: several BMC wards are split across non-contiguous parts.
+--
+-- Grid cells less obviously, and an earlier version of this migration typed
+-- them as Polygon and failed on exactly that:
+--
+--     ERROR: Geometry type (MultiPolygon) does not match column type (Polygon)
+--
+-- A cell starts as a square, but 01_grid.py clips it to the ward boundary, and
+-- a cell straddling the coastline comes back as several disjoint pieces. 10 of
+-- the 541 Mumbai cells are MultiPolygon today. Typing the column to the shape
+-- the data actually has, rather than the shape it starts as, is the fix.
+--
+-- The drops are here because an earlier version of this migration typed
+-- grid_cells.geom as Polygon and may have created the column before failing on
+-- the backfill. A wrongly typed column would reject that backfill on every
+-- re-run. Nothing reads either column yet and both are rebuilt from
+-- geom_geojson immediately below, so dropping first costs nothing and makes
+-- this migration safe to run repeatedly.
+alter table wards      drop column if exists geom;
+alter table grid_cells drop column if exists geom;
+
 alter table wards      add column if not exists geom geometry(MultiPolygon, 4326);
-alter table grid_cells add column if not exists geom geometry(Polygon, 4326);
+alter table grid_cells add column if not exists geom geometry(MultiPolygon, 4326);
 
 -- ---------------------------------------------------------------- backfill ---
 -- ST_GeomFromGeoJSON parses the existing jsonb, so no data leaves the database
@@ -41,7 +62,7 @@ update wards
    and geom_geojson is not null;
 
 update grid_cells
-   set geom = ST_MakeValid(ST_GeomFromGeoJSON(geom_geojson::text))
+   set geom = ST_Multi(ST_MakeValid(ST_GeomFromGeoJSON(geom_geojson::text)))
  where geom is null
    and geom_geojson is not null;
 
@@ -67,11 +88,9 @@ begin
     if new.geom_geojson is null then
         new.geom := null;
     else
-        new.geom := ST_MakeValid(ST_GeomFromGeoJSON(new.geom_geojson::text));
-        -- wards.geom is typed MultiPolygon; normalise a single Polygon into one.
-        if TG_TABLE_NAME = 'wards' then
-            new.geom := ST_Multi(new.geom);
-        end if;
+        -- Both columns are typed MultiPolygon, so a single Polygon is
+        -- normalised into one. ST_Multi on something already multi is a no-op.
+        new.geom := ST_Multi(ST_MakeValid(ST_GeomFromGeoJSON(new.geom_geojson::text)));
     end if;
     return new;
 end;
