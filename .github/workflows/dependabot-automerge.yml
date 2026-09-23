@@ -47,11 +47,14 @@ jobs:
 
   merge:
     name: Merge on green
+    # Deliberately not gated on workflow_run.actor. That is whoever caused the
+    # run, so a maintainer re-running checks on a Dependabot PR would make it
+    # permanently ineligible to merge. Authorship is checked against the pull
+    # request itself below, which is the thing that actually matters.
     if: >-
       github.event_name == 'workflow_run' &&
       github.event.workflow_run.event == 'pull_request' &&
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.actor.login == 'dependabot[bot]'
+      github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Merge if the PR is a labelled patch bump and every check passed
@@ -70,7 +73,17 @@ jobs:
             exit 0
           fi
 
-          labels=$(gh pr view "$number" --repo "$REPO" --json labels --jq '[.labels[].name] | join(",")')
+          read -r author labels <<<"$(gh pr view "$number" --repo "$REPO" \
+            --json author,labels --jq '"\(.author.login) \([.labels[].name] | join(","))"')"
+
+          # The label is only ever applied by the job above, which runs on
+          # Dependabot PRs. Checking authorship as well means a label applied by
+          # hand to someone else's PR does not buy an unattended merge.
+          if [ "$author" != "app/dependabot" ] && [ "$author" != "dependabot[bot]" ]; then
+            echo "PR #$number was opened by $author, not Dependabot. Leaving it."
+            exit 0
+          fi
+
           case ",$labels," in
             *,auto-merge,*) ;;
             *) echo "PR #$number is not labelled auto-merge, leaving it for a human."; exit 0 ;;
