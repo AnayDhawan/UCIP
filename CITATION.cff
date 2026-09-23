@@ -1,0 +1,41 @@
+cff-version: 1.2.0
+message: "If you use UCIP or its dataset, please cite it as below."
+title: "UCIP: Urban Climate Intelligence Platform"
+abstract: >-
+  A decision-support platform for ward-level heat vulnerability in Mumbai. UCIP
+  computes a Heat Vulnerability Index over a 1 km grid from satellite land
+  surface temperature, vegetation, land cover and demographic data, rolls it up
+  to the 24 BMC wards with literature-derived PCA weights, and recommends
+  nature-based cooling interventions through an ecological plantability filter.
+  Every weight, dataset, assumption and limitation is published alongside the
+  output.
+type: software
+authors:
+  - family-names: Dhawan
+    given-names: Anay
+    email: dhawansanay@gmail.com
+repository-code: "https://github.com/AnayDhawan/UCIP"
+url: "https://uciplatform.vercel.app"
+license: Apache-2.0
+version: 1.0.0
+date-released: "2026-09-18"
+keywords:
+  - heat vulnerability
+  - urban heat island
+  - nature-based solutions
+  - remote sensing
+  - Mumbai
+  - climate adaptation
+  - open data
+references:
+  - type: article
+    title: "Mapping community determinants of heat vulnerability"
+    authors:
+      - family-names: Reid
+        given-names: "Colleen A."
+    journal: "Environmental Health Perspectives"
+    volume: 117
+    issue: 11
+    year: 2009
+    doi: 10.1289/ehp.0900683
+    notes: "Source of the PCA weighting approach used for the index."
