@@ -20,7 +20,7 @@ name: Alert on failure
 
 on:
   workflow_run:
-    workflows: [Pipeline refresh, Smoke, Supabase keepalive, Supabase sync, Supabase backup]
+    workflows: [Pipeline refresh, Smoke, Supabase keepalive, Supabase sync, Supabase backup, Usage report]
     types: [completed]
 
 permissions:

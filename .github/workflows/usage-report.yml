@@ -1,0 +1,77 @@
+# Weekly check on how close the free tiers are to their ceilings (issue #130).
+#
+# Earth Engine and Supabase are both free tier and both have limits this
+# project will approach as the pipeline runs more often and the API takes
+# traffic. Without this, the first sign of exhaustion is an outage.
+#
+# It warns on approach rather than on breach, which is the point: a quota alert
+# that fires when you are already out is a postmortem, not a warning. A warning
+# fails the job, which opens an issue through the alerting from #125.
+
+name: Usage report
+
+on:
+  schedule:
+    # Sundays, 06:11 UTC, after the weekly backup.
+    - cron: "11 6 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: usage-report
+  cancel-in-progress: true
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+
+      - name: Fetch the last refresh's run log
+        # The run log is gitignored, so a fresh checkout has none and the Earth
+        # Engine section would have nothing to report. pipeline-refresh.yml
+        # uploads it as an artifact on every run, so take the most recent one.
+        # Absent is fine: the report says so and still covers Supabase.
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          run_id=$(gh run list --repo "$GITHUB_REPOSITORY" \
+            --workflow "Pipeline refresh" --status completed \
+            --limit 1 --json databaseId --jq '.[0].databaseId // empty')
+
+          if [ -z "$run_id" ]; then
+            echo "No completed refresh run yet, so no run log to read."
+            exit 0
+          fi
+
+          gh run download "$run_id" --repo "$GITHUB_REPOSITORY" --dir refresh-artifact \
+            || { echo "Refresh run $run_id has no artifact left, likely expired."; exit 0; }
+
+          log=$(find refresh-artifact -name pipeline_run_log.json | head -1)
+          if [ -n "$log" ]; then
+            mkdir -p data
+            cp "$log" data/pipeline_run_log.json
+            echo "Using the run log from refresh run $run_id."
+          fi
+
+      - name: Report usage
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          python pipeline/usage_report.py --fail-on-warning --out usage.md
+          cat usage.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Put the report in the summary even when a ceiling was hit
+        if: failure()
+        run: |
+          if [ -f usage.md ]; then cat usage.md >> "$GITHUB_STEP_SUMMARY"; fi
