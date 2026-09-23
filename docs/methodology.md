@@ -61,6 +61,32 @@ This captures sampling uncertainty in the cells only. It does not capture
 measurement error in the indicators, the choice of indicators, or the decision
 to weight by PCA at all, which is quantified separately in §5.
 
+## 4d. How much imagery is behind each cell
+
+`lst_clear_obs` per cell, from stage 02 (issue #94).
+
+The dry-season composite is a median over cloud-masked Landsat scenes, and
+until now nothing recorded how many observations survived that masking for a
+given cell. A cell composited from two clear passes and one composited from
+twelve carried identical weight in the index, with no way to tell them apart.
+Cloud contamination biases land surface temperature, so that was an unmeasured
+exposure rather than a known-small one.
+
+Every cell now carries the mean number of cloud-free observations backing its
+LST, and a `lst_obs_sparse` flag.
+
+**The minimum is 3 cloud-free observations.** Below that a cell is flagged.
+Three is a floor rather than a comfort level: a four-month dry-season window is
+roughly eight to sixteen Landsat 8 and 9 passes, so a cell down at two is
+persistently clouded or persistently masked, and a median over two values is
+barely a median. Stage 14 already applies the same judgement to a longer
+window, requiring four scenes before fitting a ward-year.
+
+Flagged, not dropped. Dropping would change the cell count between runs, and
+the downstream stages, the published dataset and the quality gate's count
+tolerance all treat the grid size as stable. A consumer who wants to exclude
+sparse cells can; the pipeline does not reshape itself silently.
+
 ## 5. Sensitivity / validity
 - Weights perturbed +/-20%; ward priority ranking shown stable (chart). Addresses weight-transfer validity for Mumbai.
 - **PCA weighting vs the published fallback** (`pipeline/compare_weightings.py`, output `data/weighting_comparison.json`). The obvious challenge to a data-derived weighting is "how much does it change the answer versus just using the published weights?", so both are run over the same cells and compared:

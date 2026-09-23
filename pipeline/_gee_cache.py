@@ -39,7 +39,10 @@ CACHE_DIR = Path(__file__).resolve().parent / "cache" / "gee"
 
 # Bumped when the cached payload's shape changes, so an old entry is a miss
 # rather than something the new code misreads.
-CACHE_VERSION = 1
+#
+# 2: the zonal result gained lst_clear_obs (issue #94). A v1 entry has no such
+#    band, so serving it would leave every cell un-flagged and looking fine.
+CACHE_VERSION = 2
 
 
 def _canonical(value: Any) -> str:

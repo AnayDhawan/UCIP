@@ -48,6 +48,8 @@ Defined over every 1 km cell, then standardised and weighted in stage 05. Ranges
 | `hvi` | Heat Vulnerability Index, 0–100 | Z-scored indicators, oriented so higher = more vulnerable, PCA-weighted per Reid et al. 2009, rescaled 0–100. Higher = more vulnerable. |
 | `contrib_*` (×7) | Per-factor contribution = weight × z-score | The explainability layer: a ward/cell score decomposes exactly into these. Mostly within ±0.3. Named `contrib_<indicator>`, e.g. `contrib_LST_C`. |
 | `ndvi_delta` | `NDVI − NDVI_prev` | Stage 09, same-season comparison. |
+| `lst_clear_obs` | Mean cloud-free Landsat observations per pixel backing this cell's LST | Stage 02. Cloud and shadow are masked before counting, so this is usable imagery, not passes. A dry-season window is roughly 8–16 passes; a cell in low single figures is persistently clouded. |
+| `lst_obs_sparse` | `true` when `lst_clear_obs` < 3 | The cell's LST rests on too little imagery to trust. **Flagged, not dropped**: dropping would change the cell count between runs, which downstream stages and the quality gate treat as a stable property of the grid. Exclude these cells yourself if your analysis needs to. |
 | `change_class` | `gained` / `stable` / `lost` / `unknown` | ΔNDVI classified with ±0.05 cutoffs (`stable` within ±0.05); `unknown` where either composite is missing. |
 
 ## Per-ward outputs

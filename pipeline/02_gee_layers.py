@@ -76,6 +76,17 @@ ZONAL_SCALE = 30  # Landsat native resolution
 WORLDCOVER_SCALE = 10
 WORLDCOVER_BUILTUP_CLASS = 50
 
+# Below this many cloud-free observations, a cell's LST rests on too little
+# imagery to trust and is flagged (issue #94).
+#
+# Three is a floor, not a comfort level. A dry-season window is about four
+# months of Landsat 8 and 9, so a clear cell sees roughly eight to sixteen
+# passes; a cell down at two is persistently clouded or persistently masked,
+# and a median over two observations is barely a median. Stage 14 already uses
+# four scenes as its per-year floor for fitting a trend, which is the same
+# judgement applied to a longer window.
+MIN_CLEAR_OBS = 3
+
 
 def mask_l2_clouds(img: ee.Image) -> ee.Image:
     qa = img.select("QA_PIXEL")
@@ -144,6 +155,19 @@ def main(args: argparse.Namespace) -> int:
     lst_c = curr_composite.select("ST_B10").multiply(ST_SCALE).add(ST_OFFSET).subtract(273.15).rename("LST_C")
     ndvi_curr = ndvi_from_composite(curr_composite).rename("NDVI")
 
+    # How much usable imagery each pixel actually had (issue #94).
+    #
+    # mask_l2_clouds has already masked cloud and shadow, so count() over the
+    # collection is the number of observations that survived per pixel. Reduced
+    # per cell below, it becomes the mean clear observations backing that
+    # cell's LST.
+    #
+    # Without this a cell composited from two clear scenes and one composited
+    # from twelve carry identical weight in the index, and nothing anywhere
+    # records the difference. Cloud contamination biases LST, and this is the
+    # only measure of the exposure.
+    clear_obs = curr.select("ST_B10").count().rename("lst_clear_obs")
+
     prev = landsat_collection(PREV_START, PREV_END, region)
     n_prev = prev.size().getInfo()
     print(f"[ok] {n_prev} Landsat scenes in previous window {PREV_START}..{PREV_END}")
@@ -161,7 +185,7 @@ def main(args: argparse.Namespace) -> int:
         .rename("impervious_pct")
     )
 
-    stack = lst_c.addBands(ndvi_curr).addBands(ndvi_prev).addBands(impervious_pct)
+    stack = lst_c.addBands(ndvi_curr).addBands(ndvi_prev).addBands(impervious_pct).addBands(clear_obs)
 
     zonal = stack.reduceRegions(
         collection=grid_fc,
@@ -213,20 +237,43 @@ def main(args: argparse.Namespace) -> int:
             "NDVI": p.get("NDVI"),
             "NDVI_prev": p.get("NDVI_prev"),
             "impervious_pct": p.get("impervious_pct"),
+            "lst_clear_obs": p.get("lst_clear_obs"),
         }
 
     with open(GRID_PATH, encoding="utf-8") as f:
         grid_gj = json.load(f)
     matched = 0
+    sparse = 0
     for feat in grid_gj["features"]:
         gid = feat["properties"]["grid_id"]
         vals = props_by_id.get(gid, {})
         feat["properties"].update(vals)
+
+        # Flagged rather than dropped (issue #94). Dropping would change the
+        # cell count between runs, which every downstream stage, the published
+        # dataset and the quality gate's tolerance all treat as a stable
+        # property of the grid. A flag lets a consumer exclude these cells
+        # without the pipeline silently reshaping itself.
+        obs = vals.get("lst_clear_obs")
+        is_sparse = obs is not None and obs < MIN_CLEAR_OBS
+        feat["properties"]["lst_obs_sparse"] = is_sparse
+        if is_sparse:
+            sparse += 1
+
         if vals.get("LST_C") is not None:
             matched += 1
 
     OUT_PATH.write_text(json.dumps(grid_gj), encoding="utf-8")
     print(f"[ok] wrote {len(grid_gj['features'])} cells ({matched} with LST) -> {OUT_PATH}")
+
+    observed = [v["lst_clear_obs"] for v in props_by_id.values() if v.get("lst_clear_obs") is not None]
+    if observed:
+        observed.sort()
+        print(f"[ok] clear observations per cell: min {observed[0]:.1f}, "
+              f"median {observed[len(observed) // 2]:.1f}, max {observed[-1]:.1f}")
+    if sparse:
+        print(f"[WARN] {sparse} cell(s) below {MIN_CLEAR_OBS} clear observations, "
+              "flagged lst_obs_sparse. Their LST rests on very little imagery.")
     _provenance.record(
         "02",
         collections=[
