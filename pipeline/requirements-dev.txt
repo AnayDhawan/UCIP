@@ -10,3 +10,10 @@ pytest
 # test, so this stays credential-free like the rest of this file.
 earthengine-api
 cryptography
+
+# For pipeline/validate_cities.py (issue #107): real JSON Schema validation of
+# config/city.schema.json, which CI runs on every push. Pinned to 4.18+ because
+# city.schema.json declares draft 2020-12 and jsonschema 3.x has no validator
+# for it; an older version silently falls back to draft 7 and stops enforcing
+# prefixItems, which is what checks the bbox is four numbers.
+jsonschema>=4.18

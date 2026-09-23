@@ -29,6 +29,8 @@ import json
 import sys
 from pathlib import Path
 
+import jsonschema
+
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG_DIR = ROOT / "config" / "cities"
 SCHEMA_PATH = ROOT / "config" / "city.schema.json"
@@ -38,10 +40,27 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _city import utm_crs_for  # noqa: E402
 
 
-def check_required(cfg: dict, schema: dict, errors: list[str], label: str) -> None:
-    for key in schema.get("required", []):
-        if key not in cfg:
-            errors.append(f"{label}: missing required key '{key}'")
+def check_schema(cfg: dict, schema: dict, errors: list[str], label: str) -> None:
+    """Validate against config/city.schema.json (issue #107).
+
+    This used to walk the schema's top-level `required` array by hand, which
+    caught a missing key and nothing else. The schema declares types, nested
+    required keys, array lengths, enums and `additionalProperties: false`, and
+    none of that was enforced, so a config with `bbox` as a string or a typo'd
+    key passed validation and failed 40 minutes into an Earth Engine run.
+
+    Errors are reported with the path to the offending field, since "grid.cell_size_m
+    is not of type integer" is actionable and "config is invalid" is not.
+    """
+    # Pick the validator from the schema's own $schema rather than naming a
+    # draft here, so the two cannot drift apart.
+    validator_cls = jsonschema.validators.validator_for(schema)
+    validator_cls.check_schema(schema)
+    validator = validator_cls(schema)
+
+    for error in sorted(validator.iter_errors(cfg), key=lambda e: list(e.absolute_path)):
+        where = ".".join(str(part) for part in error.absolute_path) or "(root)"
+        errors.append(f"{label}: {where}: {error.message}")
 
 
 def validate(path: Path, schema: dict, strict_geo: bool) -> tuple[list[str], list[str]]:
@@ -54,7 +73,7 @@ def validate(path: Path, schema: dict, strict_geo: bool) -> tuple[list[str], lis
     except json.JSONDecodeError as exc:
         return [f"{label}: not valid JSON ({exc})"], []
 
-    check_required(cfg, schema, errors, label)
+    check_schema(cfg, schema, errors, label)
     if errors:
         return errors, warnings
 
