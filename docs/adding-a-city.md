@@ -32,8 +32,33 @@ print([round(v, 3) for v in g.total_bounds])   # min_lon, min_lat, max_lon, max_
 
 ## 2. Write the config
 
-Copy `config/cities/mumbai.json` to `config/cities/<slug>.json` and edit it.
-Every field is documented in [`config/city.schema.json`](../config/city.schema.json).
+Use the scaffolder. It derives the values that are dangerous to copy:
+
+```bash
+python pipeline/new_city.py \
+  --slug pune --name Pune \
+  --bbox 73.7 18.4 74.0 18.65 \
+  --boundaries pune_wards.geojson --ward-id-field name \
+  --expected-ward-count 15 --country India
+```
+
+That writes a config which passes `validate_cities.py` with no hand-editing.
+Two fields in particular are derived rather than inherited:
+
+- `grid.projected_crs`, the UTM zone for your bounding box. Copying Mumbai's
+  leaves a city in the wrong zone, which distorts every area and distance in the
+  pipeline while still producing output that looks fine.
+- `map.center`, in Leaflet's `[lat, lon]` order, which is the reverse of the
+  bbox's own order.
+
+`ecology.calibrated` is written as `false` on purpose and the scaffolder will
+not set it otherwise. See section 5 below for what changing it commits you to.
+
+If you would rather write it by hand, copy `config/cities/mumbai.json` to
+`config/cities/<slug>.json` and edit it. Every field is documented in
+[`config/city.schema.json`](../config/city.schema.json), and
+`python pipeline/validate_cities.py --city <slug>` will tell you what is wrong
+by name.
 
 ```json
 {
