@@ -6,6 +6,18 @@ All notable changes to this project are documented here. Format based on
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-09-23
+
+### Added
+- An MCP server (`mcp-server/`, publishable as `ucip-mcp`), so an assistant can
+  query ward vulnerability and cited recommendations directly. Every response
+  carries its caveats inline, because a bare ranking handed to a language model
+  comes back out as a confident recommendation with the uncertainty removed.
+
+### Changed
+- The scheduled data refresh runs twice a week rather than monthly.
+
+
 ## [1.0.1] - 2026-09-23
 
 A maintenance release. No change to the published numbers: the wards, scores
