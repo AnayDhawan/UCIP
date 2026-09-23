@@ -86,3 +86,7 @@ deck/
 # Local Supabase exports from pipeline/backup_supabase.py. Backups belong in
 # workflow artifacts, not in git history.
 backups/
+
+# MCP server build output and deps.
+mcp-server/node_modules/
+mcp-server/dist/

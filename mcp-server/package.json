@@ -1,0 +1,33 @@
+{
+  "name": "ucip-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for UCIP: Mumbai ward-level heat vulnerability, with cited nature-based cooling recommendations.",
+  "keywords": ["mcp", "model-context-protocol", "heat-vulnerability", "climate", "urban-heat", "mumbai"],
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AnayDhawan/UCIP.git",
+    "directory": "mcp-server"
+  },
+  "type": "module",
+  "bin": { "ucip-mcp": "./dist/index.js" },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2",
+    "vitest": "^3.2.7"
+  },
+  "engines": { "node": ">=18" }
+}
