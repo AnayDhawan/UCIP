@@ -1,0 +1,39 @@
+1
+00:00:00,000 --> 00:00:08,000
+[hook] This is UCIP. Mumbai's 24 wards, ranked by heat vulnerability, not just where it's hot, but which ward to fix first.
+
+2
+00:00:08,000 --> 00:00:22,000
+[problem] Most heat maps stop at 'it's hot here.' They don't say which ward needs help first, or what actually works there.
+
+3
+00:00:22,000 --> 00:00:32,000
+[demo-dashboard] Every ward scored from real satellite heat data, population, and green cover. Click the worst one, Ward C, Mumbai's old fort-and-market core.
+
+4
+00:00:32,000 --> 00:00:43,000
+[demo-nbs] The obvious answer is plant trees. UCIP checks that first. Ward C is dense and built-up, not grassland-suitable, so afforestation would backfire ecologically. It recommends cool roofs instead, and cites the paper.
+
+5
+00:00:43,000 --> 00:01:11,300
+[site-walkthrough] It's a real site, not a mockup. Live gradient hero, real ward data, every section, a click away from the dashboard.
+
+6
+00:01:11,300 --> 00:01:16,300
+[how-to-use] Or go fullscreen, and tap any ward on the map directly.
+
+7
+00:01:16,300 --> 00:01:32,300
+[model-testing] And the model behind it isn't a black box either. Move a slider, watch the cited estimate recompute, live.
+
+8
+00:01:32,300 --> 00:01:57,300
+[methodology] Every input is free public data. Every claim traces to a cited, dated source. No black box. It's stress-tested too. Shift every weight by 20 percent, watch the ranking barely move.
+
+9
+00:01:57,300 --> 00:02:52,300
+[differentiation] Every other tool here picks one piece, a map, or a diagnosis, or a warning. UCIP does the whole chain. It ranks every ward, explains why, recommends a fix, checks the ecology first, and every number is cited, not guessed. It isn't locked to Mumbai either. The same free data works for any Indian city, Pune, Ahmedabad, Delhi, same pipeline, same citations.
+
+10
+00:02:52,300 --> 00:03:00,300
+[cta] UCIP. Which ward, why, and what to build.

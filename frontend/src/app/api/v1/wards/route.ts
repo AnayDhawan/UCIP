@@ -17,6 +17,7 @@ import {
   optionsResponse,
   parseLimit,
   readSnapshot,
+  rateLimited,
   supabase,
 } from "../_lib";
 
@@ -61,6 +62,9 @@ export function OPTIONS() {
 }
 
 export async function GET(request: Request) {
+  const limited = await rateLimited(request);
+  if (limited) return limited;
+
   const url = new URL(request.url);
   const limit = parseLimit(url.searchParams.get("limit"), 24, 24);
   const wantGeometry = url.searchParams.get("geometry") === "true";

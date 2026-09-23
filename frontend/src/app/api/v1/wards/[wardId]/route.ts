@@ -15,6 +15,7 @@ import {
   jsonResponse,
   normaliseWardId,
   optionsResponse,
+  rateLimited,
   readSnapshot,
   supabase,
 } from "../../_lib";
@@ -29,6 +30,9 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ wardId: string }> }
 ) {
+  const limited = await rateLimited(request);
+  if (limited) return limited;
+
   const { wardId: raw } = await params;
   const wardId = normaliseWardId(raw);
   if (!wardId) {
