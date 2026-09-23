@@ -96,6 +96,19 @@ Per-ward ranked recommendations (`pipeline/06_nbs.py` rule engine). Fields: `war
 | `summary` | Per-ward least-squares slope and classification for each measure. |
 | `what_this_is`, `what_this_is_not`, `limitations` | Honest framing; the other five index indicators are frozen snapshots, so only the thermal/vegetation trend is published. |
 
+### `weighting_comparison.json` (`pipeline/compare_weightings.py`)
+
+The ward ranking under the PCA-derived weights against the published equal
+weighting the pipeline falls back to (issue #88). Fields: `question`,
+`weightings` (each with `source` and `weights`), `agreement` (`kendall_tau`,
+`spearman_rho`, `wards_with_identical_rank`, `max_abs_rank_shift`,
+`max_shift_ward`, `top_5_overlap`, and both top-5 lists), `interpretation`, and
+`per_ward` (`ward_id`, `rank_pca`, `rank_published`, `rank_shift`).
+
+`rank_shift` is published minus PCA, so a positive value means the published
+weighting ranks that ward as *less* vulnerable. The shifts sum to zero by
+construction, since both are orderings of the same 24 wards.
+
 ### `hvi_pca_log.json`
 
 PCA provenance for the current run: `loadings_pc1`, `explained_variance_pc1`, `weights` (normalised), `weight_source` (`pca_reid2009` or `published_fallback`), `fallback_used`, `fallback_trigger`. The published weights change only via this log.

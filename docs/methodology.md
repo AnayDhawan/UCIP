@@ -30,6 +30,17 @@
 
 ## 5. Sensitivity / validity
 - Weights perturbed +/-20%; ward priority ranking shown stable (chart). Addresses weight-transfer validity for Mumbai.
+- **PCA weighting vs the published fallback** (`pipeline/compare_weightings.py`, output `data/weighting_comparison.json`). The obvious challenge to a data-derived weighting is "how much does it change the answer versus just using the published weights?", so both are run over the same cells and compared:
+
+  | Measure | Result |
+  |---|---|
+  | Kendall tau | 0.913 |
+  | Spearman rho | 0.977 |
+  | Wards with an identical rank | 13 of 24 |
+  | Largest single move | ward L, 3 places (3rd to 6th) |
+  | Top-5 overlap | 4 of 5 |
+
+  Read this correctly. A high correlation does not show the PCA weighting is right; it shows the ranking is largely insensitive to the choice, which is the more useful claim. The wards at the top are there because of the data rather than because of the weighting. The one disagreement that would matter to a spending decision is L, which the PCA weighting places 3rd and the published weighting 6th.
 
 ## 6. NBS recommendation engine
 - Rule-based; each fired rule carries a rationale + citation.

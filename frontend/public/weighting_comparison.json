@@ -1,0 +1,200 @@
+{
+  "question": "How much does the PCA-derived weighting change the ward ranking compared with the published equal weighting it falls back to?",
+  "weightings": {
+    "pca": {
+      "source": "pca_reid2009",
+      "weights": {
+        "LST_C": 0.16808423643688025,
+        "NDVI": 0.14939544041337605,
+        "pop_density_km2": 0.16821207362630755,
+        "elderly_pct": 0.07674512883899384,
+        "slum_pct": 0.10749678814446872,
+        "hospital_dist_m": 0.14881141353734903,
+        "impervious_pct": 0.18125491900262458
+      },
+      "explained_variance_pc1": 0.5803611274495175
+    },
+    "published": {
+      "source": "Reid et al. 2009 component-level default, equal weighting",
+      "weights": {
+        "LST_C": 0.14285714285714285,
+        "NDVI": 0.14285714285714285,
+        "pop_density_km2": 0.14285714285714285,
+        "elderly_pct": 0.14285714285714285,
+        "slum_pct": 0.14285714285714285,
+        "hospital_dist_m": 0.14285714285714285,
+        "impervious_pct": 0.14285714285714285
+      }
+    }
+  },
+  "agreement": {
+    "kendall_tau": 0.913,
+    "spearman_rho": 0.9774,
+    "wards_with_identical_rank": 13,
+    "n_wards": 24,
+    "max_abs_rank_shift": 3,
+    "max_shift_ward": "L",
+    "top_5_overlap": 4,
+    "top_5_pca": [
+      "C",
+      "G/N",
+      "L",
+      "E",
+      "F/S"
+    ],
+    "top_5_published": [
+      "C",
+      "G/N",
+      "F/S",
+      "E",
+      "B"
+    ]
+  },
+  "interpretation": "A high correlation does not show the PCA weighting is correct. It shows the ranking is insensitive to the choice, which is the more useful claim: wards near the top are there because of the data rather than because of the weighting.",
+  "per_ward": [
+    {
+      "ward_id": "C",
+      "rank_pca": 1,
+      "rank_published": 1,
+      "rank_shift": 0
+    },
+    {
+      "ward_id": "G/N",
+      "rank_pca": 2,
+      "rank_published": 2,
+      "rank_shift": 0
+    },
+    {
+      "ward_id": "L",
+      "rank_pca": 3,
+      "rank_published": 6,
+      "rank_shift": 3
+    },
+    {
+      "ward_id": "E",
+      "rank_pca": 4,
+      "rank_published": 4,
+      "rank_shift": 0
+    },
+    {
+      "ward_id": "F/S",
+      "rank_pca": 5,
+      "rank_published": 3,
+      "rank_shift": -2
+    },
+    {
+      "ward_id": "B",
+      "rank_pca": 6,
+      "rank_published": 5,
+      "rank_shift": -1
+    },
+    {
+      "ward_id": "G/S",
+      "rank_pca": 7,
+      "rank_published": 7,
+      "rank_shift": 0
+    },
+    {
+      "ward_id": "H/E",
+      "rank_pca": 8,
+      "rank_published": 11,
+      "rank_shift": 3
+    },
+    {
+      "ward_id": "K/E",
+      "rank_pca": 9,
+      "rank_published": 12,
+      "rank_shift": 3
+    },
+    {
+      "ward_id": "F/N",
+      "rank_pca": 10,
+      "rank_published": 8,
+      "rank_shift": -2
+    },
+    {
+      "ward_id": "A",
+      "rank_pca": 11,
+      "rank_published": 9,
+      "rank_shift": -2
+    },
+    {
+      "ward_id": "M/W",
+      "rank_pca": 12,
+      "rank_published": 13,
+      "rank_shift": 1
+    },
+    {
+      "ward_id": "D",
+      "rank_pca": 13,
+      "rank_published": 10,
+      "rank_shift": -3
+    },
+    {
+      "ward_id": "H/W",
+      "rank_pca": 14,
+      "rank_published": 14,
+      "rank_shift": 0
+    },
+    {
+      "ward_id": "K/W",
+      "rank_pca": 15,
+      "rank_published": 15,
+      "rank_shift": 0
+    },
+    {
+      "ward_id": "R/S",
+      "rank_pca": 16,
+      "rank_published": 16,
+      "rank_shift": 0
+    },
+    {
+      "ward_id": "M/E",
+      "rank_pca": 17,
+      "rank_published": 17,
+      "rank_shift": 0
+    },
+    {
+      "ward_id": "S",
+      "rank_pca": 18,
+      "rank_published": 18,
+      "rank_shift": 0
+    },
+    {
+      "ward_id": "N",
+      "rank_pca": 19,
+      "rank_published": 19,
+      "rank_shift": 0
+    },
+    {
+      "ward_id": "P/S",
+      "rank_pca": 20,
+      "rank_published": 21,
+      "rank_shift": 1
+    },
+    {
+      "ward_id": "P/N",
+      "rank_pca": 21,
+      "rank_published": 20,
+      "rank_shift": -1
+    },
+    {
+      "ward_id": "R/N",
+      "rank_pca": 22,
+      "rank_published": 22,
+      "rank_shift": 0
+    },
+    {
+      "ward_id": "R/C",
+      "rank_pca": 23,
+      "rank_published": 23,
+      "rank_shift": 0
+    },
+    {
+      "ward_id": "T",
+      "rank_pca": 24,
+      "rank_published": 24,
+      "rank_shift": 0
+    }
+  ]
+}
