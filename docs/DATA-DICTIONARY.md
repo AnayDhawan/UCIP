@@ -63,6 +63,9 @@ One feature per ward (`FeatureCollection`). Properties:
 | `rank` | 1 = most vulnerable of the 24. |
 | `n_cells` | Number of grid cells inside the ward. |
 | `contrib_*` (×7) | Ward-level mean of the cell contributions. |
+| `dominant_factor` | Indicator with the largest **absolute** contribution. Magnitude, not sign: a factor pushing the score down hard is driving it as much as one pushing it up. Null only if every contribution is zero. |
+| `dominant_share` | That indicator's share of the ward's total absolute contribution, 0–1. An even spread across the seven is about 0.14. On the current Mumbai data the range is 0.19–0.35. |
+| `single_factor_dominated` | True when `dominant_share` ≥ 0.5, i.e. one indicator accounts for half or more of the movement in the score. Such a ward needs a different intervention from one scoring high across all seven. **No Mumbai ward currently crosses this**, which is itself a result: the index is not being carried by a single indicator anywhere. Threshold: `DOMINANCE_THRESHOLD` in `pipeline/_hvi.py`. |
 
 ### `ward_profiles.json` (`pipeline/10_ward_profile.py`)
 

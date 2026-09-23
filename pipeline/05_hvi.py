@@ -57,6 +57,7 @@ from sklearn.decomposition import PCA
 
 from _publish import publish
 from _city import load_city
+from _hvi import DOMINANCE_THRESHOLD, factor_dominance
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
@@ -171,6 +172,30 @@ def main() -> int:
     ).reset_index()
     ward_hvi["rank"] = ward_hvi["HVI"].rank(ascending=False, method="min").astype(int)
     ward_hvi = ward_hvi.sort_values("rank")
+
+    # Which indicator is doing the work in each ward (issue #97). The index is a
+    # weighted sum of seven, and nothing checked whether one of them was
+    # carrying a ward on its own. A ward that is hot because it has no tree
+    # cover needs a different intervention from one that is hot across every
+    # indicator, and the contributions to say so were already being stored.
+    dominance = ward_hvi[[f"contrib_{c}" for c in cols]].apply(
+        lambda row: factor_dominance(
+            {c: row[f"contrib_{c}"] for c in cols}
+        ),
+        axis=1,
+    )
+    ward_hvi["dominant_factor"] = [d["dominant_factor"] for d in dominance]
+    ward_hvi["dominant_share"] = [d["dominant_share"] for d in dominance]
+    ward_hvi["single_factor_dominated"] = [d["single_factor_dominated"] for d in dominance]
+
+    n_dominated = int(ward_hvi["single_factor_dominated"].sum())
+    if n_dominated:
+        flagged = ward_hvi[ward_hvi["single_factor_dominated"]]
+        print(f"[note] {n_dominated} ward(s) driven by a single indicator "
+              f"(>= {DOMINANCE_THRESHOLD:.0%} of total contribution):")
+        for _, row in flagged.iterrows():
+            print(f"       {row['ward_id']:<6} {row['dominant_factor']:<24} "
+                  f"{row['dominant_share']:.0%}")
 
     wards_out = wards.merge(ward_hvi, on="ward_id", how="left")
     wards_out.to_file(OUT_WARDS_PATH, driver="GeoJSON")

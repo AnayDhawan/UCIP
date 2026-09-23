@@ -21,6 +21,12 @@ export type WardProps = {
   contrib_slum_pct: number | null;
   contrib_hospital_dist_m: number | null;
   contrib_impervious_pct: number | null;
+  /** Indicator with the largest absolute contribution to this ward's score. */
+  dominant_factor?: string | null;
+  /** Its share of total absolute contribution, 0 to 1. An even spread is about 0.14. */
+  dominant_share?: number | null;
+  /** True when one indicator accounts for half or more of the movement in the score. */
+  single_factor_dominated?: boolean | null;
   [key: string]: unknown;
 };
 

@@ -28,6 +28,12 @@ type WardRow = {
   rank: number | null;
   n_cells: number | null;
   contrib: Record<string, number> | null;
+  // Which indicator drives this ward's score (issue #97). Computed in the
+  // pipeline so the GeoJSON, the CSV export and the database agree; see
+  // DOMINANCE_THRESHOLD in pipeline/_hvi.py for what "dominated" means.
+  dominant_factor: string | null;
+  dominant_share: number | null;
+  single_factor_dominated: boolean | null;
 };
 
 /** Snapshot properties use SCREAMING keys and flat contrib_* fields; the API does not. */
@@ -44,6 +50,9 @@ function fromSnapshot(p: WardProps): WardRow {
     rank: p.rank,
     n_cells: p.n_cells,
     contrib: Object.keys(contrib).length ? contrib : null,
+    dominant_factor: p.dominant_factor ?? null,
+    dominant_share: p.dominant_share ?? null,
+    single_factor_dominated: p.single_factor_dominated ?? null,
   };
 }
 

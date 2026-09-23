@@ -283,6 +283,35 @@ describe("GET /api/v1/openapi.json", () => {
   });
 });
 
+describe("ward factor dominance (issue #97)", () => {
+  it("reports which indicator drives each ward", async () => {
+    const json = await body(await getWards(req("/api/v1/wards")));
+    for (const ward of json.wards) {
+      expect(ward).toHaveProperty("dominant_factor");
+      expect(ward).toHaveProperty("dominant_share");
+      expect(ward).toHaveProperty("single_factor_dominated");
+    }
+  });
+
+  it("keeps the share a fraction and the flag consistent with it", async () => {
+    const json = await body(await getWards(req("/api/v1/wards")));
+    for (const ward of json.wards) {
+      if (ward.dominant_share === null) continue;
+      expect(ward.dominant_share).toBeGreaterThanOrEqual(0);
+      expect(ward.dominant_share).toBeLessThanOrEqual(1);
+      expect(ward.single_factor_dominated).toBe(ward.dominant_share >= 0.5);
+    }
+  });
+
+  it("names a factor that is actually one of the contributions", async () => {
+    const json = await body(await getWards(req("/api/v1/wards")));
+    for (const ward of json.wards) {
+      if (!ward.dominant_factor) continue;
+      expect(Object.keys(ward.contrib ?? {})).toContain(ward.dominant_factor);
+    }
+  });
+});
+
 describe("GET /api/v1/export", () => {
   it("returns every cell as GeoJSON by default", async () => {
     const res = await getExport(req("/api/v1/export"));
