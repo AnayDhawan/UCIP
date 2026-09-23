@@ -17,18 +17,21 @@ import run_pipeline as rp  # noqa: E402
 
 
 def _parse(argv: list[str]):
-    parser = __import__("argparse").ArgumentParser()
-    parser.add_argument("--include-spike", action="store_true")
-    parser.add_argument("--from", dest="from_stage")
-    parser.add_argument("--only")
-    parser.add_argument("--dry-run", action="store_true")
-    parser.add_argument("--keep-going", action="store_true")
-    return parser.parse_args(argv)
+    """Parse with the runner's own parser, not a copy of it.
+
+    This used to hand-roll a second parser listing the same flags. Adding a flag
+    to run_pipeline.py then left these tests passing a Namespace the selection
+    logic could not read, so the tests failed for a reason that had nothing to do
+    with the behaviour under test.
+    """
+    return rp.build_parser().parse_args(argv)
 
 
-def test_plain_run_excludes_spike_stage():
+def test_plain_run_excludes_non_default_stages():
     stages = rp.select_stages(_parse([]))
-    assert [s.id for s in stages] == [s.id for s in rp.STAGES if s.id != "00"]
+    assert [s.id for s in stages] == [s.id for s in rp.STAGES if s.default]
+    assert "00" not in [s.id for s in stages]
+    assert "14" not in [s.id for s in stages]
 
 
 def test_include_spike_flag_includes_it():
@@ -71,10 +74,42 @@ def test_only_05_without_include_spike_excludes_spike():
 def test_stage_default_derived_from_cadence():
     spike = rp.STAGE_BY_ID["00"]
     grid = rp.STAGE_BY_ID["01"]
+    timeseries = rp.STAGE_BY_ID["14"]
     assert spike.cadence == "manual"
     assert spike.default is False
     assert grid.cadence == "monthly"
     assert grid.default is True
+    assert timeseries.cadence == "annual"
+    assert timeseries.default is False
+
+
+def test_include_annual_flag_includes_the_annual_stage():
+    stages = rp.select_stages(_parse(["--include-annual"]))
+    assert "14" in [s.id for s in stages]
+    assert "00" not in [s.id for s in stages]
+
+
+def test_only_14_without_the_flag_includes_it():
+    """Naming a non-default stage explicitly is its own opt-in, the same rule
+    stage 00 already follows."""
+    stages = rp.select_stages(_parse(["--only", "14"]))
+    assert [s.id for s in stages] == ["14"]
+
+
+def test_from_13_does_not_sweep_in_the_annual_stage():
+    """Stage 14 sits between 13 and 15 in the table. Resuming at 13 must run the
+    monthly chain from there without silently adding a stage that costs one GEE
+    composite per year of history."""
+    stages = rp.select_stages(_parse(["--from", "13"]))
+    assert [s.id for s in stages] == ["13", "15"]
+
+
+def test_optimizer_stage_carries_its_required_budget():
+    """15_optimize.py declares --budget required, so an unattended run needs the
+    argument supplied by the stage table or the refresh fails on argparse."""
+    optimize = rp.STAGE_BY_ID["15"]
+    assert optimize.args == ("--budget", "50000000")
+    assert rp.STAGE_BY_ID["01"].args == ()
 
 
 def test_stage_result_status_derived_from_returncode():

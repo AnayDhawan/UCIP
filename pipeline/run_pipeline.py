@@ -25,6 +25,13 @@ Cadence (issue #57 — see pipeline/README.md's "Refresh cadence" section for th
     nothing any later stage reads. It is EXCLUDED from the default run; pass
     --include-spike to run it anyway (e.g. to smoke-test GEE connectivity in CI).
 
+    14_timeseries.py is on an annual cadence, not a monthly one (issue #154). It
+    rebuilds a dry-season composite for every year in its window, so running it
+    monthly costs roughly one GEE composite per year of history on every refresh
+    to move a trend line that, by construction, gains one new point a year. It is
+    excluded from the default run; pass --include-annual, or name it directly with
+    --only 14 / --from 14.
+
 Stopping rule:
     Each stage script already returns a process exit code: 0 = clean pass, 2 = ran but
     flagged a "CHECK WARNINGS" sanity check, 1 = hard failure (missing required input,
@@ -35,8 +42,9 @@ Stopping rule:
     fallback triggering) still produces usable output for the next stage.
 
 Usage:
-    python run_pipeline.py                    # run the full monthly refresh, 01..12
+    python run_pipeline.py                    # run the full monthly refresh, 01..13 + 15
     python run_pipeline.py --include-spike     # also run 00_gee_spike.py first
+    python run_pipeline.py --include-annual    # also run the annual stages (14)
     python run_pipeline.py --from 05           # resume from stage 05 onward
     python run_pipeline.py --only 08,09        # run just these stages
     python run_pipeline.py --dry-run           # print the plan, run nothing
@@ -75,20 +83,30 @@ RUN_LOG_PUBLIC_PATH = (
 class Stage:
     id: str  # two-digit stage number, e.g. "01"
     script: str
-    cadence: str  # "monthly" (satellite/demographic-driven) or "manual" (dev-only gate)
+    # "monthly" (satellite/demographic-driven, the default refresh), "annual"
+    # (real data that gains one point a year, too expensive to refetch monthly),
+    # or "manual" (dev-only gate).
+    cadence: str
     description: str
+    # Extra CLI arguments this stage needs to run unattended. Only 15_optimize.py
+    # uses this: its --budget is required and the refresh cannot invent a policy
+    # number, so the published scenario is pinned here where it is reviewable in
+    # a diff, rather than defaulted inside the script where it would look like a
+    # technical constant.
+    args: tuple[str, ...] = ()
 
     @property
     def default(self) -> bool:
         """Whether this stage runs in a plain `run_pipeline.py` with no flags.
 
-        Derived from cadence rather than stored as its own field: right now "manual"
-        cadence and "excluded from the default run" are the same one bit of
-        information (only 00_gee_spike.py is either), and a second, separately-set
-        field for it would just be a second place that bit could drift out of sync
-        as more stages are added later.
+        Derived from cadence rather than stored as its own field, so there is one
+        place a stage's schedule is declared. Only "monthly" runs unprompted:
+        "manual" is the dev-only spike and "annual" is a stage whose inputs do not
+        move month to month. Each of the other cadences has its own --include-*
+        opt-in flag, and naming a stage directly with --only or --from is an opt-in
+        on its own.
         """
-        return self.cadence != "manual"
+        return self.cadence == "monthly"
 
 
 STAGES: list[Stage] = [
@@ -124,6 +142,17 @@ STAGES: list[Stage] = [
     # it is also the stage most likely to warn for reasons outside this repo.
     Stage("13", "13_validate_lst.py", "monthly",
           "Correlate satellite LST against NOAA GSOD weather stations."),
+    # Annual, not monthly: it rebuilds one dry-season composite per year of
+    # history on every run. See the cadence section of the module docstring.
+    Stage("14", "14_timeseries.py", "annual",
+          "Multi-year per-ward LST and NDVI trend, slope and classification."),
+    # Runs after 13 because it consumes ward scores (05) and profiles (10), and
+    # publishing a fresh allocation against stale scores is the failure mode worth
+    # avoiding. --budget is an illustrative 5 crore scenario, flagged as such in
+    # the output's own `illustrative_only` field; it is not a funded programme.
+    Stage("15", "15_optimize.py", "monthly",
+          "Budget-constrained cooling allocation for the published 5 crore scenario.",
+          args=("--budget", "50000000")),
 ]
 
 STAGE_BY_ID = {s.id: s for s in STAGES}
@@ -192,52 +221,61 @@ def parse_stage_ids(raw: str) -> list[str]:
     return ids
 
 
+def opted_in_cadences(args: argparse.Namespace) -> set[str]:
+    """Non-default cadences the caller has asked for with an --include-* flag."""
+    cadences = set()
+    if args.include_spike:
+        cadences.add("manual")
+    if args.include_annual:
+        cadences.add("annual")
+    return cadences
+
+
 def select_stages(args: argparse.Namespace) -> list[Stage]:
     """Pick which stages to run.
 
-    --only names stages explicitly, and naming a non-default stage (00) that way IS
-    the opt-in: no reason to also require --include-spike when the user just typed
-    "00" themselves. --from applies the same rule for consistency: --from 00 starts
-    the chain AT 00, which only makes sense if the caller meant to include it, so it
-    is treated as its own opt-in too, exactly like --only 00 already was. Without
-    --only or --from naming 00 directly, --include-spike is still required, so a
-    plain `run_pipeline.py` keeps excluding the dev-only spike stage by default.
+    --only names stages explicitly, and naming a non-default stage that way IS the
+    opt-in: no reason to also require --include-spike when the user just typed "00"
+    themselves. --from applies the same rule to the stage it starts at: --from 14
+    starts the chain AT 14, which only makes sense if the caller meant to include
+    it. Stages the chain merely sweeps past keep their own rule, so --from 13 does
+    not silently pull in the annual stage that happens to sit after it.
+
+    Without an explicit name or the matching --include-* flag, a plain
+    `run_pipeline.py` runs the monthly refresh and nothing else.
     """
     if args.only:
         ids = parse_stage_ids(args.only)
-        explicit_spike = "00" in ids
-        stages = [STAGE_BY_ID[i] for i in ids]
-        if not args.include_spike and not explicit_spike:
-            stages = [s for s in stages if s.default]
-        return stages
+        return [STAGE_BY_ID[i] for i in ids]
 
     ids_in_order = [s.id for s in STAGES]
     start = 0
-    explicit_spike = False
+    explicit_id = None
     if args.from_stage:
         start_id = args.from_stage.strip().zfill(2)
         if start_id not in STAGE_BY_ID:
             raise SystemExit(f"unknown --from stage id: {start_id}")
         start = ids_in_order.index(start_id)
-        explicit_spike = start_id == "00"
+        explicit_id = start_id
 
-    selected = STAGES[start:]
-    if not args.include_spike and not explicit_spike:
-        selected = [s for s in selected if s.default]
-    return selected
+    cadences = opted_in_cadences(args)
+    return [
+        s for s in STAGES[start:]
+        if s.default or s.cadence in cadences or s.id == explicit_id
+    ]
 
 
 def run_stage(stage: Stage, dry_run: bool) -> StageResult:
     script_path = PIPELINE_DIR / stage.script
+    command = [sys.executable, str(script_path), *stage.args]
     print(f"\n{'=' * 70}\n[{stage.id}] {stage.script} ({stage.cadence})\n{stage.description}\n{'=' * 70}")
 
     if dry_run:
-        print("[dry-run] would execute: "
-              f"{sys.executable} {script_path}")
+        print("[dry-run] would execute: " + " ".join(command))
         return StageResult(stage, None, 0.0)
 
     start = time.monotonic()
-    proc = subprocess.run([sys.executable, str(script_path)], cwd=PIPELINE_DIR)
+    proc = subprocess.run(command, cwd=PIPELINE_DIR)
     elapsed = time.monotonic() - start
 
     result = StageResult(stage, proc.returncode, elapsed)
@@ -245,10 +283,18 @@ def run_stage(stage: Stage, dry_run: bool) -> StageResult:
     return result
 
 
-def main() -> int:
+def build_parser() -> argparse.ArgumentParser:
+    """The CLI, as its own function so tests exercise the real flags.
+
+    The stage-selection tests used to hand-roll a second parser with the same
+    flags, which is a copy that drifts: adding --include-annual here left those
+    tests parsing a Namespace the selection logic no longer recognised.
+    """
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--include-spike", action="store_true",
                          help="also run 00_gee_spike.py (excluded by default, see module docstring)")
+    parser.add_argument("--include-annual", action="store_true",
+                         help="also run the annual-cadence stages (14_timeseries.py)")
     parser.add_argument("--from", dest="from_stage", metavar="STAGE_ID",
                          help="resume the chain starting at this stage id (e.g. 05)")
     parser.add_argument("--only", metavar="STAGE_IDS",
@@ -256,7 +302,11 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true", help="print the execution plan without running anything")
     parser.add_argument("--keep-going", action="store_true",
                          help="don't stop the chain on a hard failure (exit code 1)")
-    args = parser.parse_args()
+    return parser
+
+
+def main() -> int:
+    args = build_parser().parse_args()
 
     stages = select_stages(args)
     if not stages:
