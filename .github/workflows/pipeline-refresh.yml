@@ -148,6 +148,18 @@ jobs:
             python run_pipeline.py
           fi
 
+      - name: Gate the refresh on plausible output
+        # Runs before the diff and the PR, because the point is to stop a broken
+        # refresh from being published at all (issue #91). Stages emit their own
+        # warnings, but nothing checked the finished dataset as a whole, so a
+        # run that produced wrong-but-well-formed data looked exactly like a
+        # good one and this workflow would have opened a PR for it.
+        #
+        # Exit 1 fails the job. Exit 2 means the inputs were not there to check,
+        # which the pipeline step above would already have failed on.
+        working-directory: pipeline
+        run: python quality_gate.py --baseline-dir ../data-baseline
+
       - name: Compute alert-worthy diff against the previous run
         working-directory: pipeline
         run: |
