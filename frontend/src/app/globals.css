@@ -215,8 +215,7 @@ html {
 
 @media print {
   body { background: white !important; color: black !important; }
-  header, .leaflet-container, .ward-static-map ~ * .print-hidden { display: none !important; }
-  main > div:first-child { display: none !important; }
+  header, .leaflet-container, .dashboard-map { display: none !important; }
   main, main > aside { display: block !important; width: 100% !important; border: 0 !important; }
   [data-slot="dialog-portal"], [data-slot="dialog-content"], .ward-scroll { display: block !important; position: static !important; transform: none !important; max-height: none !important; overflow: visible !important; width: 100% !important; max-width: none !important; box-shadow: none !important; border: 0 !important; }
   .ward-static-map { display: flex !important; align-items: center; gap: 1rem; margin: 1rem; color: black; }

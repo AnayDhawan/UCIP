@@ -246,7 +246,7 @@ function DashboardContent() {
       {!isFullscreen && <SiteHeader compact />}
       {!isFullscreen && <FirstVisitHint />}
       <main className="relative flex flex-1 overflow-hidden">
-        <div className="relative flex-1">
+        <div className="dashboard-map relative flex-1">
           <WardChoropleth
             selectedWardId={selectedWardId}
             onSelectWard={selectWard}
