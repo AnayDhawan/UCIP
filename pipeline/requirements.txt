@@ -4,7 +4,7 @@ geopandas==1.1.4
 rasterio==1.5.1
 shapely==2.1.2
 scikit-learn==1.9.1
-pandas==3.0.5
+pandas==3.0.6
 osmnx==2.1.1
 matplotlib==3.11.2
 supabase==2.31.0
