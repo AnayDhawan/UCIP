@@ -1,18 +1,16 @@
-# Scheduled data refresh (issue #58), on the cadence documented in
-# pipeline/README.md#refresh-cadence-issue-57: the pipeline is satellite- and
-# WorldPop-driven data that changes monthly at best, so this runs monthly, not
-# daily. Live weather is intentionally NOT run from here — it's fetched
-# client-side per page load by frontend/src/lib/weather.ts and needs no cron.
+# Scheduled data refresh (issue #58). Runs Tuesdays and Fridays.
 #
-# NOT verified end-to-end: this workflow has never run against real Earth Engine
-# or Supabase credentials. This fork/PR has none configured, `earthengine
-# authenticate` cannot be run headlessly here, and there is no way to trigger a
-# live GitHub Actions run against upstream's secrets from a contributor's fork.
-# Every secret below is a placeholder name the maintainer needs to add under
-# Settings > Secrets > Actions before this can run for real. See the PR
-# description for exactly what was and wasn't testable.
+# The underlying data is satellite- and WorldPop-driven and changes monthly at
+# best, which is why this was monthly originally (issue #57,
+# pipeline/README.md#refresh-cadence-issue-57). It is twice weekly now by
+# explicit request, so that the database stays demonstrably live and the
+# published data is never more than a few days from a verified run. The cost
+# and what absorbs it are noted on the schedule below.
 #
-# Required repo secrets:
+# Live weather is intentionally NOT run from here: it is fetched client-side
+# per page load by frontend/src/lib/weather.ts and needs no cron.
+#
+# Required repo secrets, all configured:
 #   GEE_PROJECT                 Earth Engine project id (see .env.example)
 #   GEE_SERVICE_ACCOUNT_JSON    Full service-account key JSON (see pipeline/_gee_auth.py)
 #   NEXT_PUBLIC_SUPABASE_URL    Supabase project URL
@@ -37,9 +35,22 @@ name: Pipeline refresh
 
 on:
   schedule:
-    # 03:17 UTC on the 1st of each month. Off the top of the hour on purpose —
-    # avoids piling onto GitHub's :00 cron stampede on shared runners.
-    - cron: "17 3 1 * *"
+    # Tuesdays and Fridays, 03:17 UTC. Off the top of the hour on purpose,
+    # to avoid piling onto GitHub's :00 cron stampede on shared runners.
+    #
+    # Twice weekly rather than monthly, by explicit request. Read the cadence
+    # note above before changing this again: within a dry season the composite
+    # window is fixed, so most of these runs refetch identical imagery and
+    # produce identical numbers. That is not wasted in the sense of being
+    # wrong, and it is not free either: every run spends Earth Engine quota,
+    # which usage-report.yml now tracks (#130) and the composite cache in #93
+    # would largely eliminate.
+    #
+    # Two things stop the extra frequency creating noise. The quality gate
+    # (#91) fails a run whose output is implausible rather than opening a pull
+    # request for it, and create-pull-request opens nothing when the data is
+    # byte-identical, which is the expected outcome mid-season.
+    - cron: "17 3 * * 2,5"
   workflow_dispatch:
     inputs:
       include_spike:

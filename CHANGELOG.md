@@ -6,6 +6,55 @@ All notable changes to this project are documented here. Format based on
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-09-23
+
+A maintenance release. No change to the published numbers: the wards, scores
+and ranks are identical to 1.0.0. What changed is what surrounds them.
+
+### Added
+- Bulk access: `GET /api/v1/export` returns the whole dataset as GeoJSON or
+  CSV in one cached request, with the feature centre as plain lon/lat columns
+  so it opens in pandas or R without a geometry library.
+- Confidence intervals for every ward score and rank, bootstrapped over the
+  541 cells (`data/hvi_uncertainty.json`). The headline result is a
+  qualification of the ranking rather than a footnote: the median 95% rank
+  interval spans about 6 places and no ward's rank is certain.
+- A comparison of the PCA weighting against the published fallback
+  (`data/weighting_comparison.json`): Kendall tau 0.913, 13 of 24 wards
+  identical, largest move 3 places. The ranking is largely insensitive to the
+  weighting choice.
+- Per-ward `dominant_factor`, `dominant_share` and `single_factor_dominated`,
+  so a ward carried by one indicator can be told apart from one scoring high
+  across all seven. On current data nothing crosses the threshold.
+- Per-IP rate limiting, an API versioning policy, and a documented deprecation
+  window.
+- A budget scenario on `/simulate`, showing which wards a fixed budget would
+  fund, under which objective, with its assumptions and limitations alongside.
+- Dashboard sharing: layer, centre, zoom and ward comparison in the URL;
+  printable ward briefs; embeddable ward cards; a city registry page.
+- Operations: a twice-weekly Supabase sync, a weekly backup, a weekly usage
+  report against the free-tier ceilings, and failure alerting that opens an
+  issue when a scheduled run breaks.
+- A boundary-source adapter layer, so a city outside India can supply
+  boundaries from OpenStreetMap or GADM rather than a Datameet file.
+- A city scaffolder that derives the UTM zone from the bounding box instead of
+  inheriting Mumbai's.
+
+### Fixed
+- `11_hero_city.py` renamed a hardcoded `name` column rather than the
+  configured `ward_id_field`. It worked only because both shipped cities use
+  that field, and would have produced no `ward_id` at all for a third.
+- Stages 14 and 15 ran, wrote committed output, and were reachable from
+  nowhere. Both are now registered in the pipeline runner.
+- Dashboard errors were logged to the console and nowhere else.
+
+### Changed
+- A data-quality gate now fails a refresh whose output is implausible, rather
+  than opening a pull request for it.
+- The pipeline records per-stage provenance: dataset ids, the composite window
+  actually queried, scene counts, and rows in and out.
+
+
 ## [1.0.0] - 2026-09-18
 
 First tagged release. Nothing below is new work done for the tag; it's everything built
