@@ -14,7 +14,10 @@ name: Dependabot auto-merge
 on:
   pull_request:
   workflow_run:
-    workflows: [CI]
+    # Both, not just CI. They run in parallel and Lighthouse finishes later, so
+    # a CI-only trigger always found Lighthouse still in progress and bailed.
+    # Whichever finishes last fires the run that actually merges.
+    workflows: [CI, Lighthouse CI]
     types: [completed]
 
 permissions:
@@ -75,16 +78,38 @@ jobs:
 
           # CI passing is not the same as everything passing. Lighthouse and the
           # Vercel deployment report separately, and merging a patch bump that
-          # broke the preview build would defeat the point of the gate. This
-          # workflow's own run is excluded, since it is still in progress.
+          # broke the preview build would defeat the point of the gate.
+          #
+          # Checks that have not finished yet are waited on rather than treated
+          # as failures. Vercel in particular can still be deploying when the
+          # last workflow finishes, and bailing on that would mean the merge
+          # never happens rather than happening late. This workflow's own two
+          # jobs are excluded, since one of them is this.
+          own_jobs='select(.name != "Merge on green" and .name != "Label patch bumps")'
+          deadline=$((SECONDS + 420))
+
+          while :; do
+            pending=$(gh api "repos/$REPO/commits/$HEAD_SHA/check-runs" --paginate \
+              --jq "[.check_runs[] | $own_jobs | select(.status != \"completed\") | .name] | unique | join(\", \")")
+
+            [ -z "$pending" ] && break
+
+            if [ "$SECONDS" -ge "$deadline" ]; then
+              echo "Gave up waiting on: $pending. Not merging #$number; the next run will retry."
+              exit 0
+            fi
+
+            echo "Waiting on: $pending"
+            sleep 20
+          done
+
           failed=$(gh api "repos/$REPO/commits/$HEAD_SHA/check-runs" --paginate \
-            --jq '[.check_runs[]
-                   | select(.name != "Merge on green" and .name != "Label patch bumps")
-                   | select(.status != "completed" or (.conclusion | IN("success","neutral","skipped") | not))
-                   | .name] | join(", ")')
+            --jq "[.check_runs[] | $own_jobs
+                   | select(.conclusion | IN(\"success\",\"neutral\",\"skipped\") | not)
+                   | .name] | unique | join(\", \")")
 
           if [ -n "$failed" ]; then
-            echo "Not merging #$number, these checks are not green: $failed"
+            echo "Not merging #$number, these checks failed: $failed"
             exit 0
           fi
 
