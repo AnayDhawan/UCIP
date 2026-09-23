@@ -1,21 +1,29 @@
 version: 2
 updates:
+  # Patch and minor are separate groups on purpose (issue #128). Grouped
+  # together, every PR carried at least one minor bump, so nothing was ever a
+  # patch-only PR and auto-merge would never have fired. Split, the patch PR
+  # merges itself on green CI and the minor PR still waits for a human.
   - package-ecosystem: "npm"
     directory: "/frontend"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
     groups:
-      minor-and-patch:
-        update-types: ["minor", "patch"]
+      patch:
+        update-types: ["patch"]
+      minor:
+        update-types: ["minor"]
   - package-ecosystem: "pip"
     directory: "/pipeline"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
     groups:
-      minor-and-patch:
-        update-types: ["minor", "patch"]
+      patch:
+        update-types: ["patch"]
+      minor:
+        update-types: ["minor"]
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

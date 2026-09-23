@@ -1,0 +1,92 @@
+# Merge patch-level Dependabot bumps without a human (issue #128).
+#
+# Why this is two jobs rather than `gh pr merge --auto`:
+#   GitHub's auto-merge needs branch protection with required status checks,
+#   and main here is deliberately unprotected so it can be pushed to directly.
+#   So the gate is checked explicitly instead: label the PR when Dependabot
+#   opens it, and merge once CI reports success and every other check on that
+#   commit is green too.
+#
+# Minor and major bumps are untouched and still need a human.
+
+name: Dependabot auto-merge
+
+on:
+  pull_request:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  label:
+    # dependabot/fetch-metadata needs pull_request context, so the update type
+    # is resolved here and recorded as a label the merge job can read later.
+    name: Label patch bumps
+    if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dependabot metadata
+        id: meta
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Mark the PR auto-mergeable
+        if: steps.meta.outputs.update-type == 'version-update:semver-patch'
+        run: gh pr edit "$PR_URL" --add-label auto-merge
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  merge:
+    name: Merge on green
+    if: >-
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.actor.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Merge if the PR is a labelled patch bump and every check passed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+
+          number=$(gh pr list --repo "$REPO" --head "$HEAD_BRANCH" --state open \
+            --json number --jq '.[0].number // empty')
+          if [ -z "$number" ]; then
+            echo "No open PR for $HEAD_BRANCH, nothing to merge."
+            exit 0
+          fi
+
+          labels=$(gh pr view "$number" --repo "$REPO" --json labels --jq '[.labels[].name] | join(",")')
+          case ",$labels," in
+            *,auto-merge,*) ;;
+            *) echo "PR #$number is not labelled auto-merge, leaving it for a human."; exit 0 ;;
+          esac
+
+          # CI passing is not the same as everything passing. Lighthouse and the
+          # Vercel deployment report separately, and merging a patch bump that
+          # broke the preview build would defeat the point of the gate. This
+          # workflow's own run is excluded, since it is still in progress.
+          failed=$(gh api "repos/$REPO/commits/$HEAD_SHA/check-runs" --paginate \
+            --jq '[.check_runs[]
+                   | select(.name != "Merge on green" and .name != "Label patch bumps")
+                   | select(.status != "completed" or (.conclusion | IN("success","neutral","skipped") | not))
+                   | .name] | join(", ")')
+
+          if [ -n "$failed" ]; then
+            echo "Not merging #$number, these checks are not green: $failed"
+            exit 0
+          fi
+
+          echo "Merging #$number."
+          gh pr merge "$number" --repo "$REPO" --squash --delete-branch
