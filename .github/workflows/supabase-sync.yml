@@ -51,7 +51,11 @@ jobs:
         # Not requirements.txt. Publishing the committed output needs geopandas
         # to read it and the Supabase client to write it, and none of the Earth
         # Engine, raster or modelling stack that a real refresh pulls in.
-        run: pip install geopandas supabase
+        #
+        # python-dotenv because 07_load.py reads .env.local when it is there.
+        # There is no such file on a runner, load_dotenv() is then a no-op, and
+        # the env vars below are what it picks up instead.
+        run: pip install geopandas supabase python-dotenv
 
       - name: Publish data/ to Supabase
         working-directory: pipeline
