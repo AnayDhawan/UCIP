@@ -33,6 +33,7 @@ import sys
 from pathlib import Path
 
 import geopandas as gpd
+import _provenance
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 IN_PATH = DATA_DIR / "grid_1km_vectors.geojson"
@@ -71,6 +72,12 @@ def main() -> int:
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     tidy.to_file(OUT_PATH, driver="GeoJSON")
     print(f"[ok] wrote {len(tidy)} tidy cells -> {OUT_PATH}")
+    _provenance.record(
+        "04",
+        cells_in=len(gdf),
+        cells_out=len(tidy),
+        columns_out=list(tidy.columns),
+    )
 
     # ------------------------------------------------------- sanity checks --
     ok = True

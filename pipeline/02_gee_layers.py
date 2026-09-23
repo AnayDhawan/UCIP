@@ -43,6 +43,7 @@ from datetime import date
 from pathlib import Path
 
 import ee
+import _provenance
 
 from _dry_season import most_recent_complete_dry_season
 from _gee_auth import init_ee, resolve_project
@@ -181,6 +182,22 @@ def main() -> int:
 
     OUT_PATH.write_text(json.dumps(grid_gj), encoding="utf-8")
     print(f"[ok] wrote {len(grid_gj['features'])} cells ({matched} with LST) -> {OUT_PATH}")
+    _provenance.record(
+        "02",
+        collections=[
+            "LANDSAT/LC08/C02/T1_L2",
+            "LANDSAT/LC09/C02/T1_L2",
+            "ESA/WorldCover/v200",
+        ],
+        composite_window={"start": CURR_START, "end": CURR_END},
+        previous_window={"start": PREV_START, "end": PREV_END},
+        scenes_current_window=n_curr,
+        scenes_previous_window=n_prev,
+        cells_in=n_cells,
+        cells_out=len(grid_gj["features"]),
+        cells_with_lst=matched,
+        gee_project=GEE_PROJECT,
+    )
 
     # ------------------------------------------------------- sanity checks --
     lst_vals = [f["properties"]["LST_C"] for f in grid_gj["features"] if f["properties"].get("LST_C") is not None]

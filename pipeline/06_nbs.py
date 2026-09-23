@@ -49,6 +49,7 @@ from pathlib import Path
 
 import ee
 import geopandas as gpd
+import _provenance
 import pandas as pd
 
 from _gee_auth import init_ee, resolve_project
@@ -156,6 +157,14 @@ def main() -> int:
     gdf.drop(columns=["geometry"]).to_csv(DATA_DIR / "cells_nbs_debug.csv", index=False)
     gdf.to_file(OUT_CELLS_PATH, driver="GeoJSON")
     print(f"[ok] wrote {len(gdf)} cells with NBS flags -> {OUT_CELLS_PATH}")
+    _provenance.record(
+        "06",
+        collections=["ESA/WorldCover/v200"],
+        cells_in=len(gdf),
+        cells_plantable=int(gdf["plantable"].sum()),
+        cells_with_recommendation=int(gdf["nbs_fired"].sum()),
+        thresholds={k: round(float(v), 4) for k, v in thresholds.items()},
+    )
 
     # ------------------------------------------------- ward-level rollup --
     ward_recs = {}

@@ -41,6 +41,7 @@ import numpy as np
 from shapely.geometry import box
 
 from _city import city_from_argv
+import _provenance
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 # Output path resolved per city inside main(); see CityConfig.out().
@@ -110,6 +111,14 @@ def main() -> int:
 
     out.to_file(out_path, driver="GeoJSON")
     print(f"[ok] wrote {len(out)} grid cells -> {out_path}")
+    _provenance.record(
+        "01",
+        source_boundaries=str(city.boundaries_path.name),
+        wards_in=len(wards_utm),
+        cells_out=len(out),
+        cell_size_m=city.cell_size_m,
+        projected_crs=city.projected_crs,
+    )
 
     # ------------------------------------------------------- sanity checks --
     ok = True

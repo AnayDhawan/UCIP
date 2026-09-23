@@ -139,6 +139,26 @@ Satellite-vs-station validation (stage 13): `window`, **`is_pipeline_window` (fa
 
 Illustrative budget-allocation model (stage 15, issue #67): `city`, the chosen `intervention` (with `cost` in `INR_per_m2` and `sourced_cost` / `source` / `source_url` — gated on sourced costs), `budget_inr`, `spent_inr`, `unspent_inr`, `wards_funded` / `wards_fully_funded`, `total_benefit_person_degrees`, `objective`, and the per-ward allocation. `illustrative_only` is false only when the cost is sourced.
 
+### Per-stage provenance (inside `pipeline_run_log.json`)
+
+Each stage entry may carry a `provenance` object recording what that stage
+actually used and produced (issue #92), so a published figure can be traced
+back to the imagery behind it rather than to a claim in a document. Stages
+write these to `data/provenance/<id>.json` and the runner folds them in.
+
+| Stage | Records |
+|---|---|
+| `01` | boundary file, wards in, cells out, cell size, projected CRS |
+| `02` | Landsat and WorldCover collection ids, the composite window **actually queried**, scene counts for the current and previous windows, cells in/out, cells with an LST reading, GEE project |
+| `04` | cells in/out, the columns produced |
+| `05` | cells in, wards out, weight source, PC1 explained variance, whether the published-weights fallback fired, the indicator list |
+| `06` | WorldCover collection id, cells in, cells plantable, cells with a recommendation, the percentile thresholds used |
+
+The key is absent rather than empty for a stage that records nothing, so the
+log does not imply a stage was asked and had no answer. Recording is
+best-effort by design: a stage that computes correct data and fails to describe
+itself still publishes.
+
 ### `pipeline_run_log.json` (`pipeline/run_pipeline.py`)
 
 What the last refresh actually did, and the site's data-age statement (issue #124): `started_at`, `finished_at` (UTC ISO 8601), `composite_window` (`{start, end}` — the dry-season Landsat window the run's figures were computed from), and `stages[]` (`id`, `script`, `cadence`, `status` ok/warn/fail/skipped, `returncode`, `seconds`). Mirrored to `frontend/public/` so `/api/v1/meta` and the site can read it; absent from the repo until a refresh commits one.

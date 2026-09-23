@@ -66,6 +66,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
+import _provenance
 from _dry_season import most_recent_complete_dry_season
 from _publish import publish
 
@@ -207,6 +208,14 @@ class RunReport:
                     "status": r.status,
                     "returncode": r.returncode,
                     "seconds": round(r.seconds, 2),
+                    # What the stage actually used and produced (issue #92):
+                    # source dataset ids, the composite window it really
+                    # queried, scene counts, rows in and out. Stages write this
+                    # to a sidecar because the runner invokes them as
+                    # subprocesses and cannot see inside. Absent for a stage
+                    # that records nothing, rather than an empty object, so the
+                    # log does not imply a stage was asked and had no answer.
+                    **({"provenance": p} if (p := _provenance.read(r.stage.id)) else {}),
                 }
                 for r in self.results
             ],
@@ -312,6 +321,11 @@ def main() -> int:
     if not stages:
         print("[FAIL] no stages selected.")
         return 1
+
+    # A stage that is not run this time must not leave its previous record
+    # attached to this run's log (issue #92).
+    if not args.dry_run:
+        _provenance.clear()
 
     print("Pipeline plan:")
     for s in stages:

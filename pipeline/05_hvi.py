@@ -57,6 +57,7 @@ from sklearn.decomposition import PCA
 
 from _publish import publish
 from _city import load_city
+import _provenance
 from _hvi import DOMINANCE_THRESHOLD, factor_dominance
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -210,6 +211,15 @@ def main() -> int:
         "fallback_trigger": f"explained_variance_pc1 < {MIN_EXPLAINED_VARIANCE}",
     }, indent=2), encoding="utf-8")
     print(f"[ok] wrote PCA log -> {OUT_METHOD_PATH}")
+    _provenance.record(
+        "05",
+        cells_in=len(gdf),
+        wards_out=len(wards_out),
+        weight_source=weight_source,
+        explained_variance_pc1=round(explained_var_1, 4),
+        fallback_used=fallback_used,
+        indicators=cols,
+    )
 
     # ------------------------------------------------------- sanity checks --
     # Runs BEFORE the frontend/public copy below, on purpose: data/ is always written
