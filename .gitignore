@@ -93,3 +93,6 @@ mcp-server/dist/
 
 # Client package build output
 clients/*/dist/
+clients/python/dist/
+clients/python/build/
+clients/python/src/*.egg-info/
