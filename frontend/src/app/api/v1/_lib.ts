@@ -105,6 +105,26 @@ export async function readSnapshot<T>(filename: string): Promise<T> {
   return JSON.parse(await readFile(path, "utf8")) as T;
 }
 
+/**
+ * Records why a route is serving the snapshot instead of the database.
+ *
+ * The fallback is the right behaviour and it is silent by design: a caller gets
+ * a normal response with `source: "snapshot"`. That silence hid a real fault.
+ * A change to /wards selected columns that a migration had never added, so
+ * every database query failed, and the route quietly served the snapshot for
+ * days. Nothing looked wrong because the two sources return the same shape.
+ *
+ * Logging the reason costs nothing on the happy path and makes a dead database
+ * path visible in the deployment logs, where somebody can see it.
+ */
+export function logFallback(route: string, error: { message?: string; code?: string } | null): void {
+  if (!error) return;
+  console.error(
+    `[api] ${route}: database query failed, serving the snapshot instead ` +
+      `(${error.code ?? "no code"}): ${error.message ?? "unknown error"}`
+  );
+}
+
 /** Parses and validates a `limit` query param against a sane ceiling. */
 export function parseLimit(raw: string | null, fallback: number, max: number): number {
   const n = Number(raw);

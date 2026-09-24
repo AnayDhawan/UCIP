@@ -14,6 +14,7 @@ import { boundsOf } from "@/lib/geometry";
 import {
   errorResponse,
   jsonResponse,
+  logFallback,
   normaliseWardId,
   optionsResponse,
   parseLimit,
@@ -156,6 +157,7 @@ export async function GET(request: Request) {
     if (!error && data) {
       return jsonResponse({ source: "database", count: data.length, cells: data });
     }
+    logFallback("/cells", error);
   }
 
   try {

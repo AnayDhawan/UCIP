@@ -114,6 +114,27 @@ def get_client() -> Client | None:
     return create_client(url, key)
 
 
+def wards_has_dominance_columns(client: Client) -> bool:
+    """Whether migration 0007 has been applied to this database.
+
+    The three factor-dominance columns (issue #97) were written to the snapshots
+    and the CSV export from the start, but this loader never wrote them to the
+    database, and the migration that adds them was not applied. Nothing showed
+    it: the API's database path selected them, failed, and fell back to the
+    snapshot without saying so.
+
+    Probed rather than assumed, because writing a column that does not exist
+    makes the whole `wards` upsert fail, not just skip the field. So a database
+    that has not run 0007 keeps syncing as it did, and one that has gets the
+    values with no further change here.
+    """
+    try:
+        client.table("wards").select("dominant_factor").limit(1).execute()
+        return True
+    except Exception:
+        return False
+
+
 def upsert_table(client: Client, table: str, rows: list[dict]) -> bool:
     """Upsert rows keyed on the table's own primary key.
 
@@ -194,6 +215,10 @@ def main() -> int:
     client = get_client()
     db_ok = True
     if client is not None:
+        with_dominance = wards_has_dominance_columns(client)
+        if not with_dominance:
+            print("[note] wards has no dominant_* columns; apply "
+                  "supabase/migrations/0007_ward_factor_dominance.sql to store them")
         ward_rows = []
         for _, r in wards.iterrows():
             ward_rows.append({
@@ -204,6 +229,21 @@ def main() -> int:
                 "n_cells": int(r["n_cells"]) if r["n_cells"] is not None else None,
                 "contrib": {c: r.get(f"contrib_{c}") for c in CONTRIB_COLS if f"contrib_{c}" in r},
                 "geom_geojson": json.loads(gpd.GeoSeries([r.geometry]).to_json())["features"][0]["geometry"],
+                **(
+                    {
+                        "dominant_factor": r.get("dominant_factor"),
+                        "dominant_share": (
+                            float(r["dominant_share"]) if r.get("dominant_share") is not None else None
+                        ),
+                        "single_factor_dominated": (
+                            bool(r["single_factor_dominated"])
+                            if r.get("single_factor_dominated") is not None
+                            else None
+                        ),
+                    }
+                    if with_dominance
+                    else {}
+                ),
             })
 
         cell_rows = []

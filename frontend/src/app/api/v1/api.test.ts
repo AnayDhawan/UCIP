@@ -12,7 +12,8 @@
  * just current behaviour.
  */
 
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect, beforeAll, vi } from "vitest";
+import { logFallback } from "./_lib";
 import { GET as getMeta } from "./meta/route";
 import { GET as getWards } from "./wards/route";
 import { GET as getWard } from "./wards/[wardId]/route";
@@ -574,5 +575,29 @@ describe("GET /api/v1/export", () => {
   it("is edge-cached like the rest of the API", async () => {
     const res = await getExport(req("/api/v1/export?format=csv"));
     expect(res.headers.get("cache-control")).toContain("s-maxage=3600");
+  });
+});
+
+
+describe("database fallback logging", () => {
+  // The database path for /wards was dead for days because a query selected
+  // columns no migration had added, and the route fell back to the snapshot
+  // without a word. The fallback is right; the silence was the fault.
+  it("says which route fell back and why", () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    logFallback("/wards", { code: "42703", message: "column wards.dominant_factor does not exist" });
+    expect(spy).toHaveBeenCalledTimes(1);
+    const line = String(spy.mock.calls[0]![0]);
+    expect(line).toContain("/wards");
+    expect(line).toContain("42703");
+    expect(line).toContain("dominant_factor");
+    spy.mockRestore();
+  });
+
+  it("stays silent when nothing went wrong", () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    logFallback("/wards", null);
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
   });
 });

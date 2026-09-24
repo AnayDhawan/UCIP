@@ -14,6 +14,7 @@ import type { WardProps } from "@/lib/wardTypes";
 import {
   errorResponse,
   jsonResponse,
+  logFallback,
   optionsResponse,
   parseLimit,
   readSnapshot,
@@ -98,6 +99,7 @@ export async function GET(request: Request) {
     if (!error && data) {
       return jsonResponse({ source: "database", count: data.length, wards: data });
     }
+    logFallback("/wards", error);
     // Fall through to the snapshot rather than surfacing a database outage as a
     // 500. The static files are the same data, one refresh behind at worst.
   }
