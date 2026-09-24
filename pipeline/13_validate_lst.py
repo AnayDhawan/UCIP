@@ -72,11 +72,19 @@ import ee
 
 from _gee_auth import init_ee
 from _publish import publish
+from _city import load_city
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
+
+# Output paths come from the city config (issue #96). They were literal
+# DATA_DIR paths, so this stage wrote to the default city's directory whatever
+# city or resolution it was actually run for. A 500 m run reached stage 05 with
+# 500 m inputs and then published 1 km-named output over the committed dataset,
+# which is how this was found.
+_CITY = load_city()
 CACHE_DIR = Path(__file__).resolve().parent / "cache" / "gsod"
-OUT_PATH = DATA_DIR / "lst_validation.json"
+OUT_PATH = _CITY.out("lst_validation.json")
 OUT_PUBLIC_PATH = ROOT / "frontend" / "public" / "lst_validation.json"
 
 # The most recent dry season with both satellite and station coverage. See the

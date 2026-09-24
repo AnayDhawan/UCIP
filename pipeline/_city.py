@@ -42,6 +42,10 @@ DATA_DIR = ROOT / "data"
 
 DEFAULT_CITY = "mumbai"
 
+# The resolution the published dataset is built at. Only this one writes to the
+# city's own data directory and to frontend/public; see CityConfig.data_dir.
+DEFAULT_CELL_SIZE_M = 1000.0
+
 
 @dataclass(frozen=True)
 class CityConfig:
@@ -86,8 +90,22 @@ class CityConfig:
         second city wrote over the first: a Pune run silently replaced Mumbai's
         547-cell grid with Pune's 322 cells at the same filename, and nothing
         complained. Verified on 2026-09-03, which is how it was found.
+
+        Resolution namespaces the same way (issue #96), and for the same
+        reason. Only the default resolution writes to the city's own directory;
+        anything else gets a suffixed one, so `data/mumbai_500m/`. Putting it
+        here rather than in each filename covers every artefact the run
+        produces, including the ones named for what they contain rather than
+        how they were built: cells.geojson, wards_hvi.geojson and the rest all
+        land beside their 1 km counterparts instead of on top of them, and no
+        stage downstream of the grid needed changing to get that.
         """
-        return DATA_DIR if self.slug == DEFAULT_CITY else DATA_DIR / self.slug
+        if self.cell_size_m == DEFAULT_CELL_SIZE_M:
+            return DATA_DIR if self.slug == DEFAULT_CITY else DATA_DIR / self.slug
+        # A non-default resolution is always named, including for the default
+        # city, which is the one case where the directory would otherwise be
+        # data/ itself and the suffix would have nothing to attach to.
+        return DATA_DIR / f"{self.slug}_{self.grid_label}"
 
     def out(self, filename: str) -> Path:
         """Path for one of this city's output files, creating the directory."""
@@ -96,13 +114,54 @@ class CityConfig:
         return d / filename
 
     @property
+    def grid_label(self) -> str:
+        """The grid resolution as it appears in a filename: 1km, 500m, 250m.
+
+        Whole kilometres read as kilometres because that is how everything in
+        this repo already refers to the default grid, and anything else reads
+        as metres. 1000 -> "1km", 500 -> "500m", 2000 -> "2km", 250 -> "250m".
+        """
+        metres = self.cell_size_m
+        if metres >= 1000 and metres % 1000 == 0:
+            km = metres / 1000
+            return f"{km:g}km"
+        return f"{metres:g}m"
+
+    def grid_path(self, suffix: str = "") -> Path:
+        """Path for a grid artefact, named for this city's resolution (issue #96).
+
+        The resolution is in the filename for the same reason the city is in the
+        directory, and the failure it prevents is the one the `data_dir`
+        docstring above describes, one level down.
+
+        These paths used to be module-level constants spelling "grid_1km"
+        literally, while `cell_size_m` was already configurable. Setting it to
+        500 therefore did not produce a 500 m dataset: it produced 500 m cells
+        written over the 1 km ones, in files still called grid_1km, with
+        nothing to indicate which resolution any of them held. The only clue
+        would have been the cell count, four times larger, in a file whose name
+        said otherwise.
+
+        At 1000 m every path here is byte-identical to the old constants, so
+        the committed Mumbai outputs keep their names.
+
+            grid_path()           -> data/grid_1km.geojson
+            grid_path("_gee")     -> data/grid_1km_gee.geojson
+            grid_path("_vectors") -> data/grid_500m_vectors.geojson  (at 500 m)
+        """
+        return self.out(f"grid_{self.grid_label}{suffix}.geojson")
+
+    @property
     def publishes_to_frontend(self) -> bool:
         """Only the default city's output is what the site serves.
 
         A second city's run must not overwrite frontend/public/, or standing up
-        Pune would swap the live Mumbai dashboard for a half-built one.
+        Pune would swap the live Mumbai dashboard for a half-built one. A
+        non-default resolution must not either: the site is built and tested
+        against the 1 km dataset, and a 500 m run is an experiment until
+        somebody has looked at what it does to the payload.
         """
-        return self.slug == DEFAULT_CITY
+        return self.slug == DEFAULT_CITY and self.cell_size_m == DEFAULT_CELL_SIZE_M
 
 
 def utm_crs_for(bbox: tuple[float, float, float, float]) -> str:
@@ -123,6 +182,25 @@ def utm_crs_for(bbox: tuple[float, float, float, float]) -> str:
     return f"EPSG:{326 if lat >= 0 else 327}{zone:02d}"
 
 
+def _cell_size_override(configured: float) -> float:
+    """The configured cell size, unless UCIP_CELL_SIZE_M overrides it.
+
+    Refuses a value it cannot use rather than silently falling back to the
+    config: a typo that quietly produced a 1 km run labelled as 500 m is the
+    failure this whole change exists to prevent.
+    """
+    raw = os.environ.get("UCIP_CELL_SIZE_M")
+    if raw is None or raw.strip() == "":
+        return float(configured)
+    try:
+        metres = float(raw)
+    except ValueError as exc:
+        raise ValueError(f"UCIP_CELL_SIZE_M={raw!r} is not a number") from exc
+    if metres <= 0:
+        raise ValueError(f"UCIP_CELL_SIZE_M={raw!r} must be greater than zero")
+    return metres
+
+
 def load_city(slug: str | None = None) -> CityConfig:
     """Load a city config by slug.
 
@@ -130,6 +208,13 @@ def load_city(slug: str | None = None) -> CityConfig:
     variable, then Mumbai. The environment variable is what lets run_pipeline.py
     pass --city down to twelve subprocesses without every stage needing to parse
     the flag itself.
+
+    UCIP_CELL_SIZE_M overrides the config's grid resolution the same way, for
+    the same reason (issue #96). Running the pipeline at 500 m is an
+    experiment, and an experiment should not require editing a committed config
+    file that CI validates and the frontend mirrors. The override changes where
+    every output lands, via CityConfig.data_dir, so a 500 m run cannot touch the
+    published 1 km dataset whether it finishes or fails half way.
     """
     slug = slug or os.environ.get("UCIP_CITY") or DEFAULT_CITY
     path = CONFIG_DIR / f"{slug}.json"
@@ -163,7 +248,7 @@ def load_city(slug: str | None = None) -> CityConfig:
         expected_ward_count=boundaries.get("expected_ward_count"),
         boundaries_adapter=boundaries.get("adapter", "file"),
         boundaries_config=boundaries,
-        cell_size_m=float(grid.get("cell_size_m", 1000)),
+        cell_size_m=_cell_size_override(grid.get("cell_size_m", DEFAULT_CELL_SIZE_M)),
         # Derived when absent, so a new city cannot silently inherit Mumbai's zone.
         projected_crs=grid.get("projected_crs") or utm_crs_for(bbox),  # type: ignore[arg-type]
         gee_project=(raw.get("gee") or {}).get("project"),

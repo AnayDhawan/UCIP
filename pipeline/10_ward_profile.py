@@ -40,15 +40,23 @@ from pathlib import Path
 
 import geopandas as gpd
 from _city import load_city
+from _publish import publish_text
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
-IN_CELLS_PATH = DATA_DIR / "cells_hvi.geojson"
-IN_CELLS_FALLBACK = DATA_DIR / "cells_nbs.geojson"
-IN_WARDS_PATH = DATA_DIR / "wards_hvi.geojson"
+
+# Output paths come from the city config (issue #96). They were literal
+# DATA_DIR paths, so this stage wrote to the default city's directory whatever
+# city or resolution it was actually run for. A 500 m run reached stage 05 with
+# 500 m inputs and then published 1 km-named output over the committed dataset,
+# which is how this was found.
 _CITY = load_city()
+IN_CELLS_PATH = _CITY.out("cells_hvi.geojson")
+IN_CELLS_FALLBACK = _CITY.out("cells_nbs.geojson")
+IN_WARDS_PATH = _CITY.out("wards_hvi.geojson")
+
 IN_BOUNDARIES_PATH = _CITY.boundaries_path
-OUT_PATH = DATA_DIR / "ward_profiles.json"
+OUT_PATH = _CITY.out("ward_profiles.json")
 OUT_PUBLIC_PATH = ROOT / "frontend" / "public" / "ward_profiles.json"
 
 # Same seven indicators as 05_hvi.py INDICATORS, in the same order.
@@ -208,9 +216,7 @@ def main() -> int:
     OUT_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     print(f"[ok] wrote {len(profiles)} ward profiles -> {OUT_PATH}")
 
-    OUT_PUBLIC_PATH.parent.mkdir(parents=True, exist_ok=True)
-    OUT_PUBLIC_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-    print(f"[ok] copied -> {OUT_PUBLIC_PATH}")
+    publish_text(OUT_PUBLIC_PATH, json.dumps(payload, indent=2), _CITY)
 
     # ------------------------------------------------------- sanity checks --
     ok = True

@@ -63,3 +63,60 @@ def test_publish_prints_confirmation(tmp_path, capsys):
     out = capsys.readouterr().out
     assert "[ok] copied" in out
     assert str(dest) in out
+
+
+class TestPublishGuard:
+    """Only the published configuration may write to frontend/public/ (issue #96).
+
+    CityConfig.publishes_to_frontend existed for this and only stages 14 and 15
+    consulted it. The other seven called publish() unconditionally, so a Pune
+    run would have replaced Mumbai's live snapshots, and a 500 m run did
+    replace them. The guard is inside publish() now, because a guard every
+    caller has to remember is one that a caller will forget.
+    """
+
+    def city(self, slug="mumbai", cell_size_m=1000.0):
+        from dataclasses import replace
+
+        import _city
+
+        return replace(_city.load_city("mumbai"), slug=slug, cell_size_m=cell_size_m)
+
+    def paths(self, tmp_path):
+        src = tmp_path / "data" / "wards_hvi.geojson"
+        src.parent.mkdir(parents=True, exist_ok=True)
+        src.write_text('{"type": "FeatureCollection", "features": []}', encoding="utf-8")
+        return src, tmp_path / "public" / "wards_hvi.geojson"
+
+    def test_the_published_configuration_still_publishes(self, tmp_path):
+        src, dest = self.paths(tmp_path)
+        assert publish(src, dest, self.city()) is True
+        assert dest.exists()
+
+    def test_a_second_city_does_not_touch_the_live_snapshots(self, tmp_path):
+        src, dest = self.paths(tmp_path)
+        assert publish(src, dest, self.city(slug="pune")) is False
+        assert not dest.exists()
+
+    def test_a_non_default_resolution_does_not_touch_them_either(self, tmp_path):
+        src, dest = self.paths(tmp_path)
+        assert publish(src, dest, self.city(cell_size_m=500.0)) is False
+        assert not dest.exists()
+
+    def test_it_refuses_rather_than_overwriting_an_existing_file(self, tmp_path):
+        # The failure that actually happened: the destination already held the
+        # published 1 km dataset and a 500 m run wrote over it.
+        src, dest = self.paths(tmp_path)
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text("the published dataset", encoding="utf-8")
+
+        assert publish(src, dest, self.city(cell_size_m=500.0)) is False
+        assert dest.read_text(encoding="utf-8") == "the published dataset"
+
+    def test_it_says_why_it_skipped(self, tmp_path, capsys):
+        # "Why is the dashboard unchanged" is a question the log should answer.
+        src, dest = self.paths(tmp_path)
+        publish(src, dest, self.city(cell_size_m=500.0))
+        out = capsys.readouterr().out
+        assert "not publishing" in out
+        assert "500m" in out

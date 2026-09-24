@@ -35,11 +35,19 @@ import geopandas as gpd
 import pandas as pd
 
 from _publish import publish
+from _city import load_city
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
-IN_PATH = DATA_DIR / "cells_hvi.geojson"
-OUT_PATH = DATA_DIR / "cells_ndvi_change.geojson"
+
+# Output paths come from the city config (issue #96). They were literal
+# DATA_DIR paths, so this stage wrote to the default city's directory whatever
+# city or resolution it was actually run for. A 500 m run reached stage 05 with
+# 500 m inputs and then published 1 km-named output over the committed dataset,
+# which is how this was found.
+_CITY = load_city()
+IN_PATH = _CITY.out("cells_hvi.geojson")
+OUT_PATH = _CITY.out("cells_ndvi_change.geojson")
 # WardChoropleth.tsx's green-cover-change layer fetches this straight from the
 # browser, so it needs a frontend/public/ copy on every refresh, same as
 # 10_ward_profile.py/11_hero_city.py/12_hero_region.py already do for theirs.

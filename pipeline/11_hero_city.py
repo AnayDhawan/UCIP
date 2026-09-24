@@ -32,14 +32,20 @@ from pathlib import Path
 import geopandas as gpd
 from shapely.geometry import MultiPolygon, Polygon
 from _city import load_city
+from _publish import publish_text
 from _boundaries import load_boundaries
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
+# Output paths come from the city config (issue #96). They were literal
+# DATA_DIR paths, so this stage wrote to the default city's directory whatever
+# city or resolution it was actually run for. A 500 m run reached stage 05 with
+# 500 m inputs and then published 1 km-named output over the committed dataset,
+# which is how this was found.
 _CITY = load_city()
 IN_BOUNDARIES_PATH = _CITY.boundaries_path
-IN_WARDS_PATH = DATA_DIR / "wards_hvi.geojson"
-OUT_PATH = DATA_DIR / "hero_city.json"
+IN_WARDS_PATH = _CITY.out("wards_hvi.geojson")
+OUT_PATH = _CITY.out("hero_city.json")
 OUT_PUBLIC_PATH = ROOT / "frontend" / "public" / "hero_city.json"
 
 # The city's UTM zone, from its config. Metres, so the simplify tolerance below
@@ -188,8 +194,7 @@ def main() -> int:
 
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text(json.dumps(payload, separators=(",", ":")), encoding="utf-8")
-    OUT_PUBLIC_PATH.parent.mkdir(parents=True, exist_ok=True)
-    OUT_PUBLIC_PATH.write_text(json.dumps(payload, separators=(",", ":")), encoding="utf-8")
+    publish_text(OUT_PUBLIC_PATH, json.dumps(payload, separators=(",", ":")), _CITY)
 
     size_kb = OUT_PATH.stat().st_size / 1024
     print(f"[ok] wrote {len(features)} wards -> {OUT_PATH} ({size_kb:.1f} KB)")

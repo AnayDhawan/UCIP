@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import sys
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -85,6 +86,71 @@ class TestOutputNamespacing:
         # A second city's run must not swap the live dashboard's data.
         assert _city.load_city("mumbai").publishes_to_frontend is True
         assert _city.load_city("pune").publishes_to_frontend is False
+
+
+class TestGridResolution:
+    """Resolution namespacing (issue #96).
+
+    `cell_size_m` was configurable long before it worked. The grid paths were
+    module-level constants spelling "grid_1km" literally, so setting it to 500
+    produced 500 m cells inside files named grid_1km, on top of the 1 km ones,
+    with only a four-times-larger feature count to give it away.
+    """
+
+    def at(self, size, slug="mumbai"):
+        return replace(_city.load_city(slug), cell_size_m=float(size))
+
+    @pytest.mark.parametrize(
+        "size,label",
+        [(1000, "1km"), (500, "500m"), (250, "250m"), (2000, "2km"), (100, "100m")],
+    )
+    def test_label_reads_as_a_human_would_write_it(self, size, label):
+        assert self.at(size).grid_label == label
+
+    def test_the_default_resolution_keeps_every_existing_path(self):
+        # The committed Mumbai outputs are named grid_1km*.geojson and the
+        # deck, docs and snapshots all reference them. Changing those names
+        # would be a breaking change dressed up as a refactor.
+        city = _city.load_city("mumbai")
+        assert city.data_dir == _city.DATA_DIR
+        assert city.grid_path().name == "grid_1km.geojson"
+        assert city.grid_path("_gee").name == "grid_1km_gee.geojson"
+        assert city.grid_path("_vectors").name == "grid_1km_vectors.geojson"
+
+    def test_a_non_default_resolution_gets_its_own_directory(self):
+        assert self.at(500).data_dir == _city.DATA_DIR / "mumbai_500m"
+        assert self.at(250).data_dir == _city.DATA_DIR / "mumbai_250m"
+
+    def test_resolution_and_city_namespace_independently(self):
+        assert self.at(500, "pune").data_dir == _city.DATA_DIR / "pune_500m"
+        assert self.at(1000, "pune").data_dir == _city.DATA_DIR / "pune"
+
+    def test_no_two_resolutions_share_any_output_path(self):
+        """The property that matters, checked over every artefact, not just the grid.
+
+        The directory carries the resolution precisely so that files named for
+        what they hold rather than how they were built (cells.geojson,
+        wards_hvi.geojson) are namespaced too. Those are the ones a
+        filename-only scheme would have missed, and they are the inputs to
+        every stage from 05 onward.
+        """
+        km, half = self.at(1000), self.at(500)
+        for name in [
+            "cells.geojson",
+            "wards_hvi.geojson",
+            "nbs_recommendations.json",
+            "ward_timeseries.json",
+            "hvi_pca_log.json",
+        ]:
+            assert km.out(name) != half.out(name), name
+        assert km.grid_path() != half.grid_path()
+
+    def test_a_non_default_resolution_does_not_publish_to_the_frontend(self):
+        # The site is built and tested against the 1 km dataset. A 500 m run is
+        # an experiment until somebody has looked at what it does to the
+        # payload, and it must not silently become what the dashboard serves.
+        assert self.at(500).publishes_to_frontend is False
+        assert self.at(1000).publishes_to_frontend is True
 
 
 class TestShippedConfigs:

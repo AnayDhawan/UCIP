@@ -50,6 +50,8 @@ from pathlib import Path
 import ee
 import geopandas as gpd
 import _provenance
+
+from _city import load_city
 import pandas as pd
 
 from _gee_auth import init_ee, resolve_project
@@ -57,9 +59,16 @@ from _publish import publish
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
-IN_PATH = DATA_DIR / "cells_hvi.geojson"
-OUT_CELLS_PATH = DATA_DIR / "cells_nbs.geojson"
-OUT_WARD_RECS_PATH = DATA_DIR / "nbs_recommendations.json"
+
+# Output paths come from the city config (issue #96). They were literal
+# DATA_DIR paths, so this stage wrote to the default city's directory whatever
+# city or resolution it was actually run for. A 500 m run reached stage 05 with
+# 500 m inputs and then published 1 km-named output over the committed dataset,
+# which is how this was found.
+_CITY = load_city()
+IN_PATH = _CITY.out("cells_hvi.geojson")
+OUT_CELLS_PATH = _CITY.out("cells_nbs.geojson")
+OUT_WARD_RECS_PATH = _CITY.out("nbs_recommendations.json")
 # Both files are fetched directly by the browser (WardChoropleth.tsx's plantability
 # layer reads cells_nbs.geojson; useWardData.ts reads nbs_recommendations.json for the
 # dashboard's per-ward NBS list), so both need a frontend/public/ copy on every
@@ -154,7 +163,7 @@ def main() -> int:
             all_recs.append({"grid_id": row.grid_id, "ward_id": row.ward_id, **r})
 
     gdf["nbs_fired"] = fired_flags
-    gdf.drop(columns=["geometry"]).to_csv(DATA_DIR / "cells_nbs_debug.csv", index=False)
+    gdf.drop(columns=["geometry"]).to_csv(_CITY.out("cells_nbs_debug.csv"), index=False)
     gdf.to_file(OUT_CELLS_PATH, driver="GeoJSON")
     print(f"[ok] wrote {len(gdf)} cells with NBS flags -> {OUT_CELLS_PATH}")
     _provenance.record(

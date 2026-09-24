@@ -63,10 +63,17 @@ from _hvi import DOMINANCE_THRESHOLD, factor_dominance
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
-IN_PATH = DATA_DIR / "cells.geojson"
-OUT_CELLS_PATH = DATA_DIR / "cells_hvi.geojson"
-OUT_WARDS_PATH = DATA_DIR / "wards_hvi.geojson"
-OUT_METHOD_PATH = DATA_DIR / "hvi_pca_log.json"
+
+# Output paths come from the city config (issue #96). They were literal
+# DATA_DIR paths, so this stage wrote to the default city's directory whatever
+# city or resolution it was actually run for. A 500 m run reached stage 05 with
+# 500 m inputs and then published 1 km-named output over the committed dataset,
+# which is how this was found.
+_CITY = load_city()
+IN_PATH = _CITY.out("cells.geojson")
+OUT_CELLS_PATH = _CITY.out("cells_hvi.geojson")
+OUT_WARDS_PATH = _CITY.out("wards_hvi.geojson")
+OUT_METHOD_PATH = _CITY.out("hvi_pca_log.json")
 # wards_hvi.geojson is what the frontend actually reads at request time (server-side
 # in page.tsx via fs, client-side via fetch in useWardData.ts and WardChoropleth.tsx),
 # so it has to land in frontend/public/, not just data/, on every refresh -- the same
@@ -89,7 +96,6 @@ INDICATORS = {
 # for a single-city, single-snapshot sample (documented fallback trigger).
 MIN_EXPLAINED_VARIANCE = 0.30
 
-_CITY = load_city()
 WARDS_PATH = _CITY.boundaries_path
 
 

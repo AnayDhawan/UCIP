@@ -4,7 +4,7 @@
 
 ## 1. Problem & scope
 - Decision-support, not another heat map: which Mumbai wards to cool first, why, what intervention, where the budget goes.
-- Mumbai only. Grid compute (1 km), rolled up to 24 BMC wards. Architecture city-agnostic (stated, not built).
+- Mumbai only. Grid compute (1 km default, 500 m runnable and verified, see §4c), rolled up to 24 BMC wards. Architecture city-agnostic.
 
 ## 2. Prior art & how UCIP differs
 - Prior-art scan done (pre-sprint item #8): 5 cited studies + "how UCIP differs" in `docs/prior-art.md`. Covers MCAP 2022, RAND/Azhar India HVI, IIT-B Mumbai SUHI, C40 Urban Cooling Toolbox, Ahmedabad HAP (+ IIHS governance, Rathi four-city HVI).
@@ -60,6 +60,27 @@ mid-table wards should treat them as tied and decide on other grounds.
 This captures sampling uncertainty in the cells only. It does not capture
 measurement error in the indicators, the choice of indicators, or the decision
 to weight by PCA at all, which is quantified separately in §5.
+
+### Checked against a different grid
+
+The intervals above come from resampling one 1 km dataset. Rebuilding the
+dataset at 500 m is an independent test of the same claim, because it changes
+the unit of analysis rather than resampling it: 1975 published cells instead of
+541, roughly 82 per ward instead of 23.
+
+Eight of the 24 wards change rank, and ward B moves from 6th to 1st.
+
+The agreement is the interesting part. **Every ward's 500 m rank falls inside
+that ward's own 95% bootstrap interval from the 1 km data, 24 out of 24.** Ward
+B's interval was 1st to 15th, the widest in the table, and 1st is inside it. The
+two methods disagree about the ordering and agree about which parts of the
+ordering mean anything, which is what §4c said to expect.
+
+Read together: a rank near the top or the bottom is a finding, and a rank in the
+middle is an artefact of where the grid lines fell. 1 km remains the published
+resolution, and the 500 m run is reproducible with
+`python pipeline/run_pipeline.py --cell-size 500` (see
+[`adding-a-city.md`](adding-a-city.md) §4b for what it costs).
 
 ## 4d. How much imagery is behind each cell
 

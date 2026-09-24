@@ -16,11 +16,15 @@ Inputs:
     ../data/bmc_wards.geojson   24 BMC ward boundaries (Datameet)
 
 Outputs:
-    ../data/grid_1km.geojson    one polygon per cell, with grid_id and ward_id
+    ../data/grid_<res>.geojson   one polygon per cell, with grid_id and ward_id.
+                                The resolution is in the name (grid_1km, grid_500m),
+                                so two resolutions cannot overwrite each other.
 
 Notes:
-    Resolution is a parameter (CELL_SIZE_M). The locked decision was 1 km first,
-    500 m later if time allowed; 500 m has not been run.
+    Resolution comes from the city config's grid.cell_size_m and is part of
+    every grid filename (issue #96), so a 500 m run sits beside a 1 km one
+    rather than on top of it. 1 km remains the default and is the only
+    resolution the published Mumbai dataset has been built at.
 
     The bounds check near the end is a plausibility guard, not a hard failure:
     it warns if the grid lands outside Mumbai's real extent, which is what a
@@ -66,7 +70,7 @@ def main() -> int:
     cell_size_m = city.cell_size_m
     print(f"[..] city: {city.name} ({city.slug}), {cell_size_m:.0f} m grid in {utm_crs}")
 
-    out_path = city.out("grid_1km.geojson")
+    out_path = city.grid_path()
 
     if not wards_path.exists():
         print(f"[FAIL] {wards_path} not found.")

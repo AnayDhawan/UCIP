@@ -41,6 +41,7 @@ Run:
 import json
 import os
 import sys
+from _city import load_city
 from pathlib import Path
 
 import geopandas as gpd
@@ -48,14 +49,21 @@ from dotenv import load_dotenv
 from supabase import Client, create_client
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
-CELLS_PATH = DATA_DIR / "cells_nbs.geojson"
-WARDS_PATH = DATA_DIR / "wards_hvi.geojson"
-REC_PATH = DATA_DIR / "nbs_recommendations.json"
+
+# Output paths come from the city config (issue #96). They were literal
+# DATA_DIR paths, so this stage wrote to the default city's directory whatever
+# city or resolution it was actually run for. A 500 m run reached stage 05 with
+# 500 m inputs and then published 1 km-named output over the committed dataset,
+# which is how this was found.
+_CITY = load_city()
+CELLS_PATH = _CITY.out("cells_nbs.geojson")
+WARDS_PATH = _CITY.out("wards_hvi.geojson")
+REC_PATH = _CITY.out("nbs_recommendations.json")
 
 # Demo-safe snapshot names — these are what the frontend + pitch deck reference.
-SNAP_CELLS = DATA_DIR / "snapshot_cells.geojson"
-SNAP_WARDS = DATA_DIR / "snapshot_wards.geojson"
-SNAP_RECS = DATA_DIR / "snapshot_nbs_recommendations.json"
+SNAP_CELLS = _CITY.out("snapshot_cells.geojson")
+SNAP_WARDS = _CITY.out("snapshot_wards.geojson")
+SNAP_RECS = _CITY.out("snapshot_nbs_recommendations.json")
 
 CONTRIB_COLS = ["LST_C", "NDVI", "pop_density_km2", "elderly_pct", "slum_pct", "hospital_dist_m", "impervious_pct"]
 

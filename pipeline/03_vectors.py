@@ -56,11 +56,17 @@ from _gee_auth import init_ee, resolve_project
 from _city import load_city
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
-GRID_PATH = DATA_DIR / "grid_1km_gee.geojson"
 _CITY = load_city()
 WARDS_PATH = _CITY.boundaries_path
+# Mumbai-specific input asset, and a documented limitation rather than an
+# oversight: see the "Known limits" section of docs/adding-a-city.md.
 SLUMS_PATH = DATA_DIR / "slumClusters.geojson"
-OUT_PATH = DATA_DIR / "grid_1km_vectors.geojson"
+# Derived from the config for the same reason as stage 02. This stage already
+# read _CITY for its boundaries and projection while writing to the default
+# city's hardcoded paths, so a Pune run pulled Pune's wards and then wrote the
+# result over Mumbai's grid.
+GRID_PATH = _CITY.grid_path("_gee")
+OUT_PATH = _CITY.grid_path("_vectors")
 
 GEE_PROJECT = resolve_project()
 UTM_CRS = _CITY.projected_crs

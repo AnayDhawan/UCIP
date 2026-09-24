@@ -42,13 +42,21 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from _publish import publish
+from _city import load_city
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
-CELLS_PATH = DATA_DIR / "cells.geojson"
-PCA_LOG_PATH = DATA_DIR / "hvi_pca_log.json"
-OUT_JSON_PATH = DATA_DIR / "sensitivity.json"
-OUT_CHART_PATH = DATA_DIR / "sensitivity_chart.png"
+
+# Output paths come from the city config (issue #96). They were literal
+# DATA_DIR paths, so this stage wrote to the default city's directory whatever
+# city or resolution it was actually run for. A 500 m run reached stage 05 with
+# 500 m inputs and then published 1 km-named output over the committed dataset,
+# which is how this was found.
+_CITY = load_city()
+CELLS_PATH = _CITY.out("cells.geojson")
+PCA_LOG_PATH = _CITY.out("hvi_pca_log.json")
+OUT_JSON_PATH = _CITY.out("sensitivity.json")
+OUT_CHART_PATH = _CITY.out("sensitivity_chart.png")
 # sensitivity.json itself is read server-side straight out of data/ (see
 # frontend/src/app/methodology/page.tsx's readJson, which resolves "../data/..." from
 # frontend/), so it needs no copy. The chart PNG is different: methodology/page.tsx

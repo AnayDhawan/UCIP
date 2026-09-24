@@ -118,8 +118,55 @@ Output goes to `data/<slug>/`, so cities cannot overwrite each other. Mumbai is
 the exception and writes to `data/` directly, because the site, the committed
 snapshots and the deck all reference those paths.
 
+Only the default city and the default 1 km resolution write to
+`frontend/public/`. Standing up a second city, or running an experimental
+resolution, cannot swap out what the live dashboard serves.
+
 Stage 01 needs no credentials, so run it first: it tells you within seconds
 whether your boundaries and bbox agree.
+
+## 4b. Grid resolution
+
+`grid.cell_size_m` sets the analysis resolution and 1 km is the default. To try
+a different one without editing the config:
+
+```bash
+python pipeline/run_pipeline.py --cell-size 500
+```
+
+A non-default resolution writes everything to its own directory,
+`data/<slug>_500m/`, and never to `frontend/public/`. That isolation is the
+point: a 500 m run leaves the published 1 km dataset exactly where it was,
+whether it finishes or fails part way.
+
+Mumbai has been run end to end at 500 m. What it costs, measured rather than
+estimated:
+
+| Resolution | Grid cells | Published cells | Per ward | Cell payload |
+|---|---|---|---|---|
+| 1 km | 547 | 541 | 23 | 2.0 MB |
+| 500 m | 2019 | 1975 | 82 | 4.2 MB |
+| 250 m | 7726 | not run | 322 | not measured |
+
+500 m is 3.7 times the cells rather than 4, because a large part of the bounding
+box is sea and gets clipped away, and 2.1 times the bytes rather than 3.7,
+because a smaller cell has a shorter boundary to encode.
+
+Earth Engine's zonal reduction is the expensive call in a refresh and it runs
+once per cell: stage 02 took 88 seconds at 500 m against roughly 25 at 1 km.
+That is not the binding constraint. The browser payload is, and it is why 1 km
+remains the default.
+
+**500 m is not a strictly better dataset.** Eight of the 24 wards change rank,
+and ward B moves from 6th to 1st. That is not a bug in either run: every ward's
+500 m rank falls inside that ward's own 95% bootstrap interval from the 1 km
+data (`pipeline/uncertainty.py`, issue #87), so the two resolutions agree, to
+within the uncertainty the 1 km data already reported. It does mean a published
+ranking is sensitive to a modelling choice, and switching resolution would
+reshuffle the top of the table without making it more correct.
+
+Anything that reports these ranks should read
+[`docs/methodology.md`](methodology.md) on what they do and do not support.
 
 ## 5. Calibrate the ecology. Do not skip this.
 

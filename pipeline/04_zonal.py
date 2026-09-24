@@ -35,9 +35,17 @@ from pathlib import Path
 import geopandas as gpd
 import _provenance
 
+from _city import load_city
+
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
-IN_PATH = DATA_DIR / "grid_1km_vectors.geojson"
-OUT_PATH = DATA_DIR / "cells.geojson"
+
+# Config-derived, as in stages 02 and 03. cells.geojson keeps its plain name:
+# it is the tidy per-cell table every later stage consumes, one per city
+# directory, and the resolution that produced it is recorded in the run log
+# rather than in the filename.
+_CITY = load_city()
+IN_PATH = _CITY.grid_path("_vectors")
+OUT_PATH = _CITY.out("cells.geojson")
 
 # Canonical indicator set consumed by 05_hvi.py (methodology.md §3).
 INDICATOR_COLS = [

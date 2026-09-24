@@ -59,6 +59,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 import time
@@ -72,7 +73,20 @@ from _publish import publish
 
 PIPELINE_DIR = Path(__file__).resolve().parent
 DATA_DIR = PIPELINE_DIR.parent / "data"
-RUN_LOG_PATH = DATA_DIR / "pipeline_run_log.json"
+
+
+def run_log_path() -> Path:
+    """Where this run's log goes, resolved when the run starts.
+
+    A function rather than a module-level constant because it depends on the
+    city and resolution, which main() puts into the environment after parsing
+    its arguments. As a constant it was fixed at import time, so a 500 m run
+    wrote its log over the 1 km one and then published it.
+    """
+    from _city import load_city
+
+    return load_city().out("pipeline_run_log.json")
+
 # Mirror for the deployed site, which reads data from frontend/public/ (issue
 # #124); see the "Frontend sync" section of pipeline/README.md.
 RUN_LOG_PUBLIC_PATH = (
@@ -274,17 +288,34 @@ def select_stages(args: argparse.Namespace) -> list[Stage]:
     ]
 
 
-def run_stage(stage: Stage, dry_run: bool) -> StageResult:
+def run_stage(stage: Stage, dry_run: bool, city: str | None = None,
+              cell_size: float | None = None) -> StageResult:
     script_path = PIPELINE_DIR / stage.script
     command = [sys.executable, str(script_path), *stage.args]
     print(f"\n{'=' * 70}\n[{stage.id}] {stage.script} ({stage.cadence})\n{stage.description}\n{'=' * 70}")
 
+    # The city travels to the subprocesses as UCIP_CITY rather than as a flag.
+    # _city.load_city() already resolves in that order (explicit argument, then
+    # the environment, then Mumbai) and its docstring has always described this
+    # as the mechanism the runner uses; the runner simply never set it, so
+    # `run_pipeline.py --city pune` was an unrecognised argument even though
+    # docs/adding-a-city.md documents that exact command. Passing it in the
+    # environment means a stage that parses no arguments of its own still
+    # honours it.
+    overrides = {}
+    if city:
+        overrides["UCIP_CITY"] = city
+    if cell_size:
+        overrides["UCIP_CELL_SIZE_M"] = str(cell_size)
+    env = {**os.environ, **overrides} if overrides else None
+
     if dry_run:
-        print("[dry-run] would execute: " + " ".join(command))
+        suffix = "".join(f"   ({k}={v})" for k, v in overrides.items())
+        print("[dry-run] would execute: " + " ".join(command) + suffix)
         return StageResult(stage, None, 0.0)
 
     start = time.monotonic()
-    proc = subprocess.run(command, cwd=PIPELINE_DIR)
+    proc = subprocess.run(command, cwd=PIPELINE_DIR, env=env)
     elapsed = time.monotonic() - start
 
     result = StageResult(stage, proc.returncode, elapsed)
@@ -300,6 +331,12 @@ def build_parser() -> argparse.ArgumentParser:
     tests parsing a Namespace the selection logic no longer recognised.
     """
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--city", default=None, metavar="SLUG",
+                         help="city slug to run (default: mumbai, or $UCIP_CITY)")
+    parser.add_argument("--cell-size", default=None, type=float, metavar="METRES",
+                         help="grid resolution override, e.g. 500 (default: the city config's "
+                              "grid.cell_size_m). A non-default resolution writes to its own "
+                              "data/<city>_<res>/ directory and never to frontend/public.")
     parser.add_argument("--include-spike", action="store_true",
                          help="also run 00_gee_spike.py (excluded by default, see module docstring)")
     parser.add_argument("--include-annual", action="store_true",
@@ -316,6 +353,17 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> int:
     args = build_parser().parse_args()
+
+    # The runner is part of the run, not an observer of it. Its own publish of
+    # the run log goes through the same guard as every stage, and that guard
+    # reads this process's environment, so the overrides have to be set here
+    # too and not only in the subprocess environment. Without this the parent
+    # resolved to Mumbai at 1 km and published a 500 m run's log over the
+    # committed one.
+    if args.city:
+        os.environ["UCIP_CITY"] = args.city
+    if args.cell_size:
+        os.environ["UCIP_CELL_SIZE_M"] = str(args.cell_size)
 
     stages = select_stages(args)
     if not stages:
@@ -340,7 +388,7 @@ def main() -> int:
     )
     exit_code = 0
     for stage in stages:
-        result = run_stage(stage, args.dry_run)
+        result = run_stage(stage, args.dry_run, args.city, args.cell_size)
         report.results.append(result)
         if result.status == "fail" and not args.dry_run:
             exit_code = 1
@@ -353,15 +401,15 @@ def main() -> int:
 
     if not args.dry_run:
         DATA_DIR.mkdir(parents=True, exist_ok=True)
-        RUN_LOG_PATH.write_text(json.dumps(report.to_json(), indent=2), encoding="utf-8")
-        print(f"\n[ok] wrote run log -> {RUN_LOG_PATH}")
+        run_log_path().write_text(json.dumps(report.to_json(), indent=2), encoding="utf-8")
+        print(f"\n[ok] wrote run log -> {run_log_path()}")
         # Mirror the log where the deployed site reads data from
         # (frontend/public/, issue #124): /api/v1/meta and the dashboard footer
         # serve it from there, exactly like the stage outputs in the "Frontend
         # sync" table in pipeline/README.md. The methodology page reads the
         # data/ copy server-side instead, like sensitivity.json and
         # hvi_pca_log.json.
-        publish(RUN_LOG_PATH, RUN_LOG_PUBLIC_PATH)
+        publish(run_log_path(), RUN_LOG_PUBLIC_PATH)
 
     print("\n" + "-" * 70)
     print("Summary:")

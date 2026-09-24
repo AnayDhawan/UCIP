@@ -32,19 +32,26 @@ from pathlib import Path
 import geopandas as gpd
 from shapely.geometry import MultiPolygon, Polygon, Point
 from _city import load_city
+from _publish import publish_text
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
+
+# Output paths come from the city config (issue #96). They were literal
+# DATA_DIR paths, so this stage wrote to the default city's directory whatever
+# city or resolution it was actually run for. A 500 m run reached stage 05 with
+# 500 m inputs and then published 1 km-named output over the committed dataset,
+# which is how this was found.
+_CITY = load_city()
 CACHE_DIR = DATA_DIR / "cache"
-IN_CITY_PATH = DATA_DIR / "hero_city.json"
-OUT_PATH = DATA_DIR / "hero_region.json"
+IN_CITY_PATH = _CITY.out("hero_city.json")
+OUT_PATH = _CITY.out("hero_region.json")
 OUT_PUBLIC_PATH = ROOT / "frontend" / "public" / "hero_region.json"
 
 NE_BASE = "https://naciscdn.org/naturalearth/10m/physical"
 NE_LAND = "ne_10m_land.zip"
 NE_MINOR_ISLANDS = "ne_10m_minor_islands.zip"
 
-_CITY = load_city()
 PROJECTED_CRS = _CITY.projected_crs
 
 # How far out the context extends, in metres. About 155 km, which reaches the
@@ -198,8 +205,7 @@ def main() -> int:
     }
 
     OUT_PATH.write_text(json.dumps(payload, separators=(",", ":")), encoding="utf-8")
-    OUT_PUBLIC_PATH.parent.mkdir(parents=True, exist_ok=True)
-    OUT_PUBLIC_PATH.write_text(json.dumps(payload, separators=(",", ":")), encoding="utf-8")
+    publish_text(OUT_PUBLIC_PATH, json.dumps(payload, separators=(",", ":")), _CITY)
 
     size_kb = OUT_PATH.stat().st_size / 1024
     n_pts = sum(len(p["outer"]) + sum(len(h) for h in p["holes"]) for p in parts)

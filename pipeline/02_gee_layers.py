@@ -49,10 +49,18 @@ import _provenance
 
 from _dry_season import most_recent_complete_dry_season
 from _gee_auth import init_ee, resolve_project
+from _city import load_city
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
-GRID_PATH = DATA_DIR / "grid_1km.geojson"
-OUT_PATH = DATA_DIR / "grid_1km_gee.geojson"
+
+# Resolved from the city config rather than spelled literally, so this stage
+# reads the grid stage 01 actually wrote. These were hardcoded to
+# data/grid_1km*.geojson, which meant a non-default city read Mumbai's grid and
+# wrote its results over Mumbai's outputs, and a non-default resolution was
+# invisible in the filename entirely. See CityConfig.grid_path (issue #96).
+_CITY = load_city()
+GRID_PATH = _CITY.grid_path()
+OUT_PATH = _CITY.grid_path("_gee")
 
 GEE_PROJECT = resolve_project()
 
