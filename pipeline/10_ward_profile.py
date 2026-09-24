@@ -18,16 +18,13 @@ Indicator units, verified against data/cells_hvi.geojson (541 cells):
     LST_C             degrees Celsius     26.24 to 39.95
     NDVI              index, unitless     -0.07 to 0.71   (NOT a canopy percentage)
     pop_density_km2   people per sq km    16 to 115,272
-    elderly_pct       percent, 0-100      4.02 to 5.59    (near-flat proxy, see note)
     slum_pct          percent, 0-100      0.00 to 68.55
     hospital_dist_m   metres              3.86 to 6199.03
     impervious_pct    percent, 0-100      0.00 to 96.79
 
-    All *_pct columns are on a 0-100 scale, not 0-1. elderly_pct spans only
-    1.6 points across the entire city, so it separates wards very weakly; the
-    UI copy should not lean on it. Per methodology.md section 10, the elderly
-    and slum layers are proxies (WorldPop 2020, OSM slum-cluster boundaries),
-    not ward-level census, and LST is land-surface, not air, temperature.
+    All *_pct columns are on a 0-100 scale, not 0-1. Per methodology.md
+    section 10, the slum layer is a proxy (mapped slum-cluster boundaries), not
+    a ward-level census count, and LST is land-surface, not air, temperature.
 
 Run:
     .venv\\Scripts\\activate
@@ -202,7 +199,6 @@ def main() -> int:
             "LST_C": "degrees Celsius (land surface, not air)",
             "NDVI": "vegetation index, unitless, not a canopy percentage",
             "pop_density_km2": "people per square kilometre",
-            "elderly_pct": "percent (0-100), proxy from WorldPop 2020",
             "slum_pct": "percent (0-100), proxy from mapped slum-cluster boundaries",
             "hospital_dist_m": "metres",
             "impervious_pct": "percent (0-100)",

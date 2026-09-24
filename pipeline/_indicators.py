@@ -1,7 +1,7 @@
 """The Heat Vulnerability Index indicator set, in one place (issue #95).
 
 The direction table used to be copied into five files (05_hvi, 08_sensitivity,
-uncertainty, compare_weightings, elderly_evaluation), each with its own idea of
+uncertainty, compare_weightings), each with its own idea of
 what the seven indicators were. That is tolerable while the list never changes
 and a trap the moment it does: adding an indicator meant finding every copy, and
 missing one would not raise an error. It would compute a ranking from a
@@ -31,7 +31,6 @@ DIRECTIONS: dict[str, int] = {
     "LST_C": 1,
     "NDVI": -1,
     "pop_density_km2": 1,
-    "elderly_pct": 1,
     "child_pct": 1,
     "slum_pct": 1,
     "hospital_dist_m": 1,

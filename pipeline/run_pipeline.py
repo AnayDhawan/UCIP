@@ -132,7 +132,7 @@ STAGES: list[Stage] = [
     Stage("02", "02_gee_layers.py", "monthly",
           "Dry-season Landsat LST/NDVI composite + WorldCover impervious pct via GEE."),
     Stage("03", "03_vectors.py", "monthly",
-          "WorldPop population/elderly (pinned annual vintage), slum clusters, OSM hospitals."),
+          "WorldPop population (pinned annual vintage), slum clusters, OSM hospitals."),
     Stage("04", "04_zonal.py", "monthly",
           "Consolidate raster + vector layers into one tidy per-cell table."),
     Stage("05", "05_hvi.py", "monthly",

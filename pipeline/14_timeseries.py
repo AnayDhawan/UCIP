@@ -19,7 +19,7 @@ What this is NOT, stated plainly because the issue title invites the stronger re
     The index combines seven indicators. Only two of them, LST and NDVI, are
     observed per year: they come from satellite imagery that exists for every
     season. The other five do not vary annually in any data this project has.
-    Population density and elderly share come from a single pinned WorldPop
+    Population density comes from a single pinned WorldPop
     image; the slum layer is one Datameet snapshot; hospital distance is current
     OpenStreetMap; imperviousness is one WorldCover epoch. Recomputing "the HVI
     per year" while five of its seven inputs are frozen would produce a series
@@ -411,7 +411,7 @@ def main() -> int:
         ),
         "what_this_is_not": (
             "Not a multi-year Heat Vulnerability Index. Only 2 of the index's 7 indicators are "
-            "observed annually; population density, elderly share, the slum layer, hospital "
+            "observed annually; population density, the 0-6 share, the slum layer, hospital "
             "distance and imperviousness each come from a single snapshot. Recomputing the index "
             "per year with five inputs frozen would present a thermal trend as a vulnerability "
             "trend."

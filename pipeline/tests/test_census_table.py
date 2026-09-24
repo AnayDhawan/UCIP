@@ -164,11 +164,12 @@ class TestCommittedTable:
             expected = int(row["p_06"]) / int(row["tot_p"]) * 100
             assert float(row["child_pct"]) == pytest.approx(expected, abs=1e-3), row["ward_id"]
 
-    def test_it_is_a_real_ward_level_surface_unlike_elderly_pct(self, table):
+    def test_it_is_a_real_ward_level_surface(self, table):
         """The reason this indicator exists.
 
-        elderly_pct takes two values across the city. A ward-level Census
-        figure should take one per ward, and they should genuinely differ.
+        The WorldPop elderly share it sits beside took two values across the
+        city. A ward-level Census figure should take one per ward, and they
+        should genuinely differ.
         """
         values = {round(float(r["child_pct"]), 4) for r in table}
         assert len(values) == 24

@@ -65,7 +65,7 @@ const ward: Schema = {
       ...nullableNumber,
       description:
         "That indicator's share of total absolute contribution, 0 to 1. " +
-        "An even spread across the eight indicators is 0.125.",
+        "An even spread across the seven indicators is about 0.143.",
     },
     single_factor_dominated: {
       type: ["boolean", "null"],
@@ -110,7 +110,6 @@ const cell: Schema = {
     ndvi: { ...nullableNumber, description: "Normalised difference vegetation index, -1 to 1." },
     ndvi_prev: { ...nullableNumber, description: "NDVI in the previous comparison window." },
     pop_density_km2: nullableNumber,
-    elderly_pct: { ...nullableNumber, description: "Share of population aged 60 or over." },
     slum_pct: nullableNumber,
     hospital_dist_m: { ...nullableNumber, description: "Distance to the nearest hospital, metres." },
     impervious_pct: nullableNumber,

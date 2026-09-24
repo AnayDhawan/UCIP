@@ -48,7 +48,7 @@ export default function LegalPage() {
             the air temperature people feel.
           </li>
           <li>
-            Slum density and elderly share are estimated from public proxies, not census records.
+            Slum density is estimated from mapped slum-cluster boundaries, not census records.
             The methodology page lists every proxy openly.
           </li>
           <li>

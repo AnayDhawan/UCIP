@@ -140,8 +140,8 @@ describe("GET /api/v1/wards/{wardId}", () => {
     getWard(req(`/api/v1/wards/${id}`), { params: Promise.resolve({ wardId: id }) });
 
   it("returns a ward with its ranked recommendations", async () => {
-    const json = await body(await call("C"));
-    expect(json.ward.ward_id).toBe("C");
+    const json = await body(await call("L"));
+    expect(json.ward.ward_id).toBe("L");
     expect(json.ward.rank).toBe(1);
     expect(json.recommendations.length).toBeGreaterThan(0);
     const priorities = json.recommendations.map((r: { priority: number }) => r.priority);

@@ -52,7 +52,7 @@ class Ward(TypedDict, total=False):
     dominant_share: float | None
     """
     That indicator's share of total absolute contribution, 0 to 1. An even
-    spread across the eight indicators is 0.125.
+    spread across the seven indicators is about 0.143.
     """
     single_factor_dominated: bool | None
     """
@@ -118,10 +118,6 @@ class Cell(TypedDict, total=False):
     NDVI in the previous comparison window.
     """
     pop_density_km2: float | None
-    elderly_pct: float | None
-    """
-    Share of population aged 60 or over.
-    """
     slum_pct: float | None
     hospital_dist_m: float | None
     """

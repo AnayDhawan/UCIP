@@ -29,8 +29,7 @@ Defined over every 1 km cell, then standardised and weighted in stage 05. Ranges
 | `LST_C` | degrees Celsius | observed 26.2–39.9 | Landsat 8/9 Collection 2 Level 2, `ST_B10`, dry-season median composite | Cloud-masked median over the dry-season window (Nov–Feb), 30 m reduced per cell | **Land-surface, not air, temperature** (radiometric ground temperature). Validated against GSOD stations in stage 13. |
 | `NDVI` | index, unitless | −1 to 1; observed −0.07 to 0.71 | Landsat 8/9 C2 L2, `SR_B5`/`SR_B4` | Dry-season median `(NIR − red)/(NIR + red)` | A vegetation index, **not a canopy percentage**. |
 | `pop_density_km2` | people / km² | ≥ 0; observed 16–115,272 | WorldPop 100 m age-sex rasters via Earth Engine | Summed population per cell / cell area | **Modelled surface, pinned to the 2020 WorldPop vintage**, not a census count; does not vary annually. |
-| `elderly_pct` | percent (0-100) | 0-100; observed 4.02-5.59 | WorldPop 100 m age-sex (60+), same surface | 60+ population / total population per cell | **A district dummy, not a surface.** WorldPop applies district age structure to a population raster, so 80% of cells share one value and two values cover 95.6%, split exactly along the Mumbai City / Mumbai Suburban boundary. The 100 m resolution is the raster's, not the information's. Still takes 13.6% of ward score contribution, and dropping it moves 13 of 24 ward ranks. See methodology.md §10a. |
-| `child_pct` | percent (0-100) | 0-100; observed 6.75-13.09 | Census of India 2011 Primary Census Abstract, Census-ward level, republished by OpenCity (public domain) | Population aged 0-6 / total population, summed over the Census wards in each BMC ward, then assigned to every cell in the ward | **Young children, not the elderly.** Real ward-level data with 24 distinct values, but 2011 vintage and flat within a ward. Optional per city: a city without a ward-level Census table runs without it. PCA weight is 0.019, so it moves the PCA ranking very little. Built and cross-checked by `pipeline/build_census_table.py`. See methodology.md §10c. |
+| `child_pct` | percent (0-100) | 0-100; observed 6.75-13.09 | Census of India 2011 Primary Census Abstract, Census-ward level, republished by OpenCity (public domain) | Population aged 0-6 / total population, summed over the Census wards in each BMC ward, then assigned to every cell in the ward | **Young children, not the elderly.** Real ward-level data with 24 distinct values, but 2011 vintage and flat within a ward. Optional per city: a city without a ward-level Census table runs without it. PCA weight is 0.027, so it moves the PCA ranking very little. Built and cross-checked by `pipeline/build_census_table.py`. See methodology.md §10c. |
 | `slum_pct` | percent (0–100) | 0–100; observed 0.00–68.55 | Datameet slum-cluster polygons | Share of cell area covered by mapped slum clusters | **Proxy**: mapped clusters, not a slum census; any cell with no mapped cluster reads 0. Real observed boundaries (preferred over the modelled GHS-SMOD proxy). |
 | `hospital_dist_m` | metres | ≥ 0; observed 3.86–6,199 | OpenStreetMap hospitals via osmnx | Straight-line distance from cell centroid to nearest hospital | **Euclidean, not network** distance — a river or rail line in between is not accounted for. Current OSM snapshot, not static. |
 | `impervious_pct` | percent (0–100) | 0–100; observed 0.00–96.79 | ESA WorldCover | Built-up share per cell from WorldCover class 50 (10 m) | Single WorldCover epoch; does not vary annually. |
@@ -67,8 +66,8 @@ One feature per ward (`FeatureCollection`). Properties:
 | `n_cells` | Number of grid cells inside the ward. |
 | `contrib_*` (×7) | Ward-level mean of the cell contributions. |
 | `dominant_factor` | Indicator with the largest **absolute** contribution. Magnitude, not sign: a factor pushing the score down hard is driving it as much as one pushing it up. Null only if every contribution is zero. |
-| `dominant_share` | That indicator's share of the ward's total absolute contribution, 0–1. An even spread across the eight is 0.125. On the current Mumbai data the range is 0.19–0.35. |
-| `single_factor_dominated` | True when `dominant_share` ≥ 0.5, i.e. one indicator accounts for half or more of the movement in the score. Such a ward needs a different intervention from one scoring high across all eight. **No Mumbai ward currently crosses this**, which is itself a result: the index is not being carried by a single indicator anywhere. Threshold: `DOMINANCE_THRESHOLD` in `pipeline/_hvi.py`. |
+| `dominant_share` | That indicator's share of the ward's total absolute contribution, 0–1. An even spread across the seven is about 0.143. On the current Mumbai data the range is 0.19–0.40. |
+| `single_factor_dominated` | True when `dominant_share` ≥ 0.5, i.e. one indicator accounts for half or more of the movement in the score. Such a ward needs a different intervention from one scoring high across all seven. **No Mumbai ward currently crosses this**, which is itself a result: the index is not being carried by a single indicator anywhere. Threshold: `DOMINANCE_THRESHOLD` in `pipeline/_hvi.py`. |
 
 ### `ward_profiles.json` (`pipeline/10_ward_profile.py`)
 
@@ -119,7 +118,7 @@ The ward ranking under the PCA-derived weights against the published equal
 weighting the pipeline falls back to (issue #88). Fields: `question`,
 `weightings` (each with `source` and `weights`), `agreement` (`kendall_tau`,
 `spearman_rho`, `wards_with_identical_rank`, `max_abs_rank_shift`,
-`max_shift_ward`, `top_5_overlap`, and both top-5 lists), `interpretation`, and
+`max_shift_ward`, `top_5_overlap`, and both top-5 lists), `ablation` (the same comparison with the lowest-weighted indicator dropped and both schemes refitted), `interpretation`, and
 `per_ward` (`ward_id`, `rank_pca`, `rank_published`, `rank_shift`).
 
 `rank_shift` is published minus PCA, so a positive value means the published
@@ -191,13 +190,14 @@ What the last refresh actually did, and the site's data-age statement (issue #12
 ## Database notes
 
 - Tables mirror the snapshots; the authoritative geometry is `geom_geojson jsonb` with native PostGIS `geom` added in migration 0006 (ward `geometry(MultiPolygon, 4326)`, cell `geometry(Polygon, 4326)`, GiST-indexed) for the `ward_at(lat, lon)` lookup.
-- Bounded-score constraints (`0002`/`0004`): HVI 0–100 everywhere; `elderly_pct`, `slum_pct`, `impervious_pct` 0–100; ranks and priorities positive; not-null FKs tightened in `0003`.
+- Bounded-score constraints (`0002`/`0004`): HVI 0–100 everywhere; `slum_pct`, `impervious_pct` 0–100 (`elderly_pct` was dropped in `0008`); ranks and priorities positive; not-null FKs tightened in `0003`.
 - All writes go through the pipeline's service role; the anon key is read-only under the RLS policies in `0005` (verified by attempting anon INSERT/UPDATE/DELETE).
 
 ## Cross-cutting honesty notes
 
-- `elderly_pct` and `slum_pct` are **modelled or mapped proxies**, not ward-level census, and are named as such everywhere they surface (methodology page, UI copy, this file).
-- `elderly_source` records where a cell's age structure came from, so that a future ward-level Census merge is visible per cell rather than silently blended into the same column. Every cell currently reads `worldpop_2020_district`.
+- There is no elderly indicator. `elderly_pct` and its `contrib_elderly_pct` were removed because the only source, WorldPop's India age-sex product, carries district age structure and not a ward-level measurement (methodology.md §10a). `child_pct` is the one age indicator, and it counts children under 7.
+- `slum_pct` is a **mapped proxy**, not a slum census, and is named as such everywhere it surfaces (methodology page, UI copy, this file).
+- `child_source` records where a cell's age structure came from, so a change of source is visible per cell rather than silently blended into the same column.
 - LST is **land-surface temperature**, not air temperature; the dashboard copy says "about 3.1 C hotter than the city average" from LST, not a weather reading.
 - `hospital_dist_m` is Euclidean; `slum_pct` treats unmapped areas as zero.
 - Scale traps: `*_pct` is 0–100 (not 0–1); NDVI is an index (not percent); HVI is ordinal-ish 0–100 and should be compared as ranks, not ratio differences.

@@ -47,8 +47,8 @@ the failure this dataset is built to avoid. So each response includes a
   absent. The plantability filter refuses native grassland (Veldman 2019), and
   without that note an assistant reads a missing intervention as an oversight
   and suggests planting it.
-- Proxies are named as proxies: `elderly_pct` is modelled, not a census count,
-  and land surface temperature is not air temperature.
+- Proxies are named as proxies: `slum_pct` is mapped cluster boundaries, not a
+  census count, and land surface temperature is not air temperature.
 
 ## Configuration
 

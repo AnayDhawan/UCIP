@@ -3,13 +3,13 @@
 Writes data/census2011_ward_age_mumbai.csv: for each of Mumbai's 24 BMC wards,
 the 2011 Census population and the population aged 0 to 6, and the share.
 
-Why this exists at all. The elderly layer already in the index is not ward-level
-data: WorldPop's India age-sex product applies district age structure, so it
-takes two values across the whole city (see docs/methodology.md 10a). The
-Census does publish real ward-level figures, but its ward-level Primary Census
-Abstract has no 60+ column. It does have 0 to 6. That is the age-structure
-signal that exists at ward resolution, and it is a real one: 24 distinct values
-from 6.75% to 13.09%.
+Why this exists at all. The index used to carry an elderly share from
+WorldPop's India age-sex product, which applies district age structure and so
+took two values across the whole city. It was removed (docs/methodology.md 10a).
+The Census does publish real ward-level figures, but its ward-level Primary
+Census Abstract has no 60+ column. It does have 0 to 6. That is the
+age-structure signal that exists at ward resolution, and it is a real one: 24
+distinct values from 6.75% to 13.09%.
 
 It measures young children, not the elderly. The two are different populations
 and this indicator is named for what it is.

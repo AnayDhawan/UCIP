@@ -37,7 +37,7 @@
     "NDVI"
   ],
   "what_this_is": "Per-ward dry-season land surface temperature and NDVI, one value per year, with a least-squares trend per ward.",
-  "what_this_is_not": "Not a multi-year Heat Vulnerability Index. Only 2 of the index's 7 indicators are observed annually; population density, elderly share, the slum layer, hospital distance and imperviousness each come from a single snapshot. Recomputing the index per year with five inputs frozen would present a thermal trend as a vulnerability trend.",
+  "what_this_is_not": "Not a multi-year Heat Vulnerability Index. Only 2 of the index's 7 indicators are observed annually; population density, the 0-6 share, the slum layer, hospital distance and imperviousness each come from a single snapshot. Recomputing the index per year with five inputs frozen would present a thermal trend as a vulnerability trend.",
   "limitations": [
     "Landsat 8 and 9 only, so the record starts at the 2014 season. Landsat 5/7 have different thermal calibration and splicing them would create a step change at the join.",
     "Dry season only (November to February). Monsoon imagery is unusable for LST, so this is a dry-season trend, not an annual mean.",

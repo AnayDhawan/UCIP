@@ -10,7 +10,6 @@ What it does:
                                                   cooling centres                [Veldman]
         impervious high + flood-prone          -> rain gardens, WSUD
         density high + open space low          -> pocket parks
-        elderly high + hospital access far     -> cooling centres, prioritised
 
     The plantability filter is the part that makes this more than a lookup
     table. A cell qualifies for tree planting only where restoration literature
@@ -30,8 +29,8 @@ Outputs:
 
 Threshold notes (documented here since methodology.md keeps them at the outline level):
 - "high"/"low" cutoffs use the 75th/25th percentile of that indicator across cells
-  in THIS run, not fixed absolute values — several indicators (e.g. elderly_pct)
-  have a narrow observed range where an absolute cutoff would be meaningless.
+  in THIS run, not fixed absolute values, so a rule fires on the relatively worst
+  quarter of a city whatever that city's absolute ranges are.
 - "flood-prone" has no dedicated hydrology layer in P0; proxied as
   distance-to-nearest-WorldCover-water/wetland < 500m (stated limitation).
 - "plantable" = not water/wetland/mangrove/built-up AND not native grassland
@@ -145,8 +144,6 @@ def main() -> int:
         "hvi_p75": gdf["HVI"].quantile(0.75),
         "ndvi_p25": gdf["NDVI"].quantile(0.25),
         "density_p75": gdf["pop_density_km2"].quantile(0.75),
-        "elderly_p75": gdf["elderly_pct"].quantile(0.75),
-        "hospital_p75": gdf["hospital_dist_m"].quantile(0.75),
         "impervious_p75": gdf["impervious_pct"].quantile(0.75),
     }
     print("[ok] thresholds (75th/25th percentile):", {k: round(v, 2) for k, v in thresholds.items()})

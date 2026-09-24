@@ -5,8 +5,8 @@
  * Every sentence and every formatted figure here traces back to a field in that
  * file. Nothing is invented, nothing is rounded into a claim the data does not
  * support, and proxies are named as proxies: NDVI is a vegetation index, not a
- * canopy percentage, and the elderly and slum layers are modelled surfaces
- * rather than ward-level census (docs/methodology.md, section 10).
+ * canopy percentage, and the slum layer is a mapped proxy
+ * rather than a ward-level census count (docs/methodology.md, section 10).
  *
  * Kept as pure functions so the copy is deterministic and reviewable without
  * rendering anything.
@@ -19,7 +19,6 @@ export type CityProfile = {
   LST_C: number;
   NDVI: number;
   pop_density_km2: number;
-  elderly_pct: number;
   child_pct: number;
   slum_pct: number;
   hospital_dist_m: number;
@@ -41,8 +40,6 @@ export type WardProfile = {
   NDVI_delta_city: number;
   pop_density_km2: number;
   pop_density_km2_delta_city: number;
-  elderly_pct: number;
-  elderly_pct_delta_city: number;
   child_pct: number;
   child_pct_delta_city: number;
   slum_pct: number;

@@ -6,224 +6,224 @@
   "seed": 20260923,
   "confidence": 0.95,
   "summary": {
-    "median_rank_interval_width": 6.0,
-    "widest_rank_interval": 15,
+    "median_rank_interval_width": 7.0,
+    "widest_rank_interval": 19,
     "wards_whose_rank_is_certain": 0,
     "n_wards": 24
   },
   "per_ward": [
     {
-      "ward_id": "C",
-      "hvi": 72.13,
-      "hvi_ci_low": 66.48,
-      "hvi_ci_high": 80.18,
+      "ward_id": "L",
+      "hvi": 66.32,
+      "hvi_ci_low": 58.96,
+      "hvi_ci_high": 75.47,
       "rank": 1,
       "rank_ci_low": 1,
-      "rank_ci_high": 3
+      "rank_ci_high": 4
+    },
+    {
+      "ward_id": "C",
+      "hvi": 63.52,
+      "hvi_ci_low": 58.22,
+      "hvi_ci_high": 70.77,
+      "rank": 2,
+      "rank_ci_low": 1,
+      "rank_ci_high": 5
     },
     {
       "ward_id": "G/N",
-      "hvi": 69.48,
-      "hvi_ci_low": 61.42,
-      "hvi_ci_high": 79.93,
-      "rank": 2,
-      "rank_ci_low": 1,
-      "rank_ci_high": 6
-    },
-    {
-      "ward_id": "L",
-      "hvi": 66.73,
-      "hvi_ci_low": 58.96,
-      "hvi_ci_high": 75.94,
+      "hvi": 61.64,
+      "hvi_ci_low": 52.56,
+      "hvi_ci_high": 73.99,
       "rank": 3,
       "rank_ci_low": 1,
-      "rank_ci_high": 8
-    },
-    {
-      "ward_id": "E",
-      "hvi": 64.79,
-      "hvi_ci_low": 59.67,
-      "hvi_ci_high": 72.12,
-      "rank": 4,
-      "rank_ci_low": 2,
-      "rank_ci_high": 7
-    },
-    {
-      "ward_id": "B",
-      "hvi": 64.63,
-      "hvi_ci_low": 42.85,
-      "hvi_ci_high": 79.22,
-      "rank": 5,
-      "rank_ci_low": 1,
-      "rank_ci_high": 16
-    },
-    {
-      "ward_id": "F/S",
-      "hvi": 64.14,
-      "hvi_ci_low": 58.35,
-      "hvi_ci_high": 72.8,
-      "rank": 6,
-      "rank_ci_low": 2,
-      "rank_ci_high": 7
+      "rank_ci_high": 9
     },
     {
       "ward_id": "H/E",
-      "hvi": 58.55,
-      "hvi_ci_low": 49.22,
-      "hvi_ci_high": 67.94,
+      "hvi": 56.71,
+      "hvi_ci_low": 47.51,
+      "hvi_ci_high": 67.4,
+      "rank": 4,
+      "rank_ci_low": 2,
+      "rank_ci_high": 12
+    },
+    {
+      "ward_id": "E",
+      "hvi": 56.11,
+      "hvi_ci_low": 51.83,
+      "hvi_ci_high": 62.4,
+      "rank": 5,
+      "rank_ci_low": 3,
+      "rank_ci_high": 9
+    },
+    {
+      "ward_id": "B",
+      "hvi": 55.84,
+      "hvi_ci_low": 33.3,
+      "hvi_ci_high": 70.51,
+      "rank": 6,
+      "rank_ci_low": 1,
+      "rank_ci_high": 20
+    },
+    {
+      "ward_id": "K/E",
+      "hvi": 55.75,
+      "hvi_ci_low": 50.24,
+      "hvi_ci_high": 63.42,
       "rank": 7,
+      "rank_ci_low": 3,
+      "rank_ci_high": 11
+    },
+    {
+      "ward_id": "F/S",
+      "hvi": 55.37,
+      "hvi_ci_low": 50.12,
+      "hvi_ci_high": 63.4,
+      "rank": 8,
+      "rank_ci_low": 3,
+      "rank_ci_high": 10
+    },
+    {
+      "ward_id": "M/W",
+      "hvi": 52.91,
+      "hvi_ci_low": 47.23,
+      "hvi_ci_high": 60.16,
+      "rank": 9,
       "rank_ci_low": 4,
+      "rank_ci_high": 13
+    },
+    {
+      "ward_id": "H/W",
+      "hvi": 50.19,
+      "hvi_ci_low": 46.08,
+      "hvi_ci_high": 56.26,
+      "rank": 10,
+      "rank_ci_low": 7,
+      "rank_ci_high": 13
+    },
+    {
+      "ward_id": "F/N",
+      "hvi": 50.08,
+      "hvi_ci_low": 43.97,
+      "hvi_ci_high": 58.19,
+      "rank": 11,
+      "rank_ci_low": 5,
       "rank_ci_high": 14
     },
     {
       "ward_id": "G/S",
-      "hvi": 58.32,
-      "hvi_ci_low": 52.27,
-      "hvi_ci_high": 65.39,
-      "rank": 8,
-      "rank_ci_low": 6,
-      "rank_ci_high": 12
-    },
-    {
-      "ward_id": "F/N",
-      "hvi": 57.78,
-      "hvi_ci_low": 50.58,
-      "hvi_ci_high": 66.08,
-      "rank": 9,
-      "rank_ci_low": 5,
-      "rank_ci_high": 13
-    },
-    {
-      "ward_id": "K/E",
-      "hvi": 57.56,
-      "hvi_ci_low": 50.63,
-      "hvi_ci_high": 65.09,
-      "rank": 10,
-      "rank_ci_low": 5,
-      "rank_ci_high": 13
+      "hvi": 48.83,
+      "hvi_ci_low": 43.76,
+      "hvi_ci_high": 54.93,
+      "rank": 12,
+      "rank_ci_low": 8,
+      "rank_ci_high": 14
     },
     {
       "ward_id": "A",
-      "hvi": 55.72,
-      "hvi_ci_low": 48.6,
-      "hvi_ci_high": 63.08,
-      "rank": 11,
-      "rank_ci_low": 7,
-      "rank_ci_high": 14
-    },
-    {
-      "ward_id": "M/W",
-      "hvi": 54.85,
-      "hvi_ci_low": 48.48,
-      "hvi_ci_high": 61.66,
-      "rank": 12,
-      "rank_ci_low": 7,
-      "rank_ci_high": 14
-    },
-    {
-      "ward_id": "H/W",
-      "hvi": 52.84,
-      "hvi_ci_low": 47.74,
-      "hvi_ci_high": 59.41,
+      "hvi": 46.21,
+      "hvi_ci_low": 40.66,
+      "hvi_ci_high": 52.99,
       "rank": 13,
       "rank_ci_low": 9,
-      "rank_ci_high": 14
-    },
-    {
-      "ward_id": "D",
-      "hvi": 52.74,
-      "hvi_ci_low": 42.53,
-      "hvi_ci_high": 63.36,
-      "rank": 14,
-      "rank_ci_low": 7,
       "rank_ci_high": 16
     },
     {
+      "ward_id": "D",
+      "hvi": 42.47,
+      "hvi_ci_low": 33.44,
+      "hvi_ci_high": 52.99,
+      "rank": 14,
+      "rank_ci_low": 10,
+      "rank_ci_high": 20
+    },
+    {
       "ward_id": "K/W",
-      "hvi": 45.01,
-      "hvi_ci_low": 38.47,
-      "hvi_ci_high": 50.92,
+      "hvi": 41.99,
+      "hvi_ci_low": 37.16,
+      "hvi_ci_high": 47.89,
       "rank": 15,
-      "rank_ci_low": 14,
+      "rank_ci_low": 12,
       "rank_ci_high": 18
     },
     {
       "ward_id": "M/E",
-      "hvi": 43.61,
-      "hvi_ci_low": 35.9,
-      "hvi_ci_high": 50.65,
+      "hvi": 41.35,
+      "hvi_ci_low": 35.58,
+      "hvi_ci_high": 48.82,
       "rank": 16,
-      "rank_ci_low": 13,
+      "rank_ci_low": 11,
       "rank_ci_high": 19
     },
     {
       "ward_id": "R/S",
-      "hvi": 43.22,
-      "hvi_ci_low": 31.37,
-      "hvi_ci_high": 53.09,
+      "hvi": 40.37,
+      "hvi_ci_low": 29.2,
+      "hvi_ci_high": 51.0,
       "rank": 17,
-      "rank_ci_low": 13,
+      "rank_ci_low": 10,
       "rank_ci_high": 21
     },
     {
       "ward_id": "S",
-      "hvi": 40.59,
-      "hvi_ci_low": 31.74,
-      "hvi_ci_high": 48.68,
+      "hvi": 37.65,
+      "hvi_ci_low": 30.21,
+      "hvi_ci_high": 46.64,
       "rank": 18,
-      "rank_ci_low": 15,
+      "rank_ci_low": 13,
       "rank_ci_high": 21
     },
     {
       "ward_id": "N",
-      "hvi": 39.35,
-      "hvi_ci_low": 29.18,
-      "hvi_ci_high": 47.84,
+      "hvi": 36.29,
+      "hvi_ci_low": 27.9,
+      "hvi_ci_high": 45.91,
       "rank": 19,
-      "rank_ci_low": 15,
+      "rank_ci_low": 14,
       "rank_ci_high": 22
     },
     {
       "ward_id": "P/S",
-      "hvi": 37.46,
-      "hvi_ci_low": 28.74,
-      "hvi_ci_high": 44.72,
+      "hvi": 34.07,
+      "hvi_ci_low": 27.43,
+      "hvi_ci_high": 41.42,
       "rank": 20,
       "rank_ci_low": 16,
       "rank_ci_high": 22
     },
     {
       "ward_id": "P/N",
-      "hvi": 37.01,
-      "hvi_ci_low": 29.32,
-      "hvi_ci_high": 43.18,
+      "hvi": 33.75,
+      "hvi_ci_low": 27.91,
+      "hvi_ci_high": 40.53,
       "rank": 21,
-      "rank_ci_low": 17,
+      "rank_ci_low": 16,
       "rank_ci_high": 22
     },
     {
       "ward_id": "R/N",
-      "hvi": 30.69,
-      "hvi_ci_low": 20.13,
-      "hvi_ci_high": 39.85,
+      "hvi": 27.49,
+      "hvi_ci_low": 17.45,
+      "hvi_ci_high": 38.35,
       "rank": 22,
       "rank_ci_low": 18,
       "rank_ci_high": 24
     },
     {
       "ward_id": "R/C",
-      "hvi": 26.09,
-      "hvi_ci_low": 18.81,
-      "hvi_ci_high": 30.1,
+      "hvi": 21.44,
+      "hvi_ci_low": 17.26,
+      "hvi_ci_high": 26.61,
       "rank": 23,
-      "rank_ci_low": 21,
+      "rank_ci_low": 22,
       "rank_ci_high": 24
     },
     {
       "ward_id": "T",
-      "hvi": 26.08,
-      "hvi_ci_low": 18.54,
-      "hvi_ci_high": 30.56,
+      "hvi": 21.38,
+      "hvi_ci_low": 16.99,
+      "hvi_ci_high": 26.4,
       "rank": 24,
       "rank_ci_low": 22,
       "rank_ci_high": 24

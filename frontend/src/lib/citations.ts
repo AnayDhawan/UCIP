@@ -36,16 +36,6 @@ export const CITATIONS: CitationEntry[] = [
     category: "vulnerability-index",
   },
   {
-    id: "knowlton2014",
-    authors: "Knowlton et al. 2014",
-    year: 2014,
-    venue: "IJERPH 11(4):3473-3492",
-    doi: "10.3390/ijerph110403473",
-    verified: true,
-    usage: "Local credibility; first Heat Action Plan in South Asia",
-    category: "vulnerability-index",
-  },
-  {
     id: "azhar2017",
     authors: "Azhar et al. 2017 (RAND India HVI)",
     year: 2017,
@@ -171,7 +161,6 @@ const CITATION_TEXT_TO_ID: [pattern: RegExp, id: string][] = [
   [/santamouris/i, "santamouris2014"],
   [/li.*bou-zeid|bou-zeid/i, "li2014"],
   [/reid/i, "reid2009"],
-  [/knowlton/i, "knowlton2014"],
   [/azhar/i, "azhar2017"],
   [/bowler/i, "bowler2010"],
 ];
@@ -186,7 +175,7 @@ export type SourceEntry = { name: string; use: string };
 
 export const SOURCES: SourceEntry[] = [
   { name: "Landsat 8/9 Collection 2 (USGS)", use: "Land surface temperature and NDVI composites" },
-  { name: "WorldPop age-sex rasters", use: "Population density and elderly-share estimates" },
+  { name: "WorldPop 100 m population", use: "Population density estimates" },
   { name: "ESA WorldCover v200", use: "Land cover, impervious surface, plantability screening" },
   { name: "Google Earth Engine", use: "Satellite data access and zonal statistics" },
   { name: "OpenStreetMap contributors", use: "Hospital locations (ODbL)" },

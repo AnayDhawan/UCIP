@@ -33,7 +33,7 @@ from _quality import (  # noqa: E402
 
 ROOT = PIPELINE_DIR.parent
 
-REQUIRED = ["LST_C", "NDVI", "pop_density_km2", "elderly_pct",
+REQUIRED = ["LST_C", "NDVI", "pop_density_km2",
             "slum_pct", "hospital_dist_m", "impervious_pct", "HVI"]
 
 
@@ -44,7 +44,6 @@ def cell(**overrides):
         "NDVI": 0.4,
         "NDVI_prev": 0.38,
         "pop_density_km2": 20000.0,
-        "elderly_pct": 5.0,
         "slum_pct": 10.0,
         "hospital_dist_m": 800.0,
         "impervious_pct": 40.0,

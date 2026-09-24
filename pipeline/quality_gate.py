@@ -49,7 +49,7 @@ WARDS_FILE = "wards_hvi.geojson"
 # Columns whose total absence means a stage produced nothing. Checked separately
 # from bounds, which cannot see a column that is null everywhere.
 REQUIRED_CELL_COLUMNS = [
-    "LST_C", "NDVI", "pop_density_km2", "elderly_pct",
+    "LST_C", "NDVI", "pop_density_km2",
     "slum_pct", "hospital_dist_m", "impervious_pct", "HVI",
 ]
 

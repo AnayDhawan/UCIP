@@ -31,7 +31,7 @@ const LAYERS = [
   {
     color: "#f03b20",
     name: "Heat vulnerability",
-    text: "Every ward gets a score from 0 to 100 combining surface heat, green cover, crowding, elderly share, informal housing, and distance to hospitals. Darker red means help is needed sooner.",
+    text: "Every ward gets a score from 0 to 100 combining surface heat, green cover, crowding, young children, informal housing, and distance to hospitals. Darker red means help is needed sooner.",
   },
   {
     color: "#4ade80",

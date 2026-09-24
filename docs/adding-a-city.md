@@ -170,9 +170,13 @@ Anything that reports these ranks should read
 
 ## 4c. Optional: a ward-level Census table
 
-The index has an eighth indicator, `child_pct`, the share of the population aged 0 to 6. It comes from a
-ward-level Census table and is optional. A city without one runs on the seven required indicators and
+The index has a seventh indicator, `child_pct`, the share of the population aged 0 to 6. It comes from a
+ward-level Census table and is optional. A city without one runs on the six required indicators and
 nothing fails.
+
+There is no elderly indicator, on purpose. WorldPop's age-sex product carries district age structure, so it
+would give every ward in a district the same value (methodology.md 10a). Add one only if you have a real
+ward-level source of 60+ counts.
 
 To add one, put `data/census2011_ward_age_<slug>.csv` in place with the columns `ward_id, tot_p, p_06,
 child_pct, source`, one row for every ward in the city. Stage 04 joins it by `ward_id` and refuses to run

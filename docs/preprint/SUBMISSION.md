@@ -19,10 +19,10 @@ were added since:
 | Gap | Status | Where |
 |---|---|---|
 | #65 ground-truth validation | Closed. Pooled within-station Pearson r = 0.716 against NOAA GSOD. | §6d |
-| #87 uncertainty bands | Closed. 1000-replicate bootstrap; median rank interval 6 of 24 places, widest 15; no ward's rank certain. | §6a |
-| #88 weight cross-validation | Closed. PCA against equal weighting: Kendall tau 0.841, 4 of 24 ranks identical, same top-5 set. | §6b |
-| #96 cross-resolution check | Added. 500 m rebuild moves 9 of 24 wards, and all 24 fall inside their 1 km bootstrap intervals. | §6c |
-| #95 indicator audit | Added. `elderly_pct` carries district, not sub-district, information. Real ward-level `child_pct` added beside it. | §4, §10 |
+| #87 uncertainty bands | Closed. 1000-replicate bootstrap; median rank interval 7 of 24 places, widest 19; no ward's rank certain. | §6a |
+| #88 weight cross-validation | Closed. PCA against equal weighting: Kendall tau 0.754, 4 of 24 ranks identical, 3 of the top 5 shared. Dropping `child_pct` lifts tau to 0.957. | §6b |
+| #96 cross-resolution check | Added. 500 m rebuild moves 13 of 24 wards, and all 24 fall inside their 1 km bootstrap intervals. | §6c |
+| #95 indicator audit | Added. `elderly_pct` carried district, not sub-district, information and was removed. Real ward-level `child_pct` is the one age indicator. | §4, §10 |
 
 §6c is the part worth submitting on. Two methods that share no machinery, a
 bootstrap over cells and a rebuild at a different resolution, disagree about the
@@ -30,8 +30,8 @@ ordering and agree about which parts of the ordering carry information. That is
 a stronger claim than either makes alone, and it is not a claim most indices of
 this kind test at all.
 
-§10 on `elderly_pct` is a negative result about our own indicator set. It is in
-the paper on purpose. The same WorldPop raster is widely used the same way, and
+§10 on `elderly_pct` is a negative result about our own indicator set, and the
+indicator was removed on the strength of it. It is in the paper on purpose. The same WorldPop raster is widely used the same way, and
 documenting that it resolves a district boundary rather than a demographic
 gradient is arguably more useful to other people than the index itself.
 

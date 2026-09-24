@@ -165,7 +165,7 @@ export async function callTool(name: string, args: Record<string, unknown>): Pro
       return withNotes(meta, [
         INDEX_CAVEAT,
         RANKING_CAVEAT,
-        "elderly_pct is a modelled WorldPop surface, not a census count, and " +
+        "slum_pct is mapped slum-cluster boundaries, not a census count, and " +
           "hospital_dist_m is straight-line rather than travel distance. Both are proxies.",
         "Land surface temperature is satellite-derived and is not air temperature.",
       ]);

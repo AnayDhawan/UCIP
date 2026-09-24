@@ -72,7 +72,7 @@ export default function MissionPage() {
               Most city heat tools present their outputs as more certain than they really are. UCIP
               tries not to. The heat map shows land-surface temperature, which is a real but
               imperfect stand-in for how hot it actually feels outside, and we say so plainly. The
-              slum and elderly layers are proxies built from public data, not census-grade counts,
+              slum layer is a proxy built from public data, not a census-grade count,
               and we name them as proxies rather than let them pass for something more precise. The
               cooling coefficients come from studies in other cities and haven&apos;t been calibrated
               for Mumbai specifically, so that caveat sits right next to every estimate instead of

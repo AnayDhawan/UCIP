@@ -114,8 +114,6 @@ def fire_rules(row: Any, thresholds: dict[str, float]) -> list[dict[str, Any]]:
     canopy_low = row.NDVI <= thresholds["ndvi_p25"]
     density_high = row.pop_density_km2 >= thresholds["density_p75"]
     open_space_low = row.NDVI <= thresholds["ndvi_p25"]
-    elderly_high = row.elderly_pct >= thresholds["elderly_p75"]
-    hospital_access_low = row.hospital_dist_m >= thresholds["hospital_p75"]
     impervious_high = row.impervious_pct >= thresholds["impervious_p75"]
     flood_prone = row.dist_to_water_m <= FLOOD_PRONE_DIST_M
 
@@ -152,14 +150,6 @@ def fire_rules(row: Any, thresholds: dict[str, float]) -> list[dict[str, Any]]:
             "rationale": "High population density with little existing green/open space",
             "citation": "C40 Urban Cooling Toolbox",
             "priority": 3,
-        })
-
-    if elderly_high and hospital_access_low:
-        recs.append({
-            "intervention": "Cooling centres, priority siting",
-            "rationale": "High elderly share combined with poor hospital access",
-            "citation": "Knowlton et al. 2014 (Ahmedabad HAP impact study)",
-            "priority": 1,
         })
 
     return recs

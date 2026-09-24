@@ -51,7 +51,7 @@ class Bound:
 # Observed Mumbai ranges as of the 2026-09 dataset, for context on how much
 # room each envelope leaves:
 #   LST_C 26.2..40.0, NDVI -0.07..0.71, pop_density 16..115272,
-#   elderly_pct 4.0..5.6, child_pct 6.75..13.1 (ward-level, Census 2011), slum_pct 0..68.6, hospital_dist_m 3.9..6199,
+#   child_pct 6.75..13.1 (ward-level, Census 2011), slum_pct 0..68.6, hospital_dist_m 3.9..6199,
 #   impervious_pct 0..96.8, HVI 0..100
 CELL_BOUNDS: dict[str, Bound] = {
     "LST_C": Bound(
@@ -67,7 +67,6 @@ CELL_BOUNDS: dict[str, Bound] = {
         "Mumbai's densest wards reach six figures per square kilometre. The "
         "ceiling catches a unit error, such as people per square metre.",
     ),
-    "elderly_pct": Bound(0.0, 100.0, "A percentage.", physical=True),
     "child_pct": Bound(
         0.0, 100.0,
         "A percentage. Census 2011 ward-level share of the population aged 0 to 6.",

@@ -37,7 +37,6 @@ export const CELL_FIELDS = [
   "ndvi",
   "ndvi_prev",
   "pop_density_km2",
-  "elderly_pct",
   "slum_pct",
   "hospital_dist_m",
   "impervious_pct",
@@ -70,7 +69,6 @@ export type CellRow = {
   ndvi: number | null;
   ndvi_prev: number | null;
   pop_density_km2: number | null;
-  elderly_pct: number | null;
   slum_pct: number | null;
   hospital_dist_m: number | null;
   impervious_pct: number | null;
@@ -91,7 +89,6 @@ function fromSnapshot(p: Record<string, unknown>): CellRow {
     ndvi: num(p.NDVI),
     ndvi_prev: num(p.NDVI_prev),
     pop_density_km2: num(p.pop_density_km2),
-    elderly_pct: num(p.elderly_pct),
     slum_pct: num(p.slum_pct),
     hospital_dist_m: num(p.hospital_dist_m),
     impervious_pct: num(p.impervious_pct),

@@ -32,7 +32,7 @@ export type Ward = {
   dominant_factor?: string | null;
   /**
    * That indicator's share of total absolute contribution, 0 to 1. An even
-   * spread across the eight indicators is 0.125.
+   * spread across the seven indicators is about 0.143.
    */
   dominant_share?: number | null;
   /**
@@ -79,8 +79,6 @@ export type Cell = {
   /** NDVI in the previous comparison window. */
   ndvi_prev?: number | null;
   pop_density_km2?: number | null;
-  /** Share of population aged 60 or over. */
-  elderly_pct?: number | null;
   slum_pct?: number | null;
   /** Distance to the nearest hospital, metres. */
   hospital_dist_m?: number | null;

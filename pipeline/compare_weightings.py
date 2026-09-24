@@ -79,6 +79,19 @@ def ward_ranking(gdf, signed_z, weights) -> list[str]:
     return list(scored.groupby("ward_id")["HVI"].mean().sort_values(ascending=False).index)
 
 
+def pca_weights_for(signed_z, cols) -> tuple[np.ndarray, float]:
+    """Absolute PC1 loadings, normalised, oriented as 05_hvi.py orients them."""
+    from sklearn.decomposition import PCA
+
+    matrix = signed_z[cols].to_numpy()
+    pca = PCA(n_components=1).fit(matrix)
+    loadings = pca.components_[0]
+    if np.corrcoef(matrix @ loadings, signed_z["LST_C"].to_numpy())[0, 1] < 0:
+        loadings = -loadings
+    absolute = np.abs(loadings)
+    return absolute / absolute.sum(), float(pca.explained_variance_ratio_[0])
+
+
 def main() -> int:
     if not CELLS_PATH.exists() or not PCA_LOG_PATH.exists():
         print("[FAIL] missing input(s), run 04_zonal.py and 05_hvi.py first.")
@@ -121,6 +134,31 @@ def main() -> int:
         for w in wards
     ]
 
+    # Where does the disagreement come from? Drop the indicator PCA trusts least,
+    # refit PCA and equal weights without it, and compare again. If the two
+    # schemes agree much better, that one indicator was doing the disagreeing:
+    # PCA gives it a small weight and equal weighting gives it 1/n.
+    lowest = min(cols, key=lambda c: pca_weights[c])
+    rest = [c for c in cols if c != lowest]
+    rest_pca, rest_variance = pca_weights_for(signed_z, rest)
+    rest_pca_ranking = ward_ranking(gdf, signed_z[rest], rest_pca)
+    rest_equal_ranking = ward_ranking(gdf, signed_z[rest], np.ones(len(rest)) / len(rest))
+    rest_pca_pos = {w: i + 1 for i, w in enumerate(rest_pca_ranking)}
+    rest_equal_pos = {w: i + 1 for i, w in enumerate(rest_equal_ranking)}
+    rest_tau, _ = kendalltau([rest_pca_pos[w] for w in wards], [rest_equal_pos[w] for w in wards])
+    rest_rho, _ = spearmanr([rest_pca_pos[w] for w in wards], [rest_equal_pos[w] for w in wards])
+    ablation = {
+        "dropped_indicator": lowest,
+        "pca_weight_of_dropped": round(float(pca_weights[lowest]), 4),
+        "equal_weight_of_dropped": round(1 / len(cols), 4),
+        "explained_variance_pc1_without": round(rest_variance, 4),
+        "kendall_tau": round(float(rest_tau), 4),
+        "spearman_rho": round(float(rest_rho), 4),
+        f"top_{TOP_N}_overlap": len(set(rest_pca_ranking[:TOP_N]) & set(rest_equal_ranking[:TOP_N])),
+        f"top_{TOP_N}_pca": rest_pca_ranking[:TOP_N],
+        f"top_{TOP_N}_published": rest_equal_ranking[:TOP_N],
+    }
+
     result = {
         "question": (
             "How much does the PCA-derived weighting change the ward ranking "
@@ -148,6 +186,7 @@ def main() -> int:
             f"top_{TOP_N}_pca": pca_ranking[:TOP_N],
             f"top_{TOP_N}_published": equal_ranking[:TOP_N],
         },
+        "ablation": ablation,
         "interpretation": (
             "A high correlation does not show the PCA weighting is correct. It "
             "shows the ranking is insensitive to the choice, which is the more "
@@ -165,6 +204,8 @@ def main() -> int:
     print(f"[ok] top-{TOP_N} overlap: {top_overlap}/{TOP_N}")
     print(f"[ok] identical rank: {result['agreement']['wards_with_identical_rank']}/{len(wards)} wards")
     print(f"[ok] largest move: {max_shift_ward} shifts {shifts[max_shift_ward]:+d} places")
+    print(f"[ok] without {lowest}: tau {rest_tau:.3f}, rho {rest_rho:.3f}, "
+          f"top-{TOP_N} overlap {ablation[f'top_{TOP_N}_overlap']}/{TOP_N}")
     print(f"\n     {'ward':<6} {'PCA':>5} {'published':>10} {'shift':>7}")
     for row in per_ward:
         print(f"     {row['ward_id']:<6} {row['rank_pca']:>5} "

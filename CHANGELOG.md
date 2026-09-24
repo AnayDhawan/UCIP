@@ -6,6 +6,26 @@ All notable changes to this project are documented here. Format based on
 
 ## [Unreleased]
 
+### Removed
+- The elderly share (`elderly_pct`, `contrib_elderly_pct`) and the
+  cooling-centre rule that depended on it. The only source, WorldPop's India
+  age-sex product, applies district age structure to a population raster, so
+  across Mumbai it took two meaningful values and recorded which revenue
+  district a cell is in. No ward-level 60+ source exists in the open Census
+  tables. The index now has seven indicators. This removes API fields inside
+  `v1`; the reasoning is in `docs/api.md`. Migration `0008` drops the column.
+
+### Changed
+- Every ward score and rank was recomputed without the indicator. The top five
+  is now L, C, G/N, H/E, E (was C, G/N, L, E, B). Thirteen wards changed rank,
+  by at most four places.
+- Stage 04 excludes zero-population cells explicitly. Six cells had been
+  leaving the index only because the elderly share is undefined at zero
+  population; the cell count stays 541.
+- `compare_weightings.py` also reports the comparison with the lowest-weighted
+  indicator dropped, which shows that `child_pct` accounts for nearly all of the
+  disagreement between PCA and equal weights.
+
 ## [1.0.2] - 2026-09-23
 
 ### Added

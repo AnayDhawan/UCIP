@@ -15,7 +15,7 @@
   "unspent_inr": 0,
   "wards_funded": 3,
   "wards_fully_funded": 2,
-  "total_benefit_person_degrees": 7444138,
+  "total_benefit_person_degrees": 7032741,
   "objective": "vulnerability",
   "objective_description": "Maximise vulnerability-weighted cooling: degrees C x people exposed x ward HVI, allocated by benefit per rupee.",
   "objective_note": "Allocated by fractional knapsack, provably optimal for a divisible intervention. The choice of objective moves the answer a long way: on a 5 crore budget the exposure objective funded wards ranked 17, 19, 22 and 24 of 24, because dense wards yield the most person-degrees per rupee whether or not they are the wards at risk. That is why the default weights by vulnerability, and why the objective is recorded in the output rather than left implicit.",
@@ -37,8 +37,8 @@
   "allocation": [
     {
       "ward_id": "H/E",
-      "rank": 8,
-      "hvi": 58.44,
+      "rank": 4,
+      "hvi": 56.71,
       "population_est": 1052716,
       "spend_inr": 16109379,
       "share_of_ward_treated": 1.0,
@@ -46,24 +46,24 @@
       "benefit_person_degrees": 2526519
     },
     {
-      "ward_id": "F/S",
-      "rank": 5,
-      "hvi": 64.84,
-      "population_est": 926979,
-      "spend_inr": 16233202,
+      "ward_id": "L",
+      "rank": 1,
+      "hvi": 66.32,
+      "population_est": 1243325,
+      "spend_inr": 23909127,
       "share_of_ward_treated": 1.0,
-      "roof_m2_treated": 3017324,
-      "benefit_person_degrees": 2224749
+      "roof_m2_treated": 4444076,
+      "benefit_person_degrees": 2983980
     },
     {
       "ward_id": "M/W",
-      "rank": 12,
-      "hvi": 54.69,
+      "rank": 9,
+      "hvi": 52.91,
       "population_est": 1229691,
-      "spend_inr": 17657419,
-      "share_of_ward_treated": 0.912,
-      "roof_m2_treated": 3282048,
-      "benefit_person_degrees": 2692870
+      "spend_inr": 9981494,
+      "share_of_ward_treated": 0.516,
+      "roof_m2_treated": 1855296,
+      "benefit_person_degrees": 1522242
     }
   ],
   "skipped_wards": []

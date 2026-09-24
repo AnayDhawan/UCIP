@@ -3,30 +3,30 @@
 What it does:
     Adds the three human-exposure indicators the satellite layers cannot see, one
     value per cell:
-      - pop_density_km2, from WorldPop's 100 m age-sex rasters via Earth Engine.
-      - elderly_pct, the 60+ share of the same WorldPop surface. This is a
-        modelled proxy, not a census count, and is named as one in the
-        methodology page rather than quietly presented as observed.
+      - pop_density_km2, from WorldPop's 100 m population raster via Earth Engine.
       - slum_pct, the share of each cell covered by mapped Datameet slum-cluster
         polygons. These are real observed boundaries, which is why they were
         chosen over the modelled GHS-SMOD proxy originally planned.
       - hospital_dist_m, straight-line distance from the cell centroid to the
         nearest OpenStreetMap hospital, pulled with osmnx.
 
-    Census 2011 ward tables are deliberately not used (decision, 2026-07-11):
-    proxy-first, stated openly, rather than mixing vintages and administrative
-    units. Issue B5 in the roadmap revisits this.
+    There is no elderly share. WorldPop's India age-sex product applies district
+    age structure to a population raster, so across the Mumbai grid it carried
+    two meaningful values, one per revenue district. That is a district dummy,
+    not a ward measurement, and it was removed rather than published (issue
+    #167). The one age indicator that survives is the Census 2011 0-6 share,
+    joined per ward in stage 04.
 
 Inputs:
     ../data/grid_1km_gee.geojson    the grid from stage 02
     ../data/bmc_wards.geojson       ward boundaries
     ../data/slumClusters.geojson    mapped slum-cluster polygons (Datameet)
-    Google Earth Engine             WorldPop age-sex rasters (needs auth)
+    Google Earth Engine             WorldPop population raster (needs auth)
     OpenStreetMap                   hospital locations, via osmnx (network call)
 
 Outputs:
     ../data/grid_1km_vectors.geojson    the grid plus pop_density_km2,
-                                        elderly_pct, slum_pct, hospital_dist_m
+                                        slum_pct, hospital_dist_m
 
 Notes:
     WORLDPOP_YEAR is pinned rather than left on .first(). An unpinned call would
@@ -72,18 +72,11 @@ GEE_PROJECT = resolve_project()
 UTM_CRS = _CITY.projected_crs
 WGS84 = "EPSG:4326"
 
-# Most recent year WorldPop's age-sex collection publishes for India (verified live
+# Most recent year WorldPop's population collection publishes for India (verified live
 # 2026-07-21: only one India image exists, system:index "IND_2020"). Pinned explicitly
 # rather than left on .first() — an unpinned call would silently re-target a different
 # vintage the moment WorldPop adds a newer India image, with no code change to notice.
 WORLDPOP_YEAR = "2020"
-
-# Provenance values for the elderly_source column. Spelled out rather than
-# left as bare strings so a future Census merge has one place to add its own.
-ELDERLY_SOURCE_WORLDPOP = "worldpop_2020_district"
-
-# WorldPop age-sex bands 60+ (both sexes) — elderly definition per methodology.
-ELDERLY_BANDS = [f"{sex}_{age}" for sex in ("M", "F") for age in ("60", "65", "70", "75", "80")]
 
 
 def load_grid_fc(path: Path) -> ee.FeatureCollection:
@@ -94,7 +87,7 @@ def load_grid_fc(path: Path) -> ee.FeatureCollection:
 
 
 def pull_worldpop(grid_fc: ee.FeatureCollection) -> dict:
-    """Total population + elderly population per cell, via GEE reduceRegions(sum)."""
+    """Total population per cell, via GEE reduceRegions(sum)."""
     img = (
         ee.ImageCollection("WorldPop/GP/100m/pop_age_sex")
         .filterBounds(grid_fc)
@@ -104,20 +97,13 @@ def pull_worldpop(grid_fc: ee.FeatureCollection) -> dict:
     band_names = img.bandNames().getInfo()
 
     total_pop = img.select(band_names).reduce(ee.Reducer.sum()).rename("total_pop")
-    elderly_present = [b for b in ELDERLY_BANDS if b in band_names]
-    if not elderly_present:
-        print(f"[WARN] none of {ELDERLY_BANDS} found in image bands {band_names[:10]}...")
-        elderly_present = band_names  # fallback: won't happen if WorldPop schema holds
-    elderly_pop = img.select(elderly_present).reduce(ee.Reducer.sum()).rename("elderly_pop")
-
-    stack = total_pop.addBands(elderly_pop)
-    zonal = stack.reduceRegions(collection=grid_fc, reducer=ee.Reducer.sum(), scale=100)
+    zonal = total_pop.reduceRegions(collection=grid_fc, reducer=ee.Reducer.sum(), scale=100)
     result = zonal.getInfo()
 
     out = {}
     for feat in result["features"]:
         p = feat["properties"]
-        out[p["grid_id"]] = {"total_pop": p.get("total_pop"), "elderly_pop": p.get("elderly_pop")}
+        out[p["grid_id"]] = {"total_pop": p.get("total_pop")}
     return out
 
 
@@ -184,7 +170,7 @@ def main() -> int:
     print(f"[ok] Earth Engine initialized (project={GEE_PROJECT})")
     grid_fc = load_grid_fc(GRID_PATH)
 
-    print("[..] pulling WorldPop total + elderly population per cell")
+    print("[..] pulling WorldPop total population per cell")
     pop_by_id = pull_worldpop(grid_fc)
 
     print("[..] computing slum_pct from mapped slum-cluster polygons")
@@ -195,30 +181,15 @@ def main() -> int:
 
     area_km2_by_id = dict(zip(grid_gdf["grid_id"], grid_gdf.to_crs(UTM_CRS).geometry.area / 1_000_000))
 
-    pop_density, elderly_pct, matched = [], [], 0
+    pop_density, matched = [], 0
     for gid in grid_gdf["grid_id"]:
         pop = pop_by_id.get(gid, {})
-        total_pop, elderly_pop, area_km2 = pop.get("total_pop"), pop.get("elderly_pop"), area_km2_by_id.get(gid)
+        total_pop, area_km2 = pop.get("total_pop"), area_km2_by_id.get(gid)
         pop_density.append(total_pop / area_km2 if total_pop is not None and area_km2 else None)
-        elderly_pct.append((elderly_pop / total_pop * 100) if total_pop and elderly_pop is not None and total_pop > 0 else None)
         if total_pop is not None:
             matched += 1
 
     grid_gdf["pop_density_km2"] = pop_density
-    grid_gdf["elderly_pct"] = elderly_pct
-    # Where each cell's age structure came from (issue #95). One value today,
-    # because WorldPop is the only source wired in, but the column exists so
-    # that a ward-level Census table can be merged per ward without the
-    # resulting dataset hiding which cells it improved and which it did not.
-    #
-    # Why this matters more than it looks: WorldPop's India age-sex product
-    # applies DISTRICT age structure to a population raster, so across all 541
-    # Mumbai cells elderly_pct takes 2 meaningful values, one per revenue
-    # district, and 80% of cells share a single one. It is a district dummy
-    # wearing a demographic label, and it is not a 100 m measurement however
-    # the raster is advertised. Run pipeline/elderly_evaluation.py for the
-    # measurement behind that claim.
-    grid_gdf["elderly_source"] = ELDERLY_SOURCE_WORLDPOP
     grid_gdf["slum_pct"] = grid_gdf["grid_id"].map(slum_by_id)
     grid_gdf["hospital_dist_m"] = grid_gdf["grid_id"].map(hosp_by_id)
 
@@ -231,12 +202,8 @@ def main() -> int:
     if matched < 0.9 * len(grid_gdf):
         print(f"[WARN] only {matched}/{len(grid_gdf)} cells got WorldPop data")
         ok = False
-    mean_elderly = grid_gdf["elderly_pct"].dropna().mean()
-    if mean_elderly is None or not (0 <= mean_elderly <= 30):
-        print(f"[WARN] mean elderly_pct {mean_elderly} outside plausible 0-30% range")
-        ok = False
     mean_slum = grid_gdf["slum_pct"].dropna().mean()
-    print(f"\nmean elderly_pct={mean_elderly:.2f}, mean slum_pct={mean_slum:.2f}, "
+    print(f"\nmean slum_pct={mean_slum:.2f}, "
           f"hospital_dist non-null={grid_gdf['hospital_dist_m'].notna().sum()}/{len(grid_gdf)}")
     print("GO" if ok else "CHECK WARNINGS")
     return 0 if ok else 2

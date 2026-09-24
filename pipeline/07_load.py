@@ -80,15 +80,11 @@ INTERVENTIONS = [
      "citation": "Methodology proxy: WorldCover water-distance < 500m", "description": "Impervious + flood-proxy cells."},
     {"name": "Pocket parks", "category": "greening",
      "citation": "C40 Urban Cooling Toolbox", "description": "Dense, open-space-poor cells."},
-    {"name": "Cooling centres, priority siting", "category": "siting",
-     "citation": "Knowlton et al. 2014", "description": "High elderly share + poor hospital access."},
 ]
 
 METHODOLOGY_REFS = [
     {"short_name": "reid2009", "citation": "Reid et al. 2009, Environ. Health Perspect. 117(11):1730-1736",
      "doi": "10.1289/ehp.0900683", "usage": "PCA-derived HVI weights", "verified": True},
-    {"short_name": "knowlton2014", "citation": "Knowlton et al. 2014, IJERPH 11(4):3473-3492",
-     "doi": "10.3390/ijerph110403473", "usage": "Ahmedabad HAP impact, local credibility", "verified": True},
     {"short_name": "azhar2017", "citation": "Azhar et al. 2017 (RAND India HVI), IJERPH 14(4):357",
      "doi": "10.3390/ijerph14040357", "usage": "India-wide district HVI precedent", "verified": True},
     {"short_name": "bastin2019", "citation": "Bastin et al. 2019, Science 365(6448):76-79",
@@ -256,7 +252,6 @@ def main() -> int:
                 "ndvi": float(r["NDVI"]),
                 "ndvi_prev": float(r["NDVI_prev"]) if r.get("NDVI_prev") is not None else None,
                 "pop_density_km2": float(r["pop_density_km2"]),
-                "elderly_pct": float(r["elderly_pct"]),
                 "slum_pct": float(r["slum_pct"]),
                 "hospital_dist_m": float(r["hospital_dist_m"]),
                 "impervious_pct": float(r["impervious_pct"]),

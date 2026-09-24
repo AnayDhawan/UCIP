@@ -180,6 +180,7 @@ visible through [`/meta`](#get-meta).
 
 | Date | Change |
 |---|---|
+| 2026-09-24 | **Removed `elderly_pct`** from `/cells` and `/export`, `contrib_elderly_pct` from the ward export, and the `elderly_pct` key from every `contrib` object. This is a field removal, which the policy above reserves for `v2`, so the reason is in [the note below](#the-2026-09-24-removal-of-elderly_pct). |
 | 2026-09-24 | `contrib` on `/wards`, `/wards/{wardId}` and `/lookup` gains a `child_pct` key, and the `contrib_child_pct` column joins the ward export. Additive. The ward scores, ranks and recommendations also changed, because the index now has an eighth indicator and the plantability filter was corrected. Both are data changes and not contract changes. See methodology.md 10b to 10d. |
 | 2026-09-24 | `/export` and `/cells` now return the documented field names in every case. See the note below. |
 | 2026-09-24 | `/wards` now returns `dominant_factor`, `dominant_share` and `single_factor_dominated` on the database path as well as the snapshot path. Additive: those fields were previously present or absent depending on which backend answered. |
@@ -187,6 +188,30 @@ visible through [`/meta`](#get-meta).
 | 2026-09-23 | Added [`/export`](#get-exportdatasetformat) for bulk access as GeoJSON or CSV. Additive, no existing response changed. |
 | 2026-09-23 | Documented this versioning policy. No behaviour change. |
 | 2026-09-18 | `v1` published with `/meta`, `/wards`, `/wards/{wardId}`, `/lookup`, `/recommendations`, `/cells` and `/openapi.json`. |
+
+#### The 2026-09-24 removal of `elderly_pct`
+
+`elderly_pct` is gone from `/cells`, `/export` and the `contrib` objects, which
+the versioning policy says needs `v2`. It is removed anyway, and the reasons are
+these:
+
+- **The values did not mean what the name said.** They came from WorldPop's
+  India age-sex product, which applies district age structure to a population
+  raster. Across Mumbai the field took two meaningful values, one per revenue
+  district. Keeping it under a deprecation window would mean publishing a
+  number known to be a district label under a demographic name for another six
+  months.
+- **No accurate replacement exists.** The open Census tables have no ward-level
+  60+ column, so the field could not be corrected, only dropped.
+- **It fed a ward score.** Every score and rank it contributed to has been
+  recomputed without it. Leaving the field in place while scores no longer used
+  it would be worse than removing it.
+
+The API was six days old, and the only consumers we know of are this
+repository's own generated clients. If you read the field, remove it: the seven remaining
+indicators are `lst_c`, `ndvi`, `pop_density_km2`, `child_pct`, `slum_pct`,
+`hospital_dist_m` and `impervious_pct`, and `contrib` has seven keys. The full
+account is in methodology.md 10a.
 
 #### The 2026-09-24 field-name correction
 
@@ -242,7 +267,7 @@ be the worse failure.
   configured yet.
 - **A point in time.** Scores come from a single dry-season composite, not a
   trend. Multi-year time series is tracked in issue #64.
-- **Proxies are proxies.** `elderly_pct` is a modelled WorldPop surface, not a
+- **Proxies are proxies.** `slum_pct` is mapped cluster boundaries, not a
   census count, and `hospital_dist_m` is straight-line rather than travel
   distance. Both are documented on the [methodology page](https://uciplatform.vercel.app/methodology).
 - **Not validated against ground stations yet.** Land surface temperature is

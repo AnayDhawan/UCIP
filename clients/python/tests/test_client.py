@@ -266,7 +266,7 @@ WARDS = {
             "rank": 10,
             "n_cells": 13,
             "contrib": {"LST_C": 0.10, "NDVI": 0.06},
-            "dominant_factor": "elderly_pct",
+            "dominant_factor": "slum_pct",
             "dominant_share": 0.28,
             "single_factor_dominated": False,
         },

@@ -59,11 +59,11 @@ KEEP_COLS = ["grid_id", "ward_id", "ward_gid", "NDVI_prev", "geometry"] + INDICA
 # resolution. Built by build_census_table.py. Absent for a city that has none.
 CENSUS_TABLE = DATA_DIR / f"census2011_ward_age_{_CITY.slug}.csv"
 
-# Carried through when present, but not required. elderly_source (issue #95)
+# Carried through when present, but not required. child_source (issue #95)
 # says where a cell's age structure came from, and a dataset produced before
 # that column existed is still perfectly valid input; demanding it would fail
 # a refresh over provenance metadata rather than over data.
-OPTIONAL_COLS = ["elderly_source", "child_source"]
+OPTIONAL_COLS = ["child_source"]
 
 
 def attach_child_share(gdf: "gpd.GeoDataFrame") -> bool:
@@ -129,6 +129,19 @@ def main() -> int:
     dropped = before - len(tidy)
     if dropped:
         print(f"[WARN] dropped {dropped}/{before} cells with a missing indicator value")
+
+    # A cell with no residents has nobody to be vulnerable, and in Mumbai these
+    # are open water and the coastal edge (NDVI below zero). They used to fall
+    # out of the index by accident: WorldPop's elderly share is undefined at
+    # zero population, so the null-drop above removed them. Now that the share
+    # is gone the exclusion is made here, on purpose, so the cell set does not
+    # depend on which indicators happen to be defined.
+    populated = tidy["pop_density_km2"] > 0
+    unpopulated = int((~populated).sum())
+    if unpopulated:
+        print(f"[note] excluded {unpopulated} cells with zero WorldPop population "
+              f"({', '.join(tidy.loc[~populated, 'grid_id'].astype(str))})")
+    tidy = tidy[populated]
 
     tidy = tidy.reset_index(drop=True)
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)

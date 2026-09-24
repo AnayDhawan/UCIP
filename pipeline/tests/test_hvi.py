@@ -23,7 +23,7 @@ FACTORS = [
     "LST_C",
     "NDVI",
     "pop_density_km2",
-    "elderly_pct",
+    "child_pct",
     "slum_pct",
     "hospital_dist_m",
     "impervious_pct",

@@ -37,8 +37,6 @@ THRESHOLDS = {
     "hvi_p75": 60.0,
     "ndvi_p25": 0.25,
     "density_p75": 20000.0,
-    "elderly_p75": 6.0,
-    "hospital_p75": 2000.0,
     "impervious_p75": 50.0,
 }
 
@@ -49,7 +47,6 @@ class Cell:
     HVI: float = 30.0
     NDVI: float = 0.5
     pop_density_km2: float = 5000.0
-    elderly_pct: float = 3.0
     hospital_dist_m: float = 500.0
     impervious_pct: float = 20.0
     dist_to_water_m: float = 5000.0
@@ -174,29 +171,27 @@ def test_dense_with_no_open_space_gets_pocket_parks():
     assert "Pocket parks" in interventions(fire_rules(cell, THRESHOLDS))
 
 
-def test_elderly_with_poor_hospital_access_gets_cooling_centres():
-    cell = Cell(elderly_pct=9, hospital_dist_m=5000)
-    assert "Cooling centres, priority siting" in interventions(fire_rules(cell, THRESHOLDS))
-
-
-def test_either_condition_alone_does_not_fire_the_cooling_centre_rule():
-    assert "Cooling centres, priority siting" not in interventions(
-        fire_rules(Cell(elderly_pct=9, hospital_dist_m=100), THRESHOLDS)
+def test_no_rule_recommends_standalone_cooling_centres():
+    """The old rule keyed on an elderly share that was a district dummy, so it
+    fired on "is in an island district" and not on age (issue #167). It was
+    removed; a standalone cooling-centre rule should come back only with a
+    real ward-level 60+ source behind it."""
+    cell = Cell(
+        HVI=90, NDVI=0.05, pop_density_km2=30000, hospital_dist_m=9000,
+        impervious_pct=90, dist_to_water_m=100,
     )
-    assert "Cooling centres, priority siting" not in interventions(
-        fire_rules(Cell(elderly_pct=1, hospital_dist_m=5000), THRESHOLDS)
-    )
+    assert "Cooling centres, priority siting" not in interventions(fire_rules(cell, THRESHOLDS))
 
 
 def test_several_rules_can_fire_for_one_cell():
     cell = Cell(
         HVI=90, NDVI=0.05, plantable=True,
-        pop_density_km2=30000, elderly_pct=9, hospital_dist_m=5000,
+        pop_density_km2=30000, hospital_dist_m=5000,
         impervious_pct=90, dist_to_water_m=100,
     )
     names = interventions(fire_rules(cell, THRESHOLDS))
-    assert len(names) == 4
-    assert len(set(names)) == 4
+    assert len(names) == 3
+    assert len(set(names)) == 3
 
 
 def test_every_recommendation_carries_a_rationale_and_a_citation():
@@ -204,7 +199,7 @@ def test_every_recommendation_carries_a_rationale_and_a_citation():
     uncited one would break that claim quietly."""
     cell = Cell(
         HVI=90, NDVI=0.05, plantable=False,
-        pop_density_km2=30000, elderly_pct=9, hospital_dist_m=5000,
+        pop_density_km2=30000, hospital_dist_m=5000,
         impervious_pct=90, dist_to_water_m=100,
     )
     for rec in fire_rules(cell, THRESHOLDS):

@@ -5,15 +5,7 @@
     "rationale": "High vulnerability, low canopy, but native-grassland/built-up cell: afforestation would backfire ecologically",
     "citation": "Veldman et al. 2019, Science (response to Bastin 2019)",
     "priority": 1,
-    "cell_count": 8
-  },
-  {
-    "ward_id": "A",
-    "intervention": "Cooling centres, priority siting",
-    "rationale": "High elderly share combined with poor hospital access",
-    "citation": "Knowlton et al. 2014 (Ahmedabad HAP impact study)",
-    "priority": 1,
-    "cell_count": 1
+    "cell_count": 7
   },
   {
     "ward_id": "A",
@@ -109,7 +101,7 @@
     "rationale": "High vulnerability, low canopy, but native-grassland/built-up cell: afforestation would backfire ecologically",
     "citation": "Veldman et al. 2019, Science (response to Bastin 2019)",
     "priority": 1,
-    "cell_count": 5
+    "cell_count": 4
   },
   {
     "ward_id": "E",
@@ -137,14 +129,6 @@
   },
   {
     "ward_id": "F/N",
-    "intervention": "Cooling centres, priority siting",
-    "rationale": "High elderly share combined with poor hospital access",
-    "citation": "Knowlton et al. 2014 (Ahmedabad HAP impact study)",
-    "priority": 1,
-    "cell_count": 1
-  },
-  {
-    "ward_id": "F/N",
     "intervention": "Rain gardens + water-sensitive urban design (WSUD)",
     "rationale": "Highly impervious cell near mapped water/wetland: runoff and heat compound risk",
     "citation": "Methodology proxy: WorldCover water-distance < 500m (no dedicated hydrology layer in P0)",
@@ -157,7 +141,7 @@
     "rationale": "High vulnerability, low canopy, but native-grassland/built-up cell: afforestation would backfire ecologically",
     "citation": "Veldman et al. 2019, Science (response to Bastin 2019)",
     "priority": 1,
-    "cell_count": 6
+    "cell_count": 5
   },
   {
     "ward_id": "F/S",
@@ -205,7 +189,7 @@
     "rationale": "High vulnerability, low canopy, but native-grassland/built-up cell: afforestation would backfire ecologically",
     "citation": "Veldman et al. 2019, Science (response to Bastin 2019)",
     "priority": 1,
-    "cell_count": 9
+    "cell_count": 4
   },
   {
     "ward_id": "G/S",
@@ -301,7 +285,7 @@
     "rationale": "High vulnerability, low canopy, but native-grassland/built-up cell: afforestation would backfire ecologically",
     "citation": "Veldman et al. 2019, Science (response to Bastin 2019)",
     "priority": 1,
-    "cell_count": 2
+    "cell_count": 3
   },
   {
     "ward_id": "K/W",
@@ -353,14 +337,6 @@
   },
   {
     "ward_id": "M/E",
-    "intervention": "Cooling centres, priority siting",
-    "rationale": "High elderly share combined with poor hospital access",
-    "citation": "Knowlton et al. 2014 (Ahmedabad HAP impact study)",
-    "priority": 1,
-    "cell_count": 2
-  },
-  {
-    "ward_id": "M/E",
     "intervention": "Rain gardens + water-sensitive urban design (WSUD)",
     "rationale": "Highly impervious cell near mapped water/wetland: runoff and heat compound risk",
     "citation": "Methodology proxy: WorldCover water-distance < 500m (no dedicated hydrology layer in P0)",
@@ -377,19 +353,11 @@
   },
   {
     "ward_id": "M/W",
-    "intervention": "Cooling centres, priority siting",
-    "rationale": "High elderly share combined with poor hospital access",
-    "citation": "Knowlton et al. 2014 (Ahmedabad HAP impact study)",
-    "priority": 1,
-    "cell_count": 2
-  },
-  {
-    "ward_id": "M/W",
     "intervention": "Cool roofs + reflective pavements + cooling centres",
     "rationale": "High vulnerability, low canopy, but native-grassland/built-up cell: afforestation would backfire ecologically",
     "citation": "Veldman et al. 2019, Science (response to Bastin 2019)",
     "priority": 1,
-    "cell_count": 3
+    "cell_count": 4
   },
   {
     "ward_id": "M/W",
@@ -409,14 +377,6 @@
   },
   {
     "ward_id": "N",
-    "intervention": "Cooling centres, priority siting",
-    "rationale": "High elderly share combined with poor hospital access",
-    "citation": "Knowlton et al. 2014 (Ahmedabad HAP impact study)",
-    "priority": 1,
-    "cell_count": 1
-  },
-  {
-    "ward_id": "N",
     "intervention": "Rain gardens + water-sensitive urban design (WSUD)",
     "rationale": "Highly impervious cell near mapped water/wetland: runoff and heat compound risk",
     "citation": "Methodology proxy: WorldCover water-distance < 500m (no dedicated hydrology layer in P0)",
@@ -430,14 +390,6 @@
     "citation": "Veldman et al. 2019, Science (response to Bastin 2019)",
     "priority": 1,
     "cell_count": 1
-  },
-  {
-    "ward_id": "P/N",
-    "intervention": "Cooling centres, priority siting",
-    "rationale": "High elderly share combined with poor hospital access",
-    "citation": "Knowlton et al. 2014 (Ahmedabad HAP impact study)",
-    "priority": 1,
-    "cell_count": 4
   },
   {
     "ward_id": "P/N",
@@ -462,14 +414,6 @@
     "citation": "Methodology proxy: WorldCover water-distance < 500m (no dedicated hydrology layer in P0)",
     "priority": 2,
     "cell_count": 3
-  },
-  {
-    "ward_id": "R/C",
-    "intervention": "Cooling centres, priority siting",
-    "rationale": "High elderly share combined with poor hospital access",
-    "citation": "Knowlton et al. 2014 (Ahmedabad HAP impact study)",
-    "priority": 1,
-    "cell_count": 2
   },
   {
     "ward_id": "R/C",
@@ -521,14 +465,6 @@
   },
   {
     "ward_id": "S",
-    "intervention": "Cooling centres, priority siting",
-    "rationale": "High elderly share combined with poor hospital access",
-    "citation": "Knowlton et al. 2014 (Ahmedabad HAP impact study)",
-    "priority": 1,
-    "cell_count": 1
-  },
-  {
-    "ward_id": "S",
     "intervention": "Rain gardens + water-sensitive urban design (WSUD)",
     "rationale": "Highly impervious cell near mapped water/wetland: runoff and heat compound risk",
     "citation": "Methodology proxy: WorldCover water-distance < 500m (no dedicated hydrology layer in P0)",
@@ -542,14 +478,6 @@
     "citation": "C40 Urban Cooling Toolbox",
     "priority": 3,
     "cell_count": 1
-  },
-  {
-    "ward_id": "T",
-    "intervention": "Cooling centres, priority siting",
-    "rationale": "High elderly share combined with poor hospital access",
-    "citation": "Knowlton et al. 2014 (Ahmedabad HAP impact study)",
-    "priority": 1,
-    "cell_count": 4
   },
   {
     "ward_id": "T",
