@@ -9,6 +9,11 @@ export default defineConfig({
     // not read on its own.
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
+      // The published client, resolved from source so the contract test
+      // checks the code that gets published rather than a stale build.
+      "ucip-client": fileURLToPath(
+        new URL("../clients/typescript/src/index.ts", import.meta.url)
+      ),
     },
   },
   test: {

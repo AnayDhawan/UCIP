@@ -18,7 +18,7 @@ import { GET as getWards } from "./wards/route";
 import { GET as getWard } from "./wards/[wardId]/route";
 import { GET as getLookup } from "./lookup/route";
 import { GET as getRecs } from "./recommendations/route";
-import { GET as getCells } from "./cells/route";
+import { GET as getCells, CELL_FIELDS } from "./cells/route";
 import { GET as getSpec } from "./openapi.json/route";
 import { GET as getExport } from "./export/route";
 
@@ -32,6 +32,18 @@ beforeAll(() => {
   delete process.env.NEXT_PUBLIC_SUPABASE_URL;
   delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 });
+
+/**
+ * Parsed JSON, walked structurally. These tests read an OpenAPI document by
+ * path, which is exactly the case `any` exists for; modelling the spec as a
+ * type here would be a second copy of it to keep in sync.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Json = any;
+
+/** Walks a chain of keys, returning undefined rather than throwing part-way. */
+const get = (node: Json, ...keys: string[]): Json =>
+  keys.reduce((acc, key) => (acc == null ? acc : acc[key]), node);
 
 const req = (path: string) => new Request(`${BASE}${path}`);
 const body = async (res: Response) => JSON.parse(await res.text());
@@ -258,6 +270,33 @@ describe("GET /api/v1/cells", () => {
     const json = await body(await getCells(req("/api/v1/cells?ward=C")));
     expect(json.cells[0].geom_geojson).toBeUndefined();
   });
+
+  // These tests exist because the two sources disagreed. The database path
+  // selected CELL_FIELDS; the snapshot path spread the raw GeoJSON properties,
+  // so the same endpoint answered with `hvi` or `HVI`, and a different key set,
+  // depending on whether Supabase was reachable. A generated client typed on
+  // one shape broke on the other, on the fallback path specifically.
+  it("returns exactly the documented fields, whichever source answered", async () => {
+    const json = await body(await getCells(req("/api/v1/cells?ward=C")));
+    expect(Object.keys(json.cells[0]).sort()).toEqual([...CELL_FIELDS].sort());
+  });
+
+  it("publishes no SCREAMING snapshot keys and no pipeline internals", async () => {
+    const json = await body(await getCells(req("/api/v1/cells?ward=C")));
+    const keys = Object.keys(json.cells[0]);
+    for (const leaked of ["HVI", "LST_C", "NDVI", "NDVI_prev", "ward_gid", "nbs_fired", "dist_to_water_m"]) {
+      expect(keys, `${leaked} leaked from the snapshot`).not.toContain(leaked);
+    }
+    // The contrib_* fields are ward-level and belong to /wards, not here.
+    expect(keys.filter((k) => k.startsWith("contrib_"))).toEqual([]);
+  });
+
+  it("types plantable as a boolean rather than the snapshot's 0/1", async () => {
+    const json = await body(await getCells(req("/api/v1/cells?ward=C")));
+    for (const cell of json.cells) {
+      expect(cell.plantable === null || typeof cell.plantable === "boolean").toBe(true);
+    }
+  });
 });
 
 describe("GET /api/v1/openapi.json", () => {
@@ -280,6 +319,124 @@ describe("GET /api/v1/openapi.json", () => {
   it("points its server URL at the requesting origin", async () => {
     const json = await body(await getSpec(req("/api/v1/openapi.json")));
     expect(json.servers[0].url).toBe(`${BASE}/api/v1`);
+  });
+
+  it("gives every 200 a schema, not just a description", async () => {
+    // A response documented as prose is useless to a generator: the client type
+    // comes out as `unknown`. This is the check that keeps the spec generatable.
+    const spec = await body(await getSpec(req("/api/v1/openapi.json")));
+    for (const [path, item] of Object.entries(spec.paths as Record<string, Json>)) {
+      const ok = get(item, "get", "responses", "200");
+      expect(ok?.content, `${path} 200 has no content schema`).toBeDefined();
+      const firstMediaType = Object.values(ok!.content as Record<string, Json>)[0];
+      expect(firstMediaType?.schema, `${path} 200 content has no schema`).toBeDefined();
+    }
+  });
+
+  it("resolves every $ref it uses", async () => {
+    const spec = await body(await getSpec(req("/api/v1/openapi.json")));
+    const refs = new Set<string>();
+    const walk = (node: unknown) => {
+      if (Array.isArray(node)) return node.forEach(walk);
+      if (node && typeof node === "object") {
+        for (const [k, v] of Object.entries(node)) {
+          if (k === "$ref" && typeof v === "string") refs.add(v);
+          else walk(v);
+        }
+      }
+    };
+    walk(spec.paths);
+    walk(spec.components);
+    expect(refs.size).toBeGreaterThan(0);
+    for (const r of refs) {
+      const name = r.replace("#/components/schemas/", "");
+      expect(spec.components.schemas[name], `dangling $ref ${r}`).toBeDefined();
+    }
+  });
+});
+
+/**
+ * The spec is only worth generating clients from if it describes what the API
+ * actually returns. These walk real responses against the declared schemas in
+ * both directions: a documented required field that is missing, and a returned
+ * field that is undocumented. The second direction is the one that rots
+ * quietly, because adding a field to a handler breaks nothing until somebody
+ * generates a client and finds it absent.
+ */
+describe("the spec matches what the routes return", () => {
+  let spec: Json;
+
+  beforeAll(async () => {
+    spec = await body(await getSpec(req("/api/v1/openapi.json")));
+  });
+
+  const schemaNamed = (name: string): Json =>
+    (spec.components as Json).schemas[name] as Json;
+
+  const resolve = (schema: Json): Json =>
+    typeof schema?.$ref === "string"
+      ? resolve(schemaNamed(schema.$ref.replace("#/components/schemas/", "")))
+      : schema;
+
+  /** Asserts an object carries every required key and no undeclared ones. */
+  function check(value: Record<string, unknown>, schemaName: string, where: string) {
+    const schema = resolve(schemaNamed(schemaName));
+    const declared = Object.keys((schema.properties ?? {}) as object);
+    for (const required of (schema.required ?? []) as string[]) {
+      expect(value, `${where}: missing required ${required}`).toHaveProperty(required);
+    }
+    for (const key of Object.keys(value)) {
+      expect(declared, `${where}: '${key}' is returned but undocumented`).toContain(key);
+    }
+  }
+
+  it("Ward", async () => {
+    const json = await body(await getWards(req("/api/v1/wards?limit=2")));
+    check(json.wards[0], "Ward", "/wards");
+    const withGeom = await body(await getWards(req("/api/v1/wards?limit=1&geometry=true")));
+    check(withGeom.wards[0], "Ward", "/wards?geometry=true");
+  });
+
+  it("Cell", async () => {
+    const json = await body(await getCells(req("/api/v1/cells?limit=2")));
+    check(json.cells[0], "Cell", "/cells");
+    const withGeom = await body(await getCells(req("/api/v1/cells?limit=1&geometry=true")));
+    check(withGeom.cells[0], "Cell", "/cells?geometry=true");
+  });
+
+  it("Recommendation", async () => {
+    const json = await body(await getRecs(req("/api/v1/recommendations?limit=2")));
+    check(json.recommendations[0], "Recommendation", "/recommendations");
+  });
+
+  it("Meta", async () => {
+    check(await body(await getMeta(req("/api/v1/meta"))), "Meta", "/meta");
+  });
+
+  it("Error", async () => {
+    check(await body(await getCells(req("/api/v1/cells?bbox=bad"))), "Error", "400 body");
+  });
+
+  it("the response envelopes", async () => {
+    check(await body(await getWards(req("/api/v1/wards?limit=1"))), "WardListResponse", "/wards");
+    check(await body(await getCells(req("/api/v1/cells?limit=1"))), "CellListResponse", "/cells");
+    check(
+      await body(await getRecs(req("/api/v1/recommendations?limit=1"))),
+      "RecommendationListResponse",
+      "/recommendations"
+    );
+    check(
+      await body(await getLookup(req("/api/v1/lookup?lat=19.076&lon=72.877"))),
+      "LookupResponse",
+      "/lookup"
+    );
+    check(
+      await body(
+        await getWard(req("/api/v1/wards/C"), { params: Promise.resolve({ wardId: "C" }) })
+      ),
+      "WardDetailResponse",
+      "/wards/{wardId}"
+    );
   });
 });
 

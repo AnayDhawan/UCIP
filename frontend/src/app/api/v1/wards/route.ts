@@ -23,7 +23,7 @@ import {
 
 export const revalidate = 3600;
 
-type WardRow = {
+export type WardRow = {
   ward_id: string;
   hvi: number | null;
   rank: number | null;
@@ -36,6 +36,16 @@ type WardRow = {
   dominant_share: number | null;
   single_factor_dominated: boolean | null;
 };
+
+/**
+ * Every field the API promises for a ward, in one string.
+ *
+ * This is the database half of the contract that `fromSnapshot` below is the
+ * snapshot half of. Both must produce the same keys: a consumer cannot tell
+ * which source answered, and should not have to.
+ */
+const WARD_COLUMNS =
+  "ward_id,hvi,rank,n_cells,contrib,dominant_factor,dominant_share,single_factor_dominated";
 
 /** Snapshot properties use SCREAMING keys and flat contrib_* fields; the API does not. */
 function fromSnapshot(p: WardProps): WardRow {
@@ -71,9 +81,14 @@ export async function GET(request: Request) {
 
   const db = supabase();
   if (db) {
+    // The dominance columns are selected explicitly. They were added to the
+    // table in 0007 and to the snapshot path above, but were missing from this
+    // list, so a database-backed response silently dropped the #97 flag while
+    // the snapshot response and the CSV export both carried it. Same endpoint,
+    // two different shapes depending on which source answered.
     const columns = wantGeometry
-      ? "ward_id,hvi,rank,n_cells,contrib,geom_geojson"
-      : "ward_id,hvi,rank,n_cells,contrib";
+      ? `${WARD_COLUMNS},geom_geojson`
+      : WARD_COLUMNS;
     const { data, error } = await db
       .from("wards")
       .select(columns)

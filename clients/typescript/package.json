@@ -1,0 +1,51 @@
+{
+  "name": "ucip-client",
+  "version": "0.1.0",
+  "description": "Typed client for the UCIP API: Mumbai ward-level heat vulnerability data and cited nature-based cooling recommendations.",
+  "keywords": [
+    "ucip",
+    "heat-vulnerability",
+    "urban-heat",
+    "climate",
+    "mumbai",
+    "geojson",
+    "open-data"
+  ],
+  "homepage": "https://github.com/AnayDhawan/UCIP/tree/main/clients/typescript",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AnayDhawan/UCIP.git",
+    "directory": "clients/typescript"
+  },
+  "bugs": "https://github.com/AnayDhawan/UCIP/issues",
+  "license": "Apache-2.0",
+  "author": "Anay Dhawan",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "sideEffects": false,
+  "scripts": {
+    "generate": "tsx scripts/generate.ts",
+    "build": "npm run generate && tsc -p tsconfig.json",
+    "test": "vitest run",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^3.0.5"
+  }
+}

@@ -24,9 +24,82 @@ import {
 
 export const revalidate = 3600;
 
-const CELL_COLUMNS =
-  "grid_id,ward_id,lst_c,ndvi,ndvi_prev,pop_density_km2,elderly_pct,slum_pct," +
-  "hospital_dist_m,impervious_pct,hvi,plantable,worldcover_class";
+/**
+ * The published cell fields, in order. One list, used three ways: as the
+ * database SELECT, as the keys the snapshot path normalises to, and as what
+ * the contract test asserts. Adding a field here is the only place to add one.
+ */
+export const CELL_FIELDS = [
+  "grid_id",
+  "ward_id",
+  "lst_c",
+  "ndvi",
+  "ndvi_prev",
+  "pop_density_km2",
+  "elderly_pct",
+  "slum_pct",
+  "hospital_dist_m",
+  "impervious_pct",
+  "hvi",
+  "plantable",
+  "worldcover_class",
+] as const;
+
+const CELL_COLUMNS = CELL_FIELDS.join(",");
+
+/**
+ * A cell exactly as the API promises it, whichever source answered.
+ *
+ * The snapshot's GeoJSON properties are not this shape. They use SCREAMING
+ * keys (HVI, LST_C, NDVI, NDVI_prev) and carry pipeline internals the API does
+ * not publish (ward_gid, nbs_fired, dist_to_water_m, the ward-level contrib_*
+ * fields, which belong to /wards). Spreading them raw, as this route used to,
+ * meant /cells returned `hvi` when the database answered and `HVI` when it did
+ * not, with a different key set either way.
+ *
+ * That divergence only appeared when the database was unavailable, which is
+ * precisely when nobody is in a position to debug it, and it would have broken
+ * any generated client on exactly the fallback path the fallback exists to
+ * protect. Normalising here makes the two sources one contract.
+ */
+export type CellRow = {
+  grid_id: string | number;
+  ward_id: string;
+  lst_c: number | null;
+  ndvi: number | null;
+  ndvi_prev: number | null;
+  pop_density_km2: number | null;
+  elderly_pct: number | null;
+  slum_pct: number | null;
+  hospital_dist_m: number | null;
+  impervious_pct: number | null;
+  hvi: number | null;
+  plantable: boolean | null;
+  worldcover_class: number | null;
+};
+
+function num(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function fromSnapshot(p: Record<string, unknown>): CellRow {
+  return {
+    grid_id: (p.grid_id as string | number) ?? "",
+    ward_id: String(p.ward_id ?? ""),
+    lst_c: num(p.LST_C),
+    ndvi: num(p.NDVI),
+    ndvi_prev: num(p.NDVI_prev),
+    pop_density_km2: num(p.pop_density_km2),
+    elderly_pct: num(p.elderly_pct),
+    slum_pct: num(p.slum_pct),
+    hospital_dist_m: num(p.hospital_dist_m),
+    impervious_pct: num(p.impervious_pct),
+    hvi: num(p.HVI),
+    // The snapshot stores this as 0/1 in places and as a boolean in others.
+    plantable: p.plantable == null ? null : Boolean(p.plantable),
+    worldcover_class: num(p.worldcover_class),
+  };
+}
 
 type Bbox = [number, number, number, number];
 
@@ -102,7 +175,7 @@ export async function GET(request: Request) {
       })
       .slice(0, limit)
       .map((f) => ({
-        ...f.properties,
+        ...fromSnapshot(f.properties),
         ...(wantGeometry ? { geom_geojson: f.geometry } : {}),
       }));
 
