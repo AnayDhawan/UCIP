@@ -4,6 +4,7 @@
 
 **A research-backed decision-support platform for Mumbai's ward-level heat vulnerability.**
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22923919.svg)](https://doi.org/10.5281/zenodo.22923919)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 ![Stack](https://img.shields.io/badge/stack-Next.js%20%2B%20Python%20%2B%20Supabase-38bdf8)
 ![Status](https://img.shields.io/badge/status-prototype--live-brightgreen)
