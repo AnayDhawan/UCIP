@@ -3,14 +3,11 @@
 import { useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
 import { Monitor, Moon, Sun } from "lucide-react";
-import { useLocale } from "@/lib/i18n/LocaleProvider";
 
-// `key` looks the label up in the dictionary; the value is what next-themes
-// stores, so it stays "system" while the dictionary calls it "auto".
 const MODES = [
-  { value: "light", key: "light", Icon: Sun },
-  { value: "dark", key: "dark", Icon: Moon },
-  { value: "system", key: "auto", Icon: Monitor },
+  { value: "light", label: "Light", Icon: Sun },
+  { value: "dark", label: "Dark", Icon: Moon },
+  { value: "system", label: "Auto", Icon: Monitor },
 ] as const;
 
 const noopSubscribe = () => () => {};
@@ -25,7 +22,6 @@ function useMounted(): boolean {
 }
 
 export default function ThemeToggle() {
-  const { t } = useLocale();
   const { theme, setTheme } = useTheme();
   const mounted = useMounted();
 
@@ -37,16 +33,16 @@ export default function ThemeToggle() {
   return (
     <div
       role="radiogroup"
-      aria-label={t.theme.label}
+      aria-label="Color theme"
       className="flex items-center rounded-full border border-border p-0.5"
     >
-      {MODES.map(({ value, key, Icon }) => (
+      {MODES.map(({ value, label, Icon }) => (
         <button
           key={value}
           role="radio"
           aria-checked={theme === value}
-          aria-label={t.theme[key]}
-          title={t.theme[key]}
+          aria-label={label}
+          title={label}
           onClick={() => setTheme(value)}
           className={`rounded-full p-1.5 transition-colors ${
             theme === value

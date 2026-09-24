@@ -27,14 +27,14 @@ export interface LocateFailure {
   kind: LocateFailureKind;
 }
 
-import en from "./i18n/dictionaries/en";
-
 /** Copy for each failure kind, one sentence, no jargon. */
 export const LOCATE_ERROR_MESSAGE: Record<LocateFailureKind, string> = {
-  // The English lives in lib/i18n/dictionaries/en.ts and is re-exported here,
-  // so there is one copy to keep in step with the Marathi and Hindi. The
-  // dashboard reads the reader's language from the dictionary directly.
-  ...en.locate,
+  unsupported: "Location isn't available in this browser.",
+  denied: "Location permission was denied. You can pick your ward from the list instead.",
+  unavailable: "Your location couldn't be determined right now.",
+  timeout: "Finding your location timed out. Try again.",
+  outside: "You're outside the 24 BMC wards, so there's no ward here.",
+  lookup: "Couldn't look up your ward. Try again in a moment.",
 };
 
 export function isLocateFailure(value: unknown): value is LocateFailure {

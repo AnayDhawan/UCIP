@@ -5,7 +5,6 @@ import { Dialog as DialogPrimitive } from "radix-ui"
 import { X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { useLocale } from "@/lib/i18n/LocaleProvider"
 
 /**
  * Hand-written rather than generated with `npx shadcn add dialog`: that command
@@ -76,7 +75,6 @@ function DialogContent({
    *  interactive page. Pair with `modal={false}` on the Dialog root. */
   showOverlay?: boolean
 }) {
-  const { t } = useLocale()
   return (
     <DialogPortal>
       {showOverlay && <DialogOverlay />}
@@ -102,7 +100,7 @@ function DialogContent({
             className="absolute top-3 right-3 rounded-md p-1 text-muted-foreground opacity-80 transition-opacity hover:bg-accent hover:opacity-100 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 focus-visible:outline-ring"
           >
             <X className="h-4 w-4" />
-            <span className="sr-only">{t.common.close}</span>
+            <span className="sr-only">Close</span>
           </DialogPrimitive.Close>
         )}
       </DialogPrimitive.Content>

@@ -18,7 +18,6 @@
 
 import { useEffect, useState } from "react";
 import { formatCompositeWindow, formatRunDate } from "@/lib/runLog";
-import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface MetaResponse {
   generated_at: string | null;
@@ -26,7 +25,6 @@ interface MetaResponse {
 }
 
 export default function DataVintageBar() {
-  const { t, f, locale } = useLocale();
   const [meta, setMeta] = useState<MetaResponse | null>(null);
 
   useEffect(() => {
@@ -40,17 +38,22 @@ export default function DataVintageBar() {
     return () => controller.abort();
   }, []);
 
-  const refreshDate = formatRunDate(meta?.generated_at, locale);
+  const refreshDate = formatRunDate(meta?.generated_at);
   if (!refreshDate) return null;
 
-  const windowLabel = formatCompositeWindow(meta?.composite_window ?? null, locale);
+  const windowLabel = formatCompositeWindow(meta?.composite_window ?? null);
 
   return (
     <footer className="border-t border-border bg-background px-4 py-1.5">
       <p className="text-center text-[11px] text-muted-foreground sm:text-left">
-        {windowLabel
-          ? f(t.vintage.withWindow, { date: refreshDate, window: windowLabel })
-          : f(t.vintage.refreshed, { date: refreshDate })}
+        {windowLabel ? (
+          <>
+            Data refreshed {refreshDate} &middot; computed from imagery captured{" "}
+            {windowLabel}
+          </>
+        ) : (
+          <>Data refreshed {refreshDate}</>
+        )}
       </p>
     </footer>
   );

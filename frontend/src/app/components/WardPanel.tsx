@@ -4,13 +4,12 @@ import { useMemo, useState } from "react";
 import { Check, Columns3, Search, Star, Link2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { areasForWard, searchableAreas } from "@/lib/wardAreas";
+import { areasForWard } from "@/lib/wardAreas";
 import { hviColor } from "@/lib/hvi";
 import { useWardData } from "@/lib/useWardData";
 import WardDetail from "./WardDetail";
 import WardDetailHeader from "./WardDetailHeader";
 import WardStaticMap from "./WardStaticMap";
-import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 /**
  * The dashboard sidebar: a ranked, searchable ward list that hands the whole
@@ -36,7 +35,6 @@ export default function WardPanel({
   onToggleTracked?: (wardId: string) => void;
   onCompare?: () => void;
 }) {
-  const { t, f: fmt, locale } = useLocale();
   const { wards, recs, profiles, error } = useWardData();
   const [search, setSearch] = useState("");
   const [copied, setCopied] = useState(false);
@@ -58,9 +56,7 @@ export default function WardPanel({
     if (!q) return wards;
     return wards.filter((f) => {
       const wardId = f.properties.ward_id.toLowerCase();
-      // Every language's spelling of the localities, so a Marathi reader can
-      // still type Dadar and an English one can paste दादर.
-      const areas = searchableAreas(f.properties.ward_id);
+      const areas = areasForWard(f.properties.ward_id).join(" ").toLowerCase();
       return wardId.includes(q) || areas.includes(q);
     });
   }, [wards, search]);
@@ -82,8 +78,8 @@ export default function WardPanel({
     });
   }, [filtered, trackedWards]);
 
-  if (error) return <div className="p-4 text-sm text-destructive">{fmt(t.ward.loadFailed, { error })}</div>;
-  if (!wards) return <div className="p-4 text-sm text-muted-foreground">{t.wardList.loading}</div>;
+  if (error) return <div className="p-4 text-sm text-destructive">Failed to load ward data: {error}</div>;
+  if (!wards) return <div className="p-4 text-sm text-muted-foreground">Loading wards…</div>;
 
   const selected = wards.find((f) => f.properties.ward_id === selectedWardId) ?? null;
 
@@ -104,7 +100,7 @@ export default function WardPanel({
             taller than the panel and needs an unambiguous, always-present
             scrollbar rather than an overlay one. */}
         <div className="ward-scroll min-h-0 flex-1 overflow-y-auto">
-          {selected.geometry && <WardStaticMap geometry={selected.geometry} hvi={props.HVI} label={fmt(t.ward.label, { ward: props.ward_id })} />}
+          {selected.geometry && <WardStaticMap geometry={selected.geometry} hvi={props.HVI} label={`Ward ${props.ward_id}`} />}
           <WardDetail
             ward={props}
             profile={profiles?.wards.find((w) => w.ward_id === props.ward_id) ?? null}
@@ -121,9 +117,9 @@ export default function WardPanel({
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="border-b border-border px-4 py-3">
-        <h2 className="text-sm font-semibold text-foreground">{t.wardList.heading}</h2>
+        <h2 className="text-sm font-semibold text-foreground">24 wards, ranked by heat vulnerability</h2>
         <p className="mt-1 text-xs leading-snug text-muted-foreground">
-          {t.wardList.intro}
+          Click a ward, here or on the map, to open its full profile.
         </p>
         <div className="relative mt-2">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" aria-hidden />
@@ -133,7 +129,7 @@ export default function WardPanel({
             name="ward-search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder={t.wardList.search}
+            placeholder="Find a ward or area…"
             className="pl-8"
           />
         </div>
@@ -141,16 +137,15 @@ export default function WardPanel({
       {trackedWards.length > 0 && (
         <div className="flex items-center justify-between gap-2 border-b border-border bg-accent/40 px-4 py-2">
           <p className="min-w-0 truncate text-xs text-muted-foreground">
+            Following{" "}
             <span className="font-medium text-foreground">
-              {trackedWards.length === 1
-                ? t.wardList.followingOne
-                : fmt(t.wardList.followingMany, { n: trackedWards.length })}
+              {trackedWards.length} ward{trackedWards.length === 1 ? "" : "s"}
             </span>
           </p>
           <div className="flex shrink-0 items-center gap-1">
             {trackedWards.length >= 2 && onCompare && (
               <button onClick={onCompare} className="flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
-                <Columns3 className="h-3 w-3" aria-hidden /> {t.wardList.compare}
+                <Columns3 className="h-3 w-3" aria-hidden /> Compare
               </button>
             )}
             <button
@@ -158,7 +153,7 @@ export default function WardPanel({
               className="flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
             >
               {copied ? <Check className="h-3 w-3" aria-hidden /> : <Link2 className="h-3 w-3" aria-hidden />}
-              {copied ? t.wardList.copied : t.wardList.copyLink}
+              {copied ? "Copied" : "Copy link"}
             </button>
           </div>
         </div>
@@ -180,7 +175,7 @@ export default function WardPanel({
               >
                 <button
                   onClick={() => onSelectWard(p.ward_id)}
-                  title={areasForWard(p.ward_id, locale).join(", ")}
+                  title={areasForWard(p.ward_id).join(", ")}
                   aria-current={isSelected ? "true" : undefined}
                   className="flex min-w-0 flex-1 items-center justify-between gap-3 py-2.5 pl-4 text-left"
                 >
@@ -191,7 +186,7 @@ export default function WardPanel({
                       style={{ background: hviColor(p.HVI) }}
                       aria-hidden
                     />
-                    <span className="truncate text-sm font-medium text-foreground">{fmt(t.ward.label, { ward: p.ward_id })}</span>
+                    <span className="truncate text-sm font-medium text-foreground">Ward {p.ward_id}</span>
                   </div>
                   <span className="shrink-0 font-mono text-xs text-muted-foreground">{p.HVI?.toFixed(1)}</span>
                 </button>
@@ -199,10 +194,10 @@ export default function WardPanel({
                   <button
                     onClick={() => onToggleTracked(p.ward_id)}
                     aria-pressed={isTracked}
-                    aria-label={fmt(isTracked ? t.wardList.unfollowAria : t.wardList.followAria, {
-                      ward: p.ward_id,
-                    })}
-                    title={isTracked ? t.wardList.unfollow : t.wardList.follow}
+                    aria-label={
+                      isTracked ? `Stop following ward ${p.ward_id}` : `Follow ward ${p.ward_id}`
+                    }
+                    title={isTracked ? "Stop following" : "Follow this ward"}
                     className="mr-2 shrink-0 rounded p-1.5 text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
                   >
                     <Star
@@ -215,7 +210,7 @@ export default function WardPanel({
             );
           })}
           {ordered.length === 0 && (
-            <p className="p-4 text-sm text-muted-foreground">{fmt(t.wardList.noMatch, { query: search })}</p>
+            <p className="p-4 text-sm text-muted-foreground">No ward matches &quot;{search}&quot;.</p>
           )}
         </div>
       </ScrollArea>

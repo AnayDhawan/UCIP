@@ -60,44 +60,6 @@ changes an HVI weight, an NBS rule, or a data source:
 - Don't hardcode a data vintage silently — see `pipeline/03_vectors.py`'s `WORLDPOP_YEAR`
   pin for the pattern (explicit, disclosed, not just "whatever the API returns first").
 
-## Translations
-
-The site ships in English, Marathi and Hindi. **The Marathi and Hindi copy has
-not been reviewed by a native speaker**, and correcting it is the most useful
-contribution this repository can receive. You do not need to write any code.
-
-Everything lives in `frontend/src/lib/i18n/dictionaries/`. `en.ts` is the
-source of truth for structure; `mr.ts` and `hi.ts` are typed against it, so a
-missing key fails the build rather than leaking an English sentence into a
-Marathi page.
-
-To fix a string, edit it in place and open a PR. Useful context, all of it
-argued in the file headers rather than assumed:
-
-- **Plain register, not administrative vocabulary.** A resident reading a map
-  on a phone should not have to parse the Marathi a BMC circular would use.
-- **Ward codes stay in Latin script.** BMC wards are A, B, F/N, G/S on every
-  sign, notice and bill. Transliterating them breaks the match with what people
-  see on the ground.
-- **Digits are Latin** (24, 60), because every number the interface
-  interpolates at runtime is a Latin numeral and a sentence mixing both scripts
-  reads as a rendering fault.
-- **`{placeholders}` must survive**, and may move. Word order differs: English
-  says "3 of 24", Marathi says "24 पैकी 3". A test checks that every
-  placeholder in the English string is present in the translation, because a
-  dropped one compiles fine and leaves a hole in a sentence the author cannot
-  proofread.
-
-Run `npm test -- i18n` in `frontend/` before opening the PR.
-
-When a language has genuinely been reviewed by someone who speaks it, flip
-`reviewed` in `frontend/src/lib/i18n/locales.ts` and say in the PR who reviewed
-it. That flag is a claim, so it should be someone's claim.
-
-Adding a language: add its code to `LOCALES` and its metadata to
-`LOCALE_META`, copy `en.ts` to `<code>.ts`, translate it, and the type checker
-will list anything you missed.
-
 ## Code style
 
 - TypeScript/React: follow the existing ESLint config (`npm run lint`), Tailwind v4

@@ -2,7 +2,7 @@
 
 import "leaflet/dist/leaflet.css";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { GeoJSON, MapContainer, TileLayer, ZoomControl, useMap } from "react-leaflet";
+import { GeoJSON, MapContainer, TileLayer, useMap } from "react-leaflet";
 import { geoJSON as leafletGeoJSON } from "leaflet";
 import type { Feature, FeatureCollection, Geometry } from "geojson";
 import type { GeoJSON as LeafletGeoJSONLayer, Layer, Path, PathOptions } from "leaflet";
@@ -15,7 +15,6 @@ import { ACTIVE_CITY } from "@/lib/city";
 import { hviColor as colorForHvi } from "@/lib/hvi";
 import type { MapLayer, MapView } from "@/lib/mapState";
 import type { CellNbsProps, CellNdviProps, WardProps } from "@/lib/wardTypes";
-import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 type LayerId = MapLayer;
 
@@ -89,15 +88,29 @@ function styleNdviChange(selectedWardId: string | null) {
   };
 }
 
-// Labels and captions live in the dictionary, keyed by these same layer ids
-// (lib/i18n/dictionaries), so this table holds only what is not copy.
-const LAYER_META: Record<LayerId, { url: string }> = {
-  hvi: { url: "/wards_hvi.geojson" },
-  // Same file the plantability layer reads: cells_nbs.geojson already carries
-  // HVI per cell, alongside plantable/worldcover_class.
-  hvi_grid: { url: "/cells_nbs.geojson" },
-  plantability: { url: "/cells_nbs.geojson" },
-  ndvi_change: { url: "/cells_ndvi_change.geojson" },
+const LAYER_META: Record<LayerId, { label: string; url: string; caption: string }> = {
+  hvi: {
+    label: "Heat vulnerability",
+    url: "/wards_hvi.geojson",
+    caption: "How urgently each ward needs cooling, combining heat, people, and access to help.",
+  },
+  hvi_grid: {
+    label: "Heat grid",
+    // Same file the plantability layer reads: cells_nbs.geojson already
+    // carries HVI per cell, alongside plantable/worldcover_class.
+    url: "/cells_nbs.geojson",
+    caption: "The same index at the 1 km cell it's measured at, before 541 cells are averaged into 24 wards.",
+  },
+  plantability: {
+    label: "Plantability",
+    url: "/cells_nbs.geojson",
+    caption: "Where planting trees makes ecological sense, and where cool roofs work better.",
+  },
+  ndvi_change: {
+    label: "Green-cover change",
+    url: "/cells_ndvi_change.geojson",
+    caption: "Where vegetation has grown or been lost since the 2016-17 dry season.",
+  },
 };
 
 const HVI_LEGEND_BINS = [
@@ -110,70 +123,69 @@ const HVI_LEGEND_BINS = [
 ];
 
 function Legend({ layer }: { layer: LayerId }) {
-  const { t, f } = useLocale();
   return (
     <Card className="absolute bottom-6 left-2 z-[1000] max-w-[240px] gap-0 bg-background/95 p-3 text-xs backdrop-blur-sm">
       {layer === "hvi" && (
         <>
-          <p className="mb-1.5 font-semibold text-foreground">{t.legend.hviTitle}</p>
+          <p className="mb-1.5 font-semibold text-foreground">Heat Vulnerability Index (0-100)</p>
           <div className="flex overflow-hidden rounded-sm" aria-hidden="true">
             {HVI_LEGEND_BINS.map((b) => (
               <div key={b.color} className="h-3 flex-1" style={{ background: b.color }} />
             ))}
           </div>
           <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
-            <span>{t.legend.lessVulnerable}</span>
-            <span>{t.legend.mostVulnerable}</span>
+            <span>Less vulnerable</span>
+            <span>Most vulnerable</span>
           </div>
         </>
       )}
       {layer === "hvi_grid" && (
         <>
-          <p className="mb-1.5 font-semibold text-foreground">{t.legend.gridTitle}</p>
+          <p className="mb-1.5 font-semibold text-foreground">HVI, 1 km grid (0-100)</p>
           <div className="flex overflow-hidden rounded-sm" aria-hidden="true">
             {HVI_LEGEND_BINS.map((b) => (
               <div key={b.color} className="h-3 flex-1" style={{ background: b.color }} />
             ))}
           </div>
           <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
-            <span>{t.legend.lessVulnerable}</span>
-            <span>{t.legend.mostVulnerable}</span>
+            <span>Less vulnerable</span>
+            <span>Most vulnerable</span>
           </div>
           <p className="mt-1.5 text-[10px] text-muted-foreground">
-            {f(t.legend.gridNote, { cells: 541 })}
+            541 cells, the same score a ward is averaged from.
           </p>
         </>
       )}
       {layer === "plantability" && (
         <>
-          <p className="mb-1.5 font-semibold text-foreground">{t.legend.plantTitle}</p>
+          <p className="mb-1.5 font-semibold text-foreground">Can trees go here?</p>
           <div className="space-y-1 text-foreground">
             <div className="flex items-center gap-2">
               <span className="h-3 w-3 rounded-sm" style={{ background: "#4ade80" }} aria-hidden="true" />
-              <span>{t.legend.plantYes}</span>
+              <span>Yes, suitable for planting</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="h-3 w-3 rounded-sm" style={{ background: "#f87171" }} aria-hidden="true" />
-              <span>{t.legend.plantNo}</span>
+              <span>No, cool roofs instead</span>
             </div>
           </div>
         </>
       )}
       {layer === "ndvi_change" && (
         <>
-          <p className="mb-1.5 font-semibold text-foreground">{t.legend.ndviTitle}</p>
+          <p className="mb-1.5 font-semibold text-foreground">Green cover since 2016-17</p>
           <div className="space-y-1 text-foreground">
             <div className="flex items-center gap-2">
               <span className="h-3 w-3 rounded-sm" style={{ background: "#4ade80" }} aria-hidden="true" />
-              <span>{t.legend.gained}</span>
+              <span>Gained vegetation</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="h-3 w-3 rounded-sm border border-border" style={{ background: "#d4d4d8" }} aria-hidden="true" />
-              <span>{t.legend.stable}</span>
+              <span>Stable</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="h-3 w-3 rounded-sm" style={{ background: "#f87171" }} aria-hidden="true" />
-              <span>{t.legend.lost}</span>
+              <span>Lost vegetation</span>
             </div>
           </div>
         </>
@@ -302,10 +314,9 @@ function MapUrlState({
  *  map. Set it imperatively on the real DOM node instead. */
 function MapAccessibleName() {
   const map = useMap();
-  const { t } = useLocale();
   useEffect(() => {
-    map.getContainer().setAttribute("aria-label", t.map.ariaLabel);
-  }, [map, t]);
+    map.getContainer().setAttribute("aria-label", "Mumbai ward heat vulnerability map");
+  }, [map]);
   return null;
 }
 
@@ -339,7 +350,6 @@ export default function WardChoropleth({
   mapView?: MapView | null;
   onMapViewChange?: (view: MapView) => void;
 }) {
-  const { t, f } = useLocale();
   const [cache, setCache] = useState<Partial<Record<LayerId, FeatureCollection>>>({});
   const [error, setError] = useState<string | null>(null);
 
@@ -402,7 +412,7 @@ export default function WardChoropleth({
       if (!el) return;
       el.setAttribute("tabindex", "0");
       el.setAttribute("role", "button");
-      el.setAttribute("aria-label", f(t.map.selectWard, { ward: wardId }));
+      el.setAttribute("aria-label", `Select ward ${wardId}`);
       const onKeyDown = (e: KeyboardEvent) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
@@ -422,15 +432,15 @@ export default function WardChoropleth({
           <Tabs value={activeLayer} onValueChange={(v: string) => onLayerChange?.(v as LayerId)}>
             {/* Height is overridden through the same group-data variant the
                 primitive uses, so it wins rather than sitting alongside it. */}
-            <TabsList aria-label={t.layers.tabsLabel} className="group-data-horizontal/tabs:h-7">
+            <TabsList aria-label="Map layer" className="group-data-horizontal/tabs:h-7">
               {(Object.keys(LAYER_META) as LayerId[]).map((id) => (
                 <TabsTrigger
                   key={id}
                   value={id}
-                  title={t.layers[id].caption}
+                  title={LAYER_META[id].caption}
                   className="whitespace-nowrap px-1.5 text-xs"
                 >
-                  {t.layers[id].label}
+                  {LAYER_META[id].label}
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -447,7 +457,7 @@ export default function WardChoropleth({
                 sighted user's version of the same information. */}
             {(Object.keys(LAYER_META) as LayerId[]).map((id) => (
               <TabsContent key={id} value={id} className="sr-only">
-                {t.layers[id].caption}
+                {LAYER_META[id].caption}
               </TabsContent>
             ))}
           </Tabs>
@@ -459,8 +469,8 @@ export default function WardChoropleth({
                 size="icon-sm"
                 onClick={onLocate}
                 disabled={locating}
-                aria-label={locating ? t.map.finding : t.map.findMyWard}
-                title={locating ? t.map.finding : t.map.findMyWardTitle}
+                aria-label={locating ? "Finding your ward…" : "Find my ward"}
+                title={locating ? "Finding your ward…" : "Find my ward — use your location"}
               >
                 {locating ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -475,8 +485,8 @@ export default function WardChoropleth({
               variant="ghost"
               size="icon-sm"
               onClick={onToggleFullscreen}
-              aria-label={isFullscreen ? t.map.exitFullscreen : t.map.viewFullscreen}
-              title={isFullscreen ? t.map.exitFullscreenTitle : t.map.viewFullscreenTitle}
+              aria-label={isFullscreen ? "Exit fullscreen" : "View map fullscreen"}
+              title={isFullscreen ? "Exit fullscreen (Esc)" : "View fullscreen"}
             >
               {isFullscreen ? (
                 <Minimize2 className="h-3.5 w-3.5" />
@@ -494,7 +504,7 @@ export default function WardChoropleth({
         <div className="absolute inset-x-0 top-12 z-[1000] mx-auto flex w-fit max-w-[90%] flex-col items-center gap-1">
           {error && (
             <div className="rounded bg-destructive/10 px-3 py-1 text-sm text-destructive">
-              {f(t.map.layerLoadFailed, { error })}
+              Failed to load layer: {error}
             </div>
           )}
           {locateError && (
@@ -517,13 +527,8 @@ export default function WardChoropleth({
         // instead of rounding down to the next whole level.
         zoomSnap={0.25}
         zoomDelta={0.5}
-        // The default zoom control is turned off so its two buttons can carry
-        // titles in the reader's language. It is otherwise the same control,
-        // in the same corner.
-        zoomControl={false}
         style={{ height: "100%", width: "100%" }}
       >
-        <ZoomControl position="topleft" zoomInTitle={t.map.zoomIn} zoomOutTitle={t.map.zoomOut} />
         {/*
           Esri's free World Light Gray Canvas, split into an unlabelled base
           plus a transparent label overlay, rather than CARTO's light_all.

@@ -6,7 +6,6 @@ import WardDetailHeader from "./WardDetailHeader";
 import WardStaticMap from "./WardStaticMap";
 import WardTrend from "./WardTrend";
 import { useWardData } from "@/lib/useWardData";
-import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 /**
  * The ward profile for the two cases with no sidebar to hand over: fullscreen,
@@ -27,7 +26,6 @@ export default function WardDialog({
   /** False whenever the sidebar is showing the ward instead. */
   enabled: boolean;
 }) {
-  const { t, f } = useLocale();
   const { wards, recs, profiles, error } = useWardData();
 
   const selected = wards?.find((f) => f.properties.ward_id === selectedWardId) ?? null;
@@ -53,7 +51,8 @@ export default function WardDialog({
         className="max-w-md"
       >
         <DialogDescription id="ward-dialog-description" className="sr-only">
-          {t.ward.dialogDescription}
+          Detailed heat vulnerability index, greening data, and recommended
+          interventions for the selected Mumbai ward.
         </DialogDescription>
         {props ? (
           <WardDetailHeader
@@ -64,20 +63,20 @@ export default function WardDialog({
           />
         ) : (
           <DialogTitle id="ward-dialog-title" className="px-4 py-3">
-            {f(t.ward.label, { ward: selectedWardId ?? "" })}
+            Ward {selectedWardId}
           </DialogTitle>
         )}
 
         <div className="ward-scroll min-h-0 flex-1 overflow-y-auto">
           {error && (
-            <p className="px-4 py-4 text-sm text-destructive">{f(t.ward.loadFailed, { error })}</p>
+            <p className="px-4 py-4 text-sm text-destructive">Failed to load ward data: {error}</p>
           )}
           {!error && !props && (
-            <p className="px-4 py-4 text-sm text-muted-foreground">{t.ward.loading}</p>
+            <p className="px-4 py-4 text-sm text-muted-foreground">Loading ward…</p>
           )}
           {props && (
             <>
-              {selected.geometry && <WardStaticMap geometry={selected.geometry} hvi={props.HVI} label={f(t.ward.label, { ward: props.ward_id })} />}
+              {selected.geometry && <WardStaticMap geometry={selected.geometry} hvi={props.HVI} label={`Ward ${props.ward_id}`} />}
               <WardDetail
                 ward={props}
                 profile={profiles?.wards.find((w) => w.ward_id === props.ward_id) ?? null}

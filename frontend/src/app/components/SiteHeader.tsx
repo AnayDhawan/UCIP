@@ -6,26 +6,19 @@ import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import Logo from "./Logo";
 import ThemeToggle from "./ThemeToggle";
-import LanguageSwitcher from "./LanguageSwitcher";
-import { useLocale } from "@/lib/i18n/LocaleProvider";
 
-// Keyed into the dictionary rather than carrying its own label, so adding a
-// destination means adding it to every language or failing the build (issue
-// #122). A `label` string here would have been the one place that quietly
-// stayed English.
 const NAV = [
-  { href: "/dashboard", key: "dashboard" },
-  { href: "/cities", key: "cities" },
-  { href: "/methodology", key: "methodology" },
-  { href: "/simulate", key: "simulator" },
-  { href: "/mission", key: "mission" },
-  { href: "/contribute", key: "contribute" },
-  { href: "/contact", key: "contact" },
-] as const;
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/cities", label: "Cities" },
+  { href: "/methodology", label: "Methodology" },
+  { href: "/simulate", label: "Simulator" },
+  { href: "/mission", label: "Mission" },
+  { href: "/contribute", label: "Contribute" },
+  { href: "/contact", label: "Contact" },
+];
 
 export default function SiteHeader({ compact = false }: { compact?: boolean }) {
   const pathname = usePathname();
-  const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const closeButton = useRef<HTMLButtonElement>(null);
 
@@ -53,20 +46,14 @@ export default function SiteHeader({ compact = false }: { compact?: boolean }) {
           compact ? "py-2" : "max-w-5xl py-3"
         }`}
       >
-        <Link href="/" aria-label={t.nav.homeLabel}>
+        <Link href="/" aria-label="UCIP home">
           <Logo />
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex" aria-label={t.nav.mainNav}>
+        <nav className="hidden items-center gap-1 md:flex" aria-label="Main">
           {NAV.map((item) => {
             const active =
-              // Widened on purpose. No entry is "/" today, so `as const` makes
-              // the comparison provably false and tsc rejects it as dead, but
-              // the guard is what stops a future "/" entry matching every
-              // route through startsWith.
-              (item.href as string) === "/"
-                ? pathname === "/"
-                : pathname.startsWith(item.href);
+              item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
             return (
               <Link
                 key={item.href}
@@ -78,14 +65,13 @@ export default function SiteHeader({ compact = false }: { compact?: boolean }) {
                     : "text-muted-foreground hover:bg-surface-hover hover:text-foreground"
                 }`}
               >
-                {t.nav[item.key]}
+                {item.label}
               </Link>
             );
           })}
         </nav>
 
         <div className="hidden md:block">
-          <LanguageSwitcher />
           <ThemeToggle />
         </div>
 
@@ -94,7 +80,7 @@ export default function SiteHeader({ compact = false }: { compact?: boolean }) {
           onClick={() => setOpen(true)}
           aria-expanded={open}
           aria-controls="mobile-menu"
-          aria-label={t.nav.openMenu}
+          aria-label="Open menu"
         >
           <Menu className="h-5 w-5" />
         </button>
@@ -121,7 +107,7 @@ export default function SiteHeader({ compact = false }: { compact?: boolean }) {
           id="mobile-menu"
           role="dialog"
           aria-modal="true"
-          aria-label={t.nav.siteMenu}
+          aria-label="Site menu"
           aria-hidden={!open}
           inert={!open}
           className={`absolute inset-y-0 right-0 flex h-full w-full flex-col bg-background transition-transform duration-300 ease-out ${
@@ -129,29 +115,23 @@ export default function SiteHeader({ compact = false }: { compact?: boolean }) {
           }`}
         >
         <div className="flex items-center justify-between gap-4 border-b border-border px-6 py-3">
-          <Link href="/" aria-label={t.nav.homeLabel} onClick={() => setOpen(false)}>
+          <Link href="/" aria-label="UCIP home" onClick={() => setOpen(false)}>
             <Logo />
           </Link>
           <button
             ref={closeButton}
             className="rounded border border-border p-1.5 text-muted-foreground"
             onClick={() => setOpen(false)}
-            aria-label={t.nav.closeMenu}
+            aria-label="Close menu"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-6 py-6" aria-label={t.nav.mobileNav}>
+        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-6 py-6" aria-label="Main mobile">
           {NAV.map((item) => {
             const active =
-              // Widened on purpose. No entry is "/" today, so `as const` makes
-              // the comparison provably false and tsc rejects it as dead, but
-              // the guard is what stops a future "/" entry matching every
-              // route through startsWith.
-              (item.href as string) === "/"
-                ? pathname === "/"
-                : pathname.startsWith(item.href);
+              item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
             return (
               <Link
                 key={item.href}
@@ -164,14 +144,13 @@ export default function SiteHeader({ compact = false }: { compact?: boolean }) {
                     : "text-muted-foreground hover:bg-surface-hover hover:text-foreground"
                 }`}
               >
-                {t.nav[item.key]}
+                {item.label}
               </Link>
             );
           })}
         </nav>
 
           <div className="border-t border-border px-6 py-4">
-            <LanguageSwitcher />
             <ThemeToggle />
           </div>
         </div>
