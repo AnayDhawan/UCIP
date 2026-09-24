@@ -93,27 +93,33 @@ export default function WardTrend({ wardId }: { wardId: string }) {
         Since {data.years[0]}
       </h4>
 
+      {/* dl > div > (dt, dd) is the only wrapper the spec allows inside a
+          definition list. An earlier version nested a second div around the
+          dt/dd pair to lay the sparkline out beside it, which axe flags as
+          definition-list and dlitem, both serious. The sparkline lives in the
+          dd instead, which is also the more honest markup: the chart is part
+          of the value, not a sibling of it. */}
       <dl className="mt-3 space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-muted-foreground">
-              Surface temperature
-            </dt>
-            <dd className="text-sm text-foreground">
+        <div>
+          <dt className="text-xs uppercase tracking-wide text-muted-foreground">
+            Surface temperature
+          </dt>
+          <dd className="flex items-center justify-between gap-3 text-sm text-foreground">
+            <span>
               {describeSlope(trend.lst_c_per_decade, trend.lst_significant, "C", "warming", "cooling")}
-            </dd>
-          </div>
-          <Sparkline points={lst} label="Dry-season land surface temperature" />
+            </span>
+            <Sparkline points={lst} label="Dry-season land surface temperature" />
+          </dd>
         </div>
 
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Green cover</dt>
-            <dd className="text-sm text-foreground">
+        <div>
+          <dt className="text-xs uppercase tracking-wide text-muted-foreground">Green cover</dt>
+          <dd className="flex items-center justify-between gap-3 text-sm text-foreground">
+            <span>
               {describeSlope(trend.ndvi_per_decade, trend.ndvi_significant, "NDVI", "greening", "losing green")}
-            </dd>
-          </div>
-          <Sparkline points={ndvi} label="Dry-season NDVI" />
+            </span>
+            <Sparkline points={ndvi} label="Dry-season NDVI" />
+          </dd>
         </div>
       </dl>
 

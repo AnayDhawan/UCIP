@@ -9,7 +9,7 @@ import type { GeoJSON as LeafletGeoJSONLayer, Layer, Path, PathOptions } from "l
 import { Loader2, LocateFixed, Maximize2, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { boundsOf } from "@/lib/geometry";
 import { ACTIVE_CITY } from "@/lib/city";
 import { hviColor as colorForHvi } from "@/lib/hvi";
@@ -444,6 +444,22 @@ export default function WardChoropleth({
                 </TabsTrigger>
               ))}
             </TabsList>
+
+            {/* Each trigger's aria-controls points at one of these. Without
+                them Radix emits a reference to an id that is not in the
+                document, which is a critical WCAG failure (issue #118): axe
+                reports aria-valid-attr-value on every tab.
+
+                They are not a formality. The thing these tabs actually
+                control is a Leaflet canvas, which conveys nothing to a screen
+                reader, so the panel is the only place the current layer gets
+                described in words. Visually hidden because the map is the
+                sighted user's version of the same information. */}
+            {(Object.keys(LAYER_META) as LayerId[]).map((id) => (
+              <TabsContent key={id} value={id} className="sr-only">
+                {LAYER_META[id].caption}
+              </TabsContent>
+            ))}
           </Tabs>
           {onLocate && (
             <>
