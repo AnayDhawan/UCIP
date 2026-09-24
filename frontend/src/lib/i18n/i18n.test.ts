@@ -9,6 +9,9 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import { join } from "node:path";
+import { FACTOR_LABELS } from "@/lib/wardTypes";
 import { DICTIONARIES, LOCALES, LOCALE_META, format, isLocale, lookup, resolveLocale } from "./index";
 import en from "./dictionaries/en";
 
@@ -61,7 +64,7 @@ describe("the dictionaries agree on structure", () => {
 describe("the translations are actually translated", () => {
   // Latin-script terms that are correct to leave alone: proper nouns, and the
   // loanwords Mumbai actually uses out loud.
-  const KEEPS_LATIN = new Set(["nav.simulator", "footer.sourceCode"]);
+  const KEEPS_LATIN = new Set(["nav.simulator", "compare.hvi"]);
 
   it.each(["mr", "hi"] as const)("%s uses Devanagari for its copy", (locale) => {
     const dict = flatten(DICTIONARIES[locale]);
@@ -107,9 +110,9 @@ describe("format", () => {
   it("handles word order differing between languages", () => {
     // English puts the rank first, Marathi and Hindi put the total first.
     const values = { rank: 3, total: 24 };
-    expect(format(en.ward.rankOf, values)).toBe("3 of 24");
-    expect(format(DICTIONARIES.mr.ward.rankOf, values)).toBe("24 पैकी 3");
-    expect(format(DICTIONARIES.hi.ward.rankOf, values)).toBe("24 में से 3");
+    expect(format(en.ward.rankOf, values)).toBe("3 of 24 for heat vulnerability");
+    expect(format(DICTIONARIES.mr.ward.rankOf, values)).toBe("उष्णतेच्या धोक्यात 24 पैकी 3");
+    expect(format(DICTIONARIES.hi.ward.rankOf, values)).toBe("गर्मी के खतरे में 24 में से 3");
   });
 
   it("leaves an unmatched placeholder visible rather than printing undefined", () => {
@@ -156,7 +159,7 @@ describe("locale resolution", () => {
 describe("lookup", () => {
   it("reads a dotted path", () => {
     expect(lookup(en, "nav.dashboard")).toBe("Dashboard");
-    expect(lookup(en, "ward.factors.NDVI")).toBe("Green cover");
+    expect(lookup(en, "ward.factors.NDVI")).toBe("Green cover (NDVI)");
   });
 
   it("returns undefined for a path that is not a string", () => {
@@ -217,5 +220,98 @@ describe("the locale store", () => {
     store.setLocale("hi");
     expect(calls).toBe(1);
     unsubscribe();
+  });
+});
+
+
+/**
+ * The tests that would have caught the first version of this feature.
+ *
+ * The structural tests above prove that every dictionary has every key. They
+ * say nothing about whether a component reads any of them. The first pass
+ * shipped dictionaries with translations for screens that did not exist, while
+ * the screens that did exist still had English string literals in the JSX. The
+ * type checker was satisfied, the build passed, 33 tests passed, and the page
+ * was half English. Nothing in the suite looked at the page.
+ */
+describe("the dictionary is actually used", () => {
+  /** Every source file the site ships, excluding the dictionaries and the tests. */
+  function sourceFiles(dir: string): string[] {
+    const out: string[] = [];
+    for (const name of readdirSync(dir)) {
+      const full = join(dir, name);
+      if (statSync(full).isDirectory()) {
+        if (name === "dictionaries" || name === "node_modules") continue;
+        out.push(...sourceFiles(full));
+      } else if (/\.(ts|tsx)$/.test(name) && !/\.test\./.test(name)) {
+        out.push(full);
+      }
+    }
+    return out;
+  }
+
+  const files = sourceFiles(join(process.cwd(), "src")).map((path) => readFileSync(path, "utf8"));
+
+  // Read through a computed key (t.locate[err.kind], t.ward.factors[key],
+  // dict.recs[group]), so the leaf name never appears in source. Checked as a
+  // group below instead.
+  const DYNAMIC = ["ward.factors.", "locate.", "recs."];
+
+  it("every key is read by a component", () => {
+    const unused: string[] = [];
+    for (const key of KEYS) {
+      if (DYNAMIC.some((prefix) => key.startsWith(prefix))) continue;
+      const parts = key.split(".");
+      const section = parts[0]!;
+      const leaf = parts[parts.length - 1]!;
+      // Some file has to mention both the section and the leaf. Not proof that
+      // the two are connected, but a key nothing mentions fails, which is the
+      // failure that actually happened.
+      // A key read as `t.nav[item.key]` never spells the leaf as a property, but
+      // it does appear as the value the table looks it up by: `key: "dashboard"`.
+      const used = files.some(
+        (src) =>
+          src.includes(`t.${section}`) &&
+          (new RegExp(`[.\\[]\\s*["']?${leaf}\\b`).test(src) ||
+            new RegExp(`key:\\s*["']${leaf}["']`).test(src))
+      );
+      if (!used) unused.push(key);
+    }
+    expect(unused, "dictionary keys no component reads").toEqual([]);
+  });
+
+  it("the dynamically read groups are each read somewhere", () => {
+    expect(files.some((src) => /t\.locate\[/.test(src))).toBe(true);
+    expect(files.some((src) => /t\.ward\.factors\[/.test(src))).toBe(true);
+    expect(files.some((src) => /\.recs\[/.test(src))).toBe(true);
+  });
+
+  it("the English factor labels are the ones the rest of the site already uses", () => {
+    // FACTOR_LABELS still feeds the methodology page, and two copies of a label
+    // is how English drifts between screens.
+    expect(en.ward.factors).toEqual(FACTOR_LABELS);
+  });
+
+  it("every layer the map can show has a label and a caption", () => {
+    for (const id of ["hvi", "hvi_grid", "plantability", "ndvi_change"] as const) {
+      for (const locale of LOCALES) {
+        expect(DICTIONARIES[locale].layers[id].label.trim(), `${locale}.${id}`).not.toBe("");
+        expect(DICTIONARIES[locale].layers[id].caption.trim(), `${locale}.${id}`).not.toBe("");
+      }
+    }
+  });
+
+  it("every locate failure and every recommendation the pipeline can emit is translated", () => {
+    for (const locale of ["mr", "hi"] as const) {
+      const d = DICTIONARIES[locale];
+      for (const [kind, text] of Object.entries(d.locate)) {
+        expect(text, `${locale}.locate.${kind}`).not.toBe((en.locate as Record<string, string>)[kind]);
+      }
+      for (const [group, entries] of Object.entries(d.recs)) {
+        for (const [english, local] of Object.entries(entries as Record<string, string>)) {
+          expect(local, `${locale}.recs.${group}: ${english.slice(0, 40)}`).not.toBe(english);
+        }
+      }
+    }
   });
 });

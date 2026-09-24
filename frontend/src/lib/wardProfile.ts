@@ -12,6 +12,8 @@
  * rendering anything.
  */
 
+import en from "./i18n/dictionaries/en";
+import { format, type Dictionary } from "./i18n";
 import { FACTOR_LABELS, type IndicatorKey } from "./wardTypes";
 
 export type CityProfile = {
@@ -121,36 +123,57 @@ export function factorLabel(key: IndicatorKey): string {
  * Two or three sentences describing the ward from its measured indicators.
  * Reads as prose, but every number is a field lookup.
  */
-export function describeWard(ward: WardProfile, city: CityProfile): string[] {
+export function describeWard(
+  ward: WardProfile,
+  city: CityProfile,
+  t: Dictionary = en
+): string[] {
+  const s = t.ward.summary;
   const sentences: string[] = [];
 
   const delta = ward.LST_C_delta_city;
   const cells = ward.n_cells ?? 0;
-  const cellPhrase = cells === 1 ? "its single grid cell" : `its ${cells} grid cells`;
+  const cellPhrase = cells === 1 ? s.oneCell : format(s.manyCells, { n: cells });
   if (Math.abs(delta) < TEMP_PARITY_C) {
     sentences.push(
-      `Ward ${ward.ward_id} runs about as warm as the rest of Mumbai across ${cellPhrase}, averaging ${fmtTemp(ward.LST_C)} at the surface.`
+      format(s.parity, { ward: ward.ward_id, cells: cellPhrase, temp: fmtTemp(ward.LST_C) })
     );
   } else {
-    const direction = delta > 0 ? "hotter" : "cooler";
     sentences.push(
-      `Ward ${ward.ward_id} runs about ${fmtTemp(Math.abs(delta))} ${direction} than the city average across ${cellPhrase}, at ${fmtTemp(ward.LST_C)} of land surface temperature.`
+      format(s.offset, {
+        ward: ward.ward_id,
+        delta: fmtTemp(Math.abs(delta)),
+        direction: delta > 0 ? s.hotter : s.cooler,
+        cells: cellPhrase,
+        temp: fmtTemp(ward.LST_C),
+      })
     );
   }
 
   sentences.push(
-    `Green cover reads ${fmtNdvi(ward.NDVI)} on the NDVI index against ${fmtNdvi(city.NDVI)} city-wide, and ${fmtPct(ward.impervious_pct)} of the ground is built or paved.`
+    format(s.green, {
+      ndvi: fmtNdvi(ward.NDVI),
+      cityNdvi: fmtNdvi(city.NDVI),
+      built: fmtPct(ward.impervious_pct),
+    })
   );
 
   sentences.push(
-    `Around ${fmtDensity(ward.pop_density_km2)} people live per square kilometre, and the nearest hospital averages ${fmtDistance(ward.hospital_dist_m)} away.`
+    format(s.people, {
+      density: fmtDensity(ward.pop_density_km2),
+      distance: fmtDistance(ward.hospital_dist_m),
+    })
   );
 
   return sentences;
 }
 
 /** One line on which factor pushes this ward's score up hardest. */
-export function describeTopDriver(ward: WardProfile): string | null {
+export function describeTopDriver(ward: WardProfile, t: Dictionary = en): string | null {
   if (!ward.top_driver) return null;
-  return `Biggest driver: ${factorLabel(ward.top_driver).toLowerCase()}.`;
+  // Lower-cased for English, which puts the factor mid-sentence. Devanagari has
+  // no case, so toLowerCase() leaves Marathi and Hindi untouched.
+  return format(t.ward.biggestDriver, {
+    factor: t.ward.factors[ward.top_driver].toLowerCase(),
+  });
 }

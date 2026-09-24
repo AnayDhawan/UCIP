@@ -53,11 +53,11 @@ export default function SiteHeader({ compact = false }: { compact?: boolean }) {
           compact ? "py-2" : "max-w-5xl py-3"
         }`}
       >
-        <Link href="/" aria-label="UCIP home">
+        <Link href="/" aria-label={t.nav.homeLabel}>
           <Logo />
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex" aria-label="Main">
+        <nav className="hidden items-center gap-1 md:flex" aria-label={t.nav.mainNav}>
           {NAV.map((item) => {
             const active =
               // Widened on purpose. No entry is "/" today, so `as const` makes
@@ -129,7 +129,7 @@ export default function SiteHeader({ compact = false }: { compact?: boolean }) {
           }`}
         >
         <div className="flex items-center justify-between gap-4 border-b border-border px-6 py-3">
-          <Link href="/" aria-label="UCIP home" onClick={() => setOpen(false)}>
+          <Link href="/" aria-label={t.nav.homeLabel} onClick={() => setOpen(false)}>
             <Logo />
           </Link>
           <button
@@ -142,7 +142,7 @@ export default function SiteHeader({ compact = false }: { compact?: boolean }) {
           </button>
         </div>
 
-        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-6 py-6" aria-label="Main mobile">
+        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-6 py-6" aria-label={t.nav.mobileNav}>
           {NAV.map((item) => {
             const active =
               // Widened on purpose. No entry is "/" today, so `as const` makes

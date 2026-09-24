@@ -19,13 +19,29 @@ import {
 import {
   findMyWard,
   isLocateFailure,
-  LOCATE_ERROR_MESSAGE,
 } from "@/lib/findWard";
 import { parseMapLayer, parseMapView, writeMapView, type MapLayer, type MapView } from "@/lib/mapState";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
+
+// Components and not inline elements, because the loading text has to read the
+// reader's language and only a component can call the hook.
+function MapLoading() {
+  const { t } = useLocale();
+  return <div className="p-8 text-zinc-500">{t.dashboard.loadingMap}</div>;
+}
+
+function DashboardLoading() {
+  const { t } = useLocale();
+  return (
+    <div className="flex h-screen items-center justify-center text-muted-foreground">
+      {t.dashboard.loading}
+    </div>
+  );
+}
 
 const WardChoropleth = dynamic(() => import("../components/WardChoropleth"), {
   ssr: false,
-  loading: () => <div className="p-8 text-zinc-500">Loading map…</div>,
+  loading: () => <MapLoading />,
 });
 
 /** Matches the `md` breakpoint the sidebar is gated on (`hidden md:block`). */
@@ -73,30 +89,32 @@ function FirstVisitHint() {
     getFirstVisitHintServerSnapshot
   );
 
+  const { t } = useLocale();
+
   if (!visible) return null;
 
   return (
     <div className="flex items-center justify-between gap-4 border-b border-brand-teal/20 bg-brand-teal/10 px-6 py-2 text-sm text-foreground">
       <p>
-        Colors rank Mumbai&apos;s 24 wards by heat vulnerability. Click any ward, on the map or in
-        the list, to see its breakdown and recommendation. Switch layers top-right, or read the{" "}
+        {t.dashboard.hintLead}{" "}
         <Link href="/methodology" className="font-medium underline">
-          methodology
+          {t.dashboard.hintLink}
         </Link>
-        .
+        {t.dashboard.hintTail}
       </p>
       <button
         onClick={dismissFirstVisitHint}
         className="shrink-0 rounded px-2 py-0.5 text-xs font-medium hover:bg-brand-teal/10"
-        aria-label="Dismiss hint"
+        aria-label={t.dashboard.dismissHint}
       >
-        Got it
+        {t.dashboard.gotIt}
       </button>
     </div>
   );
 }
 
 function DashboardContent() {
+  const { t } = useLocale();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const selectedWardId = searchParams.get("ward");
@@ -126,7 +144,7 @@ function DashboardContent() {
       selectWard(wardId);
     } catch (err) {
       setLocateError(
-        isLocateFailure(err) ? LOCATE_ERROR_MESSAGE[err.kind] : LOCATE_ERROR_MESSAGE.lookup
+        isLocateFailure(err) ? t.locate[err.kind] : t.locate.lookup
       );
     } finally {
       setLocating(false);
@@ -293,7 +311,7 @@ function DashboardContent() {
 
 export default function Dashboard() {
   return (
-    <Suspense fallback={<div className="flex h-screen items-center justify-center text-muted-foreground">Loading…</div>}>
+    <Suspense fallback={<DashboardLoading />}>
       <DashboardContent />
     </Suspense>
   );

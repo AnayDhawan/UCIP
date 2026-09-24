@@ -14,6 +14,9 @@
  * than a coloured arrow.
  */
 
+import en from "./i18n/dictionaries/en";
+import { format, type Dictionary } from "./i18n";
+
 export type TrendPoint = { year: number; LST_C: number | null; NDVI: number | null };
 
 export type WardTrend = {
@@ -99,9 +102,12 @@ export function describeSlope(
   significant: boolean,
   unit: string,
   rising: string,
-  falling: string
+  falling: string,
+  t: Dictionary = en
 ): string {
-  const magnitude = `${Math.abs(perDecade).toFixed(2)} ${unit}/decade`;
-  if (!significant) return `no detected trend (${perDecade >= 0 ? "+" : "-"}${magnitude})`;
+  const magnitude = format(t.trend.perDecade, { value: Math.abs(perDecade).toFixed(2), unit });
+  if (!significant) {
+    return format(t.trend.noTrend, { value: `${perDecade >= 0 ? "+" : "-"}${magnitude}` });
+  }
   return `${perDecade >= 0 ? rising : falling} ${magnitude}`;
 }

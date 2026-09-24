@@ -65,3 +65,19 @@ export function lookup(dict: Dictionary, path: string): string | undefined {
   );
   return typeof value === "string" ? value : undefined;
 }
+
+/**
+ * Translates recommendation text that arrives from the pipeline in English.
+ *
+ * `interventions` and `rationales` in the dictionary are keyed by the exact
+ * English the rule engine emits. Text with no entry comes back unchanged, which
+ * is the right failure: a rule added to the pipeline shows in English until
+ * someone translates it, instead of vanishing or showing a key.
+ */
+export function translateRec(
+  dict: Dictionary,
+  group: "interventions" | "rationales" | "citations",
+  text: string
+): string {
+  return (dict.recs[group] as Record<string, string>)[text] ?? text;
+}

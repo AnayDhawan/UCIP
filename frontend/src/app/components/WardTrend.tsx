@@ -18,6 +18,7 @@ import {
   type TimeSeries,
   type WardTrend as WardTrendRecord,
 } from "@/lib/wardTrend";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 const WIDTH = 96;
 const HEIGHT = 24;
@@ -29,6 +30,7 @@ function Sparkline({
   points: Array<{ year: number; value: number }>;
   label: string;
 }) {
+  const { t, f } = useLocale();
   if (points.length < 2) return null;
 
   const first = points[0]!;
@@ -40,7 +42,13 @@ function Sparkline({
       height={HEIGHT}
       viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
       role="img"
-      aria-label={`${label}: ${first.value} in ${first.year} to ${last.value} in ${last.year}`}
+      aria-label={f(t.trend.sparkAria, {
+        label,
+        first: first.value,
+        firstYear: first.year,
+        last: last.value,
+        lastYear: last.year,
+      })}
       className="overflow-visible text-brand-teal"
     >
       <path
@@ -56,6 +64,7 @@ function Sparkline({
 }
 
 export default function WardTrend({ wardId }: { wardId: string }) {
+  const { t, f } = useLocale();
   const [data, setData] = useState<TimeSeries | null>(null);
   const [failed, setFailed] = useState(false);
 
@@ -90,7 +99,7 @@ export default function WardTrend({ wardId }: { wardId: string }) {
   return (
     <section className="mt-4 border-t border-border pt-4">
       <h4 className="text-sm font-semibold text-foreground">
-        Since {data.years[0]}
+        {f(t.trend.since, { year: data.years[0]! })}
       </h4>
 
       {/* dl > div > (dt, dd) is the only wrapper the spec allows inside a
@@ -102,36 +111,32 @@ export default function WardTrend({ wardId }: { wardId: string }) {
       <dl className="mt-3 space-y-3">
         <div>
           <dt className="text-xs uppercase tracking-wide text-muted-foreground">
-            Surface temperature
+            {t.trend.surfaceTemp}
           </dt>
           <dd className="flex items-center justify-between gap-3 text-sm text-foreground">
             <span>
-              {describeSlope(trend.lst_c_per_decade, trend.lst_significant, "C", "warming", "cooling")}
+              {describeSlope(trend.lst_c_per_decade, trend.lst_significant, "C", t.trend.warming, t.trend.cooling, t)}
             </span>
-            <Sparkline points={lst} label="Dry-season land surface temperature" />
+            <Sparkline points={lst} label={t.trend.lstAria} />
           </dd>
         </div>
 
         <div>
-          <dt className="text-xs uppercase tracking-wide text-muted-foreground">Green cover</dt>
+          <dt className="text-xs uppercase tracking-wide text-muted-foreground">{t.trend.greenCover}</dt>
           <dd className="flex items-center justify-between gap-3 text-sm text-foreground">
             <span>
-              {describeSlope(trend.ndvi_per_decade, trend.ndvi_significant, "NDVI", "greening", "losing green")}
+              {describeSlope(trend.ndvi_per_decade, trend.ndvi_significant, "NDVI", t.trend.greening, t.trend.losingGreen, t)}
             </span>
-            <Sparkline points={ndvi} label="Dry-season NDVI" />
+            <Sparkline points={ndvi} label={t.trend.ndviAria} />
           </dd>
         </div>
       </dl>
 
       <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
         {trend.lst_significant || trend.ndvi_significant ? (
-          <>Least-squares slope over {ward.n_years} dry seasons. It describes the observed period, not a forecast.</>
+          <>{f(t.trend.footSignificant, { n: ward.n_years })}</>
         ) : (
-          <>
-            {ward.n_years} dry seasons of Landsat show no trend distinguishable from
-            year-to-year variation in this ward. The sparklines are the real
-            measurements; the slope is shown for completeness, not as a finding.
-          </>
+          <>{f(t.trend.footFlat, { n: ward.n_years })}</>
         )}
       </p>
     </section>

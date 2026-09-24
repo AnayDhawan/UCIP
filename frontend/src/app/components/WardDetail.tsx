@@ -9,7 +9,6 @@ import { areasForWard } from "@/lib/wardAreas";
 import { hviColor } from "@/lib/hvi";
 import {
   CONTRIB_BAR_MAX,
-  FACTOR_LABELS,
   INDICATOR_KEYS,
   type NbsRec,
   type WardProps,
@@ -27,6 +26,8 @@ import {
   type NeighbourRef,
   type WardProfile,
 } from "@/lib/wardProfile";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
+import { translateRec } from "@/lib/i18n";
 
 /**
  * Everything the dashboard knows about one ward, in reading order: what the
@@ -59,6 +60,7 @@ function NeighbourChip({
   neighbour: NeighbourRef;
   onSelectWard: (wardId: string) => void;
 }) {
+  const { t, f } = useLocale();
   return (
     <button
       onClick={() => onSelectWard(neighbour.ward_id)}
@@ -71,7 +73,7 @@ function NeighbourChip({
       />
       <span className="text-xs">
         <span className="text-muted-foreground">{label} </span>
-        <span className="font-medium text-foreground">Ward {neighbour.ward_id}</span>
+        <span className="font-medium text-foreground">{f(t.ward.label, { ward: neighbour.ward_id })}</span>
         <span className="ml-1 font-mono text-muted-foreground">{neighbour.hvi.toFixed(1)}</span>
       </span>
     </button>
@@ -93,8 +95,9 @@ export default function WardDetail({
   totalWards: number;
   onSelectWard: (wardId: string) => void;
 }) {
-  const areas = areasForWard(ward.ward_id);
-  const topDriver = profile ? describeTopDriver(profile) : null;
+  const { t, f, locale } = useLocale();
+  const areas = areasForWard(ward.ward_id, locale);
+  const topDriver = profile ? describeTopDriver(profile, t) : null;
 
   return (
     // Sized for the sidebar, which is the narrowest place this renders; the
@@ -106,7 +109,7 @@ export default function WardDetail({
 
       {profile && city && (
         <div className="mt-3 space-y-2">
-          {describeWard(profile, city).map((sentence) => (
+          {describeWard(profile, city, t).map((sentence) => (
             <p key={sentence} className="text-sm leading-relaxed text-muted-foreground">
               {sentence}
             </p>
@@ -117,15 +120,15 @@ export default function WardDetail({
       {profile && city && (
         <>
           <Separator className="my-4" />
-          <p className="kicker">This ward against the city</p>
+          <p className="kicker">{t.ward.vsCity}</p>
           <dl className="mt-2.5 space-y-1.5">
             {INDICATOR_KEYS.map((key) => (
               <div key={key} className="flex items-baseline justify-between gap-3 text-xs">
-                <dt className="text-muted-foreground">{FACTOR_LABELS[key]}</dt>
+                <dt className="text-muted-foreground">{t.ward.factors[key]}</dt>
                 <dd className="flex shrink-0 items-baseline gap-2 font-mono">
                   <span className="text-foreground">{INDICATOR_FORMAT[key](profile[key])}</span>
                   <span className="text-muted-foreground/70">
-                    city {INDICATOR_FORMAT[key](city[key])}
+                    {f(t.ward.cityValue, { value: INDICATOR_FORMAT[key](city[key]) })}
                   </span>
                 </dd>
               </div>
@@ -136,10 +139,13 @@ export default function WardDetail({
             <div className="mt-4">
               <div className="flex items-baseline justify-between text-xs">
                 <span className="text-foreground">
-                  {ordinal(profile.rank)} of {totalWards} for heat vulnerability
+                  {f(t.ward.rankOf, {
+                    rank: locale === "en" ? ordinal(profile.rank) : profile.rank,
+                    total: totalWards,
+                  })}
                 </span>
                 <span className="font-mono text-muted-foreground">
-                  hotter than {Math.round(profile.percentile)}%
+                  {f(t.ward.hotterThan, { pct: Math.round(profile.percentile) })}
                 </span>
               </div>
               <div className="mt-1.5 h-1.5 w-full rounded-full bg-muted">
@@ -157,18 +163,18 @@ export default function WardDetail({
 
           {(profile.coolest_neighbour || profile.hottest_neighbour) && (
             <div className="mt-4">
-              <p className="kicker">Next door</p>
+              <p className="kicker">{t.ward.nextDoor}</p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {profile.hottest_neighbour && (
                   <NeighbourChip
-                    label="Hottest:"
+                    label={t.ward.hottest}
                     neighbour={profile.hottest_neighbour}
                     onSelectWard={onSelectWard}
                   />
                 )}
                 {profile.coolest_neighbour && (
                   <NeighbourChip
-                    label="Coolest:"
+                    label={t.ward.coolest}
                     neighbour={profile.coolest_neighbour}
                     onSelectWard={onSelectWard}
                   />
@@ -180,39 +186,39 @@ export default function WardDetail({
       )}
 
       <Separator className="my-4" />
-      <p className="kicker">What drives the score</p>
+      <p className="kicker">{t.ward.drivesScore}</p>
       <div className="mt-2.5 space-y-2">
         {INDICATOR_KEYS.map((key) => (
           <CoefficientSparkline
             key={key}
-            label={FACTOR_LABELS[key]}
+            label={t.ward.factors[key]}
             value={(ward[`contrib_${key}`] as number | null) ?? 0}
             max={CONTRIB_BAR_MAX}
           />
         ))}
       </div>
       <p className="mt-1.5 text-[11px] text-muted-foreground">
-        Red pushes this ward&apos;s score up, green pushes it down, compared to the city average.
+        {t.ward.contribHelp}
       </p>
 
       {recs.length > 0 && (
         <>
           <Separator className="my-4" />
-          <p className="kicker">Recommended interventions</p>
+          <p className="kicker">{t.ward.recommended}</p>
           <div className="mt-2 space-y-2">
             {recs.map((rec) => {
               const cited = matchCitationFromText(rec.citation);
               return (
                 <Card key={rec.intervention + rec.priority} size="sm">
                   <CardContent className="text-xs">
-                    <span className="font-medium text-foreground">{rec.intervention}</span>
-                    <p className="mt-0.5 text-muted-foreground">{rec.rationale}</p>
+                    <span className="font-medium text-foreground">{translateRec(t, "interventions", rec.intervention)}</span>
+                    <p className="mt-0.5 text-muted-foreground">{translateRec(t, "rationales", rec.rationale)}</p>
                     {cited ? (
                       <div className="mt-1.5">
                         <Citation mode="chip" entry={cited} />
                       </div>
                     ) : (
-                      <p className="mt-0.5 italic text-muted-foreground">{rec.citation}</p>
+                      <p className="mt-0.5 italic text-muted-foreground">{translateRec(t, "citations", rec.citation)}</p>
                     )}
                   </CardContent>
                 </Card>

@@ -61,9 +61,28 @@ const MONTHS = [
   "Dec",
 ] as const;
 
-/** Formats a UTC date as "3 Sep 2026", or null when unparseable. */
-function formatUtcDate(date: Date): string | null {
+/** BCP 47 tags for the locales whose month names come from Intl and not from MONTHS. */
+const INTL_TAGS: Record<string, string> = { mr: "mr-IN", hi: "hi-IN" };
+
+/**
+ * Formats a UTC date as "3 Sep 2026", or null when unparseable.
+ *
+ * English keeps the fixed table, which is what the tests and every existing
+ * caller rely on. Marathi and Hindi use Intl for their own month names, with
+ * Latin digits forced (`-u-nu-latn`) so the day and year match every other
+ * number on the page; see the digits note in lib/i18n/dictionaries/mr.ts.
+ */
+function formatUtcDate(date: Date, locale: string = "en"): string | null {
   if (Number.isNaN(date.getTime())) return null;
+  const tag = INTL_TAGS[locale];
+  if (tag) {
+    return new Intl.DateTimeFormat(`${tag}-u-nu-latn`, {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      timeZone: "UTC",
+    }).format(date);
+  }
   return `${date.getUTCDate()} ${MONTHS[date.getUTCMonth()]} ${date.getUTCFullYear()}`;
 }
 
@@ -74,15 +93,18 @@ function formatUtcDate(date: Date): string | null {
  * the server's or visitor's timezone would make the same refresh show as
  * different days depending on where the page was built or viewed.
  */
-export function formatRunDate(iso: string | null | undefined): string | null {
+export function formatRunDate(iso: string | null | undefined, locale: string = "en"): string | null {
   if (!iso) return null;
-  return formatUtcDate(new Date(iso));
+  return formatUtcDate(new Date(iso), locale);
 }
 
 /** "2025-11-01" -> "1 Nov 2025". Window dates are date-only, not instants. */
-export function formatWindowDate(isoDate: string | null | undefined): string | null {
+export function formatWindowDate(
+  isoDate: string | null | undefined,
+  locale: string = "en"
+): string | null {
   if (!isoDate) return null;
-  return formatUtcDate(new Date(`${isoDate}T00:00:00Z`));
+  return formatUtcDate(new Date(`${isoDate}T00:00:00Z`), locale);
 }
 
 /**
@@ -90,11 +112,12 @@ export function formatWindowDate(isoDate: string | null | undefined): string | n
  * Returns null when either bound is missing or unparseable.
  */
 export function formatCompositeWindow(
-  window: CompositeWindow | null | undefined
+  window: CompositeWindow | null | undefined,
+  locale: string = "en"
 ): string | null {
   if (!window) return null;
-  const start = formatWindowDate(window.start);
-  const end = formatWindowDate(window.end);
+  const start = formatWindowDate(window.start, locale);
+  const end = formatWindowDate(window.end, locale);
   if (!start || !end) return null;
   return `${start} – ${end}`;
 }
