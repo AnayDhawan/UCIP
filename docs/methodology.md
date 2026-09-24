@@ -144,6 +144,43 @@ sparse cells can; the pipeline does not reshape itself silently.
 - Simulator is a first-order estimate, not a validated climate model.
 - Ecological plantability layer is coarse-resolution.
 
+### 10b. Correction, 2026-09-24: the plantability filter was failing open
+
+Published plantability was wrong for half its output between the first release
+and 2026-09-24, and the correction removed 176 of 337 plantable cells.
+
+Earth Engine's mode reducer returns a float. A cell whose dominant WorldCover
+class is built-up therefore arrived as 50.00000000000015 or 49.99999999999996,
+never as 50, and `worldcover_class in {50, 80, 90, 95}` is False for both. The
+class check silently passed and the cell was treated as having no
+disqualifying land cover. 301 of 541 cells carried such a value.
+
+The consequence was the exact failure this filter exists to prevent:
+
+| Land cover | Cells published as plantable | Should have been |
+|---|---|---|
+| Built-up (50) | 127 | refused |
+| **Mangrove (95)** | **30** | **refused** |
+| Open water (80) | 17 | refused |
+| Native grassland (30) | 1 | refused |
+| **Total** | **175 of 337** | **0** |
+
+Recommending tree planting on mangrove is not a rounding error. A mangrove is
+already doing the cooling and flood-buffering work, and "planting" it means
+replacing it. The documentation in `calibrating-ecology.md` described the filter
+as protecting mangroves throughout the period it was not.
+
+Class codes are now normalised to integers at the point they leave Earth Engine
+and again inside `is_plantable`, and a value that is not a recognised WorldCover
+code is refused rather than passed through. After the fix, 161 of 541 cells are
+plantable and none of them carry a disqualifying class.
+
+The lesson generalises past this one comparison: a categorical code arriving as
+a float from a numerical reducer will defeat equality checks, and a filter whose
+failure mode is to permit rather than refuse will do so silently. The rule the
+filter already stated for missing data, that absence of evidence is not evidence
+that planting is safe, now applies to unreadable data too.
+
 ### 10a. `elderly_pct` carries one bit, and it is a district boundary
 
 `pipeline/elderly_evaluation.py`, output `data/elderly_evaluation.json`.

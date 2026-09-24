@@ -5,15 +5,7 @@
     "rationale": "High vulnerability, low canopy, but native-grassland/built-up cell: afforestation would backfire ecologically",
     "citation": "Veldman et al. 2019, Science (response to Bastin 2019)",
     "priority": 1,
-    "cell_count": 7
-  },
-  {
-    "ward_id": "A",
-    "intervention": "Native tree planting + green corridors",
-    "rationale": "High vulnerability, low canopy, ecologically suitable for restoration",
-    "citation": "Bastin et al. 2019, Science",
-    "priority": 1,
-    "cell_count": 1
+    "cell_count": 8
   },
   {
     "ward_id": "A",
@@ -45,15 +37,7 @@
     "rationale": "High vulnerability, low canopy, but native-grassland/built-up cell: afforestation would backfire ecologically",
     "citation": "Veldman et al. 2019, Science (response to Bastin 2019)",
     "priority": 1,
-    "cell_count": 2
-  },
-  {
-    "ward_id": "B",
-    "intervention": "Native tree planting + green corridors",
-    "rationale": "High vulnerability, low canopy, ecologically suitable for restoration",
-    "citation": "Bastin et al. 2019, Science",
-    "priority": 1,
-    "cell_count": 1
+    "cell_count": 3
   },
   {
     "ward_id": "B",
@@ -145,9 +129,9 @@
   },
   {
     "ward_id": "F/N",
-    "intervention": "Native tree planting + green corridors",
-    "rationale": "High vulnerability, low canopy, ecologically suitable for restoration",
-    "citation": "Bastin et al. 2019, Science",
+    "intervention": "Cool roofs + reflective pavements + cooling centres",
+    "rationale": "High vulnerability, low canopy, but native-grassland/built-up cell: afforestation would backfire ecologically",
+    "citation": "Veldman et al. 2019, Science (response to Bastin 2019)",
     "priority": 1,
     "cell_count": 1
   },
@@ -173,15 +157,7 @@
     "rationale": "High vulnerability, low canopy, but native-grassland/built-up cell: afforestation would backfire ecologically",
     "citation": "Veldman et al. 2019, Science (response to Bastin 2019)",
     "priority": 1,
-    "cell_count": 5
-  },
-  {
-    "ward_id": "F/S",
-    "intervention": "Native tree planting + green corridors",
-    "rationale": "High vulnerability, low canopy, ecologically suitable for restoration",
-    "citation": "Bastin et al. 2019, Science",
-    "priority": 1,
-    "cell_count": 1
+    "cell_count": 6
   },
   {
     "ward_id": "F/S",
@@ -225,19 +201,11 @@
   },
   {
     "ward_id": "G/S",
-    "intervention": "Native tree planting + green corridors",
-    "rationale": "High vulnerability, low canopy, ecologically suitable for restoration",
-    "citation": "Bastin et al. 2019, Science",
-    "priority": 1,
-    "cell_count": 2
-  },
-  {
-    "ward_id": "G/S",
     "intervention": "Cool roofs + reflective pavements + cooling centres",
     "rationale": "High vulnerability, low canopy, but native-grassland/built-up cell: afforestation would backfire ecologically",
     "citation": "Veldman et al. 2019, Science (response to Bastin 2019)",
     "priority": 1,
-    "cell_count": 7
+    "cell_count": 9
   },
   {
     "ward_id": "G/S",
@@ -261,15 +229,7 @@
     "rationale": "High vulnerability, low canopy, but native-grassland/built-up cell: afforestation would backfire ecologically",
     "citation": "Veldman et al. 2019, Science (response to Bastin 2019)",
     "priority": 1,
-    "cell_count": 3
-  },
-  {
-    "ward_id": "H/E",
-    "intervention": "Native tree planting + green corridors",
-    "rationale": "High vulnerability, low canopy, ecologically suitable for restoration",
-    "citation": "Bastin et al. 2019, Science",
-    "priority": 1,
-    "cell_count": 1
+    "cell_count": 4
   },
   {
     "ward_id": "H/E",
@@ -293,81 +253,57 @@
     "rationale": "High vulnerability, low canopy, but native-grassland/built-up cell: afforestation would backfire ecologically",
     "citation": "Veldman et al. 2019, Science (response to Bastin 2019)",
     "priority": 1,
+    "cell_count": 3
+  },
+  {
+    "ward_id": "H/W",
+    "intervention": "Rain gardens + water-sensitive urban design (WSUD)",
+    "rationale": "Highly impervious cell near mapped water/wetland: runoff and heat compound risk",
+    "citation": "Methodology proxy: WorldCover water-distance < 500m (no dedicated hydrology layer in P0)",
+    "priority": 2,
+    "cell_count": 4
+  },
+  {
+    "ward_id": "H/W",
+    "intervention": "Pocket parks",
+    "rationale": "High population density with little existing green/open space",
+    "citation": "C40 Urban Cooling Toolbox",
+    "priority": 3,
+    "cell_count": 4
+  },
+  {
+    "ward_id": "K/E",
+    "intervention": "Cool roofs + reflective pavements + cooling centres",
+    "rationale": "High vulnerability, low canopy, but native-grassland/built-up cell: afforestation would backfire ecologically",
+    "citation": "Veldman et al. 2019, Science (response to Bastin 2019)",
+    "priority": 1,
+    "cell_count": 7
+  },
+  {
+    "ward_id": "K/E",
+    "intervention": "Rain gardens + water-sensitive urban design (WSUD)",
+    "rationale": "Highly impervious cell near mapped water/wetland: runoff and heat compound risk",
+    "citation": "Methodology proxy: WorldCover water-distance < 500m (no dedicated hydrology layer in P0)",
+    "priority": 2,
+    "cell_count": 6
+  },
+  {
+    "ward_id": "K/E",
+    "intervention": "Pocket parks",
+    "rationale": "High population density with little existing green/open space",
+    "citation": "C40 Urban Cooling Toolbox",
+    "priority": 3,
+    "cell_count": 7
+  },
+  {
+    "ward_id": "K/W",
+    "intervention": "Cool roofs + reflective pavements + cooling centres",
+    "rationale": "High vulnerability, low canopy, but native-grassland/built-up cell: afforestation would backfire ecologically",
+    "citation": "Veldman et al. 2019, Science (response to Bastin 2019)",
+    "priority": 1,
     "cell_count": 2
   },
   {
-    "ward_id": "H/W",
-    "intervention": "Native tree planting + green corridors",
-    "rationale": "High vulnerability, low canopy, ecologically suitable for restoration",
-    "citation": "Bastin et al. 2019, Science",
-    "priority": 1,
-    "cell_count": 1
-  },
-  {
-    "ward_id": "H/W",
-    "intervention": "Rain gardens + water-sensitive urban design (WSUD)",
-    "rationale": "Highly impervious cell near mapped water/wetland: runoff and heat compound risk",
-    "citation": "Methodology proxy: WorldCover water-distance < 500m (no dedicated hydrology layer in P0)",
-    "priority": 2,
-    "cell_count": 4
-  },
-  {
-    "ward_id": "H/W",
-    "intervention": "Pocket parks",
-    "rationale": "High population density with little existing green/open space",
-    "citation": "C40 Urban Cooling Toolbox",
-    "priority": 3,
-    "cell_count": 4
-  },
-  {
-    "ward_id": "K/E",
-    "intervention": "Cool roofs + reflective pavements + cooling centres",
-    "rationale": "High vulnerability, low canopy, but native-grassland/built-up cell: afforestation would backfire ecologically",
-    "citation": "Veldman et al. 2019, Science (response to Bastin 2019)",
-    "priority": 1,
-    "cell_count": 6
-  },
-  {
-    "ward_id": "K/E",
-    "intervention": "Native tree planting + green corridors",
-    "rationale": "High vulnerability, low canopy, ecologically suitable for restoration",
-    "citation": "Bastin et al. 2019, Science",
-    "priority": 1,
-    "cell_count": 1
-  },
-  {
-    "ward_id": "K/E",
-    "intervention": "Rain gardens + water-sensitive urban design (WSUD)",
-    "rationale": "Highly impervious cell near mapped water/wetland: runoff and heat compound risk",
-    "citation": "Methodology proxy: WorldCover water-distance < 500m (no dedicated hydrology layer in P0)",
-    "priority": 2,
-    "cell_count": 6
-  },
-  {
-    "ward_id": "K/E",
-    "intervention": "Pocket parks",
-    "rationale": "High population density with little existing green/open space",
-    "citation": "C40 Urban Cooling Toolbox",
-    "priority": 3,
-    "cell_count": 7
-  },
-  {
-    "ward_id": "K/W",
-    "intervention": "Cool roofs + reflective pavements + cooling centres",
-    "rationale": "High vulnerability, low canopy, but native-grassland/built-up cell: afforestation would backfire ecologically",
-    "citation": "Veldman et al. 2019, Science (response to Bastin 2019)",
-    "priority": 1,
-    "cell_count": 1
-  },
-  {
-    "ward_id": "K/W",
-    "intervention": "Native tree planting + green corridors",
-    "rationale": "High vulnerability, low canopy, ecologically suitable for restoration",
-    "citation": "Bastin et al. 2019, Science",
-    "priority": 1,
-    "cell_count": 1
-  },
-  {
     "ward_id": "K/W",
     "intervention": "Rain gardens + water-sensitive urban design (WSUD)",
     "rationale": "Highly impervious cell near mapped water/wetland: runoff and heat compound risk",
@@ -389,15 +325,7 @@
     "rationale": "High vulnerability, low canopy, but native-grassland/built-up cell: afforestation would backfire ecologically",
     "citation": "Veldman et al. 2019, Science (response to Bastin 2019)",
     "priority": 1,
-    "cell_count": 7
-  },
-  {
-    "ward_id": "L",
-    "intervention": "Native tree planting + green corridors",
-    "rationale": "High vulnerability, low canopy, ecologically suitable for restoration",
-    "citation": "Bastin et al. 2019, Science",
-    "priority": 1,
-    "cell_count": 1
+    "cell_count": 8
   },
   {
     "ward_id": "L",
@@ -461,15 +389,7 @@
     "rationale": "High vulnerability, low canopy, but native-grassland/built-up cell: afforestation would backfire ecologically",
     "citation": "Veldman et al. 2019, Science (response to Bastin 2019)",
     "priority": 1,
-    "cell_count": 2
-  },
-  {
-    "ward_id": "M/W",
-    "intervention": "Native tree planting + green corridors",
-    "rationale": "High vulnerability, low canopy, ecologically suitable for restoration",
-    "citation": "Bastin et al. 2019, Science",
-    "priority": 1,
-    "cell_count": 1
+    "cell_count": 3
   },
   {
     "ward_id": "M/W",
@@ -593,19 +513,11 @@
   },
   {
     "ward_id": "S",
-    "intervention": "Native tree planting + green corridors",
-    "rationale": "High vulnerability, low canopy, ecologically suitable for restoration",
-    "citation": "Bastin et al. 2019, Science",
-    "priority": 1,
-    "cell_count": 1
-  },
-  {
-    "ward_id": "S",
     "intervention": "Cool roofs + reflective pavements + cooling centres",
     "rationale": "High vulnerability, low canopy, but native-grassland/built-up cell: afforestation would backfire ecologically",
     "citation": "Veldman et al. 2019, Science (response to Bastin 2019)",
     "priority": 1,
-    "cell_count": 1
+    "cell_count": 2
   },
   {
     "ward_id": "S",

@@ -27,6 +27,40 @@ WORLDCOVER_WATER_LIKE = {80, 90, 95}
 FLOOD_PRONE_DIST_M = 500
 
 
+# Every WorldCover v200 class code. Used to reject a value that is not one,
+# rather than letting an unrecognised code fall through as "plantable".
+WORLDCOVER_CLASSES = {10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 100}
+
+
+def normalise_worldcover_class(value: float | int | None) -> int | None:
+    """A WorldCover class code as an integer, or None if it is not one.
+
+    This exists because of a real failure in published output. Earth Engine's
+    mode reducer returns a float, and floating-point arithmetic means a cell
+    whose dominant class is built-up can arrive as 50.00000000000015 or
+    49.99999999999996 rather than 50. Both compare False against the integer
+    50, so `worldcover_class in WORLDCOVER_NONPLANTABLE` silently failed and
+    the cell was treated as having no disqualifying land cover.
+
+    In the committed 541-cell dataset that affected 301 cells, and 175 of the
+    337 cells published as plantable should have been refused: 127 built-up,
+    30 mangrove, 17 open water and 1 native grassland. Recommending tree
+    planting on mangrove is the precise failure this filter exists to prevent.
+
+    Rounds rather than truncates, because the error goes in both directions.
+    Returns None for anything that is not a real class code, so an unexpected
+    value is refused rather than waved through; see is_plantable, where None
+    means not plantable.
+    """
+    if value is None:
+        return None
+    try:
+        code = round(float(value))
+    except (TypeError, ValueError):
+        return None
+    return code if code in WORLDCOVER_CLASSES else None
+
+
 def is_plantable(
     worldcover_class: float | None,
     impervious_pct: float | None,
@@ -48,11 +82,15 @@ def is_plantable(
     A cell with no land-cover reading is not plantable. Absence of evidence is
     not evidence that planting is safe.
     """
-    if worldcover_class is None:
+    # Normalised first. Comparing the raw float against integer class codes is
+    # what let 175 mangrove, water and built-up cells through; see
+    # normalise_worldcover_class.
+    code = normalise_worldcover_class(worldcover_class)
+    if code is None:
         return False
-    if worldcover_class in WORLDCOVER_NONPLANTABLE:
+    if code in WORLDCOVER_NONPLANTABLE:
         return False
-    if worldcover_class == WORLDCOVER_GRASSLAND:
+    if code == WORLDCOVER_GRASSLAND:
         return False
     if impervious_pct is None:
         return False

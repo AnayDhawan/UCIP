@@ -30,6 +30,7 @@ from _nbs import (  # noqa: E402
     WORLDCOVER_NONPLANTABLE,
     fire_rules,
     is_plantable,
+    normalise_worldcover_class,
 )
 
 THRESHOLDS = {
@@ -224,3 +225,79 @@ def test_thresholds_are_inclusive_where_the_comparison_says_so():
     assert "Native tree planting + green corridors" not in interventions(
         fire_rules(just_below, THRESHOLDS)
     )
+
+
+class TestWorldCoverClassNormalisation:
+    """Regression tests for the float-equality failure in the ecological filter.
+
+    Earth Engine's mode reducer returns a float, so a built-up cell arrives as
+    50.00000000000015 rather than 50. `50.00000000000015 in {50, 80, 90, 95}`
+    is False, so the non-plantable check silently passed and the cell was
+    treated as having no disqualifying land cover.
+
+    In the committed 541-cell dataset this affected 301 cells, and 175 of the
+    337 published as plantable should have been refused: 127 built-up, 30
+    mangrove, 17 open water, 1 native grassland. Recommending tree planting on
+    mangrove is the exact failure this filter exists to prevent, and it was
+    doing the opposite for half its output.
+
+    The values below are taken from the committed dataset, not invented.
+    """
+
+    # grid_id, raw value as published, rounded class
+    REAL_VALUES = [
+        ("cell_0003", 50.00000000000015, 50),
+        ("cell_0006", 49.99999999999996, 50),
+        ("cell_0025", 95.00000000000006, 95),
+        ("cell_0026", 94.99999999999977, 95),
+        ("cell_0009", 10.000000000000005, 10),
+        ("cell_0010", 9.99999999999999, 10),
+    ]
+
+    @pytest.mark.parametrize("grid_id,raw,expected", REAL_VALUES)
+    def test_real_published_floats_normalise_to_their_class(self, grid_id, raw, expected):
+        assert normalise_worldcover_class(raw) == expected, grid_id
+
+    def test_the_raw_floats_do_not_compare_equal_without_it(self):
+        # The premise of the bug, asserted so the fix cannot be removed as
+        # unnecessary by someone who assumes the values were always integers.
+        assert 50.00000000000015 not in WORLDCOVER_NONPLANTABLE
+        assert 49.99999999999996 not in WORLDCOVER_NONPLANTABLE
+        assert 95.00000000000006 not in WORLDCOVER_NONPLANTABLE
+
+    @pytest.mark.parametrize("raw", [50.00000000000015, 49.99999999999996])
+    def test_built_up_is_refused_however_the_float_lands(self, raw):
+        # impervious_pct low enough that only the class can refuse it.
+        assert is_plantable(raw, 1.0, 50.0) is False
+
+    @pytest.mark.parametrize("raw", [95.00000000000006, 94.99999999999977])
+    def test_mangrove_is_refused_however_the_float_lands(self, raw):
+        """The one that matters most.
+
+        A mangrove is already doing the cooling job, and "planting" it means
+        replacing it. Thirty mangrove cells were published as plantable.
+        """
+        assert is_plantable(raw, 0.0, 50.0) is False
+
+    @pytest.mark.parametrize("raw", [80.0000001, 79.9999999, 90.0000001, 29.9999999, 30.0000001])
+    def test_water_wetland_and_grassland_are_refused_too(self, raw):
+        assert is_plantable(raw, 0.0, 50.0) is False
+
+    def test_a_plantable_class_still_passes(self):
+        # The fix must not refuse everything, which would pass every test above
+        # while making the tool useless.
+        assert is_plantable(10.000000000000005, 1.0, 50.0) is True
+        assert is_plantable(20.0, 1.0, 50.0) is True
+        assert is_plantable(40.0, 1.0, 50.0) is True
+
+    def test_an_unrecognised_code_is_refused_rather_than_waved_through(self):
+        # Absence of evidence is not evidence that planting is safe, which is
+        # the rule the docstring already states for a missing class.
+        assert normalise_worldcover_class(42) is None
+        assert normalise_worldcover_class(-1) is None
+        assert is_plantable(42, 0.0, 50.0) is False
+
+    @pytest.mark.parametrize("bad", [None, float("nan"), "built-up", object()])
+    def test_nonsense_input_is_refused_without_raising(self, bad):
+        assert normalise_worldcover_class(bad) is None
+        assert is_plantable(bad, 0.0, 50.0) is False

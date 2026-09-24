@@ -88,6 +88,7 @@ from _nbs import (  # noqa: E402
     WORLDCOVER_WATER_LIKE,
     fire_rules,
     is_plantable,
+    normalise_worldcover_class,
 )
 
 
@@ -126,7 +127,18 @@ def main() -> int:
 
     print("[..] pulling WorldCover dominant class + water-distance proxy per cell")
     landcover_by_id, dist_by_id = pull_landcover_and_flood_proxy(gdf)
-    gdf["worldcover_class"] = gdf["grid_id"].map(landcover_by_id)
+    # Normalised to an integer class code on the way in. Earth Engine's mode
+    # reducer returns a float, so a built-up cell can arrive as
+    # 50.00000000000015, which is not equal to 50 and defeats every comparison
+    # downstream. Storing the raw float also published a land-cover class that
+    # is not a valid WorldCover code. See normalise_worldcover_class.
+    gdf["worldcover_class"] = (
+        gdf["grid_id"].map(landcover_by_id).map(normalise_worldcover_class)
+    )
+    unreadable = int(gdf["worldcover_class"].isna().sum())
+    if unreadable:
+        print(f"[WARN] {unreadable} cells have no recognisable WorldCover class; "
+              "they are treated as not plantable")
     gdf["dist_to_water_m"] = gdf["grid_id"].map(dist_by_id)
 
     thresholds = {
@@ -150,7 +162,7 @@ def main() -> int:
         )
         for wc, imp in zip(gdf["worldcover_class"], gdf["impervious_pct"])
     ]
-    n_rejected_grassland = (gdf["worldcover_class"] == WORLDCOVER_GRASSLAND).sum()
+    n_rejected_grassland = int((gdf["worldcover_class"] == WORLDCOVER_GRASSLAND).sum())
     print(f"[ok] {gdf['plantable'].sum()}/{len(gdf)} cells plantable "
           f"({n_rejected_grassland} rejected as native grassland)")
 
