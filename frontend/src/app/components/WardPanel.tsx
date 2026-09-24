@@ -10,6 +10,7 @@ import { useWardData } from "@/lib/useWardData";
 import WardDetail from "./WardDetail";
 import WardDetailHeader from "./WardDetailHeader";
 import WardStaticMap from "./WardStaticMap";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 /**
  * The dashboard sidebar: a ranked, searchable ward list that hands the whole
@@ -35,6 +36,7 @@ export default function WardPanel({
   onToggleTracked?: (wardId: string) => void;
   onCompare?: () => void;
 }) {
+  const { t } = useLocale();
   const { wards, recs, profiles, error } = useWardData();
   const [search, setSearch] = useState("");
   const [copied, setCopied] = useState(false);
@@ -79,7 +81,7 @@ export default function WardPanel({
   }, [filtered, trackedWards]);
 
   if (error) return <div className="p-4 text-sm text-destructive">Failed to load ward data: {error}</div>;
-  if (!wards) return <div className="p-4 text-sm text-muted-foreground">Loading wards…</div>;
+  if (!wards) return <div className="p-4 text-sm text-muted-foreground">{t.wardList.loading}</div>;
 
   const selected = wards.find((f) => f.properties.ward_id === selectedWardId) ?? null;
 
@@ -117,7 +119,7 @@ export default function WardPanel({
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="border-b border-border px-4 py-3">
-        <h2 className="text-sm font-semibold text-foreground">24 wards, ranked by heat vulnerability</h2>
+        <h2 className="text-sm font-semibold text-foreground">{t.wardList.heading}</h2>
         <p className="mt-1 text-xs leading-snug text-muted-foreground">
           Click a ward, here or on the map, to open its full profile.
         </p>
@@ -129,7 +131,7 @@ export default function WardPanel({
             name="ward-search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Find a ward or area…"
+            placeholder={t.wardList.search}
             className="pl-8"
           />
         </div>

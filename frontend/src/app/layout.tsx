@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import ThemeProvider from "./components/ThemeProvider";
+import { LocaleProvider } from "@/lib/i18n/LocaleProvider";
 import { cn } from "@/lib/utils";
 
 const inter = Inter({
@@ -67,13 +68,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+    // lang is corrected on the client once the locale resolves, in
+    // LocaleProvider. It starts at en because that is what the server renders,
+    // and a mismatch here is a hydration error rather than a cosmetic one.
     <html
       lang="en"
       suppressHydrationWarning
       className={cn("h-full", "antialiased", inter.variable, jetbrainsMono.variable, "font-sans")}
     >
       <body className="min-h-full flex flex-col">
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <LocaleProvider>{children}</LocaleProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
