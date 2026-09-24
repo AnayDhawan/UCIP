@@ -53,6 +53,38 @@ jobs:
           fi
       - run: npx tsc -p tsconfig.json --noEmit
       - run: npm test
+      - name: Fail if the committed spec artifact is stale
+        working-directory: .
+        run: |
+          if ! git diff --exit-code -- clients/openapi.json; then
+            echo "::error::clients/openapi.json is out of date. Run 'npm run generate' in clients/typescript and commit the result."
+            exit 1
+          fi
+
+  # The published Python client (issue #104). Same rot check as the TypeScript
+  # one: its models are generated from clients/openapi.json, so regenerating
+  # them must be a no-op. This job runs after the TypeScript job has proved the
+  # artifact itself is current.
+  client-python:
+    runs-on: ubuntu-latest
+    needs: client-typescript
+    defaults:
+      run:
+        working-directory: clients/python
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev]"
+      - run: python scripts/generate.py
+      - name: Fail if the generated models are stale
+        run: |
+          if ! git diff --exit-code -- src/ucip/models.py; then
+            echo "::error::src/ucip/models.py is out of date. Run 'python scripts/generate.py' in clients/python and commit the result."
+            exit 1
+          fi
+      - run: python -m pytest tests/ -q
 
   pipeline:
     runs-on: ubuntu-latest

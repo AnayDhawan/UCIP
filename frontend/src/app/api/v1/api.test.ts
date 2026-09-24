@@ -484,7 +484,46 @@ describe("GET /api/v1/export", () => {
     expect(props).toHaveProperty("ndvi_delta");
     expect(props).toHaveProperty("change_class");
     // Present in cells_nbs, so the merge must not have replaced the base props.
-    expect(props).toHaveProperty("HVI");
+    expect(props).toHaveProperty("hvi");
+  });
+
+  // The export used to spread the snapshot's own property names, so it
+  // published HVI while /wards and /cells published hvi. One dataset, two
+  // vocabularies. It surfaced in the Python client, where the GeoDataFrame and
+  // the DataFrame disagreed about the name of the column carrying the index.
+  it.each(["cells", "wards"])("publishes the API's field names, not the snapshot's (%s)", async (dataset) => {
+    const json = await (await getExport(req(`/api/v1/export?dataset=${dataset}`))).json();
+    const keys = Object.keys(json.features[0].properties);
+    for (const screaming of ["HVI", "LST_C", "NDVI", "NDVI_prev"]) {
+      expect(keys, `${screaming} leaked into the ${dataset} export`).not.toContain(screaming);
+    }
+    expect(keys).toContain("hvi");
+  });
+
+  it("agrees with /wards on the ward fields it shares", async () => {
+    const exported = await (await getExport(req("/api/v1/export?dataset=wards"))).json();
+    const listed = await body(await getWards(req("/api/v1/wards")));
+
+    const byId = new Map(
+      listed.wards.map((w: { ward_id: string }) => [w.ward_id, w])
+    );
+    for (const feature of exported.features) {
+      const props = feature.properties;
+      const ward = byId.get(props.ward_id) as { hvi: number; rank: number } | undefined;
+      expect(ward, `${props.ward_id} is in the export but not in /wards`).toBeDefined();
+      expect(props.hvi).toBeCloseTo(ward!.hvi, 10);
+      expect(props.rank).toBe(ward!.rank);
+    }
+  });
+
+  it("keeps the contributions flat, which is what a CSV can hold", async () => {
+    // /wards nests these under `contrib`; a CSV cannot, and a flat column per
+    // factor is the form the research audience wants anyway. Deliberate
+    // difference, not drift, so it is pinned.
+    const json = await (await getExport(req("/api/v1/export?dataset=wards"))).json();
+    const keys = Object.keys(json.features[0].properties);
+    expect(keys).not.toContain("contrib");
+    expect(keys.filter((k) => k.startsWith("contrib_")).length).toBe(7);
   });
 
   it("serves CSV with a header row and one row per cell", async () => {

@@ -183,3 +183,23 @@ function generate(): string {
 const target = join(here, "..", "src", "types.gen.ts");
 writeFileSync(target, generate(), "utf8");
 console.log(`wrote ${target}`);
+
+/**
+ * The spec itself, as JSON, next to the clients that read it.
+ *
+ * The Python generator cannot import a TypeScript module, and giving it its
+ * own copy of the shapes would put us back where a second copy always leads.
+ * Emitting the document here means both clients are generated from one
+ * artifact, and CI's regenerate-and-diff check covers the artifact too.
+ *
+ * The origin is the public deployment: the only field it affects is
+ * `servers`, and a committed file cannot know the origin of a request.
+ */
+const specTarget = join(here, "..", "..", "openapi.json");
+writeFileSync(
+  specTarget,
+  `${JSON.stringify(buildSpec("https://uciplatform.vercel.app"), null, 2)}
+`,
+  "utf8"
+);
+console.log(`wrote ${specTarget}`);

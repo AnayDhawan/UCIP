@@ -180,10 +180,41 @@ visible through [`/meta`](#get-meta).
 
 | Date | Change |
 |---|---|
+| 2026-09-24 | `/export` and `/cells` now return the documented field names in every case. See the note below. |
+| 2026-09-24 | `/wards` now returns `dominant_factor`, `dominant_share` and `single_factor_dominated` on the database path as well as the snapshot path. Additive: those fields were previously present or absent depending on which backend answered. |
 | 2026-09-23 | Added per-IP [rate limiting](#rate-limiting) at 120 requests a minute. Normal use is well under it. |
 | 2026-09-23 | Added [`/export`](#get-exportdatasetformat) for bulk access as GeoJSON or CSV. Additive, no existing response changed. |
 | 2026-09-23 | Documented this versioning policy. No behaviour change. |
 | 2026-09-18 | `v1` published with `/meta`, `/wards`, `/wards/{wardId}`, `/lookup`, `/recommendations`, `/cells` and `/openapi.json`. |
+
+#### The 2026-09-24 field-name correction
+
+`/export` returned `HVI`, `LST_C`, `NDVI` and `NDVI_prev`, the pipeline's own
+spelling, where every other endpoint returns `hvi`, `lst_c`, `ndvi` and
+`ndvi_prev`. `/cells` returned one or the other depending on whether the
+database or the static snapshot answered the request. They are now the
+documented lowercase names everywhere.
+
+The versioning policy above reserves renaming a field for `v2`, so this needs
+justifying rather than slipping through:
+
+- **Those names were never documented.** The OpenAPI spec described the
+  parameters of these endpoints and left their response bodies as prose, so
+  neither spelling was ever part of the published contract. The spec now
+  carries complete response schemas, which is what made the divergence visible.
+- **`/cells` had no stable answer to rename.** It returned `hvi` when the
+  database was reachable and `HVI` when it was not, along with a different set
+  of keys. No client could have depended on either, and code that appeared to
+  work would have broken the first time the database went down.
+- **`/export` was one day old**, shipped 2026-09-23.
+
+A deprecation window would have meant serving both spellings side by side, and
+the main consumer of `/export` is a CSV opened in pandas or R, where duplicate
+columns under two names is a worse outcome than a single clean rename on a
+day-old endpoint.
+
+If you pulled the export between 2026-09-23 and 2026-09-24, lowercase the four
+column names and nothing else changes.
 
 ## Rate limiting
 

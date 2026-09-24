@@ -35,6 +35,38 @@ export const revalidate = 3600;
 
 type Props = Record<string, unknown>;
 
+/**
+ * Snapshot property names that differ from the ones the API publishes.
+ *
+ * The GeoJSON snapshots are pipeline output and use the pipeline's spelling.
+ * Every other route translates; this one used to spread the properties raw, so
+ * the export published `HVI` while /wards published `hvi` and /cells published
+ * `hvi`. One dataset, two vocabularies, and no way to tell from the response
+ * which you were holding.
+ *
+ * It showed up in the Python client, where `wards_geo()` (built on this route)
+ * and `wards_frame()` (built on /wards) disagreed about the name of the column
+ * carrying the index, which is the first column anybody reaches for.
+ *
+ * The flattened contrib_* fields are deliberately kept as they are: a CSV
+ * cannot hold a nested mapping, and a flat column per factor is the form the
+ * research audience wants anyway.
+ */
+const PUBLISHED_NAMES: Record<string, string> = {
+  HVI: "hvi",
+  LST_C: "lst_c",
+  NDVI: "ndvi",
+  NDVI_prev: "ndvi_prev",
+};
+
+function rename(props: Props): Props {
+  const out: Props = {};
+  for (const [key, value] of Object.entries(props)) {
+    out[PUBLISHED_NAMES[key] ?? key] = value;
+  }
+  return out;
+}
+
 const DATASETS = {
   cells: {
     snapshot: "cells_nbs.geojson",
@@ -174,8 +206,8 @@ export async function GET(request: Request) {
   }
 
   const withExtras = (feature: Feature<Geometry, Props>): Props => {
-    const props: Props = { ...(feature.properties ?? {}) };
-    const extra = extras?.get(props[spec.joinKey]);
+    const props: Props = rename(feature.properties ?? {});
+    const extra = extras?.get(feature.properties?.[spec.joinKey]);
     for (const column of spec.extraColumns) {
       props[column] = extra ? extra[column] ?? null : null;
     }
