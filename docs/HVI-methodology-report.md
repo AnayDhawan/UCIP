@@ -2,14 +2,20 @@
 
 **A standalone technical report for the Urban Cooling Intervention Platform (UCIP)**
 
-*Status: internal technical writeup, polished for external publication (e.g. a personal
-research page, SSRN, or arXiv's econ/physics-adjacent categories). Not yet submitted
-anywhere; this document is the writeup itself, prepared per issue #66. All figures below
-are read directly from this repository's committed pipeline output
-(`data/hvi_pca_log.json`, `data/sensitivity.json`, `data/nbs_recommendations.json`,
+*Status: **submission-ready draft, not submitted.** Authorship and affiliation are
+deliberately unfilled; see `docs/preprint/SUBMISSION.md` for what remains and who has to
+decide it. Prepared per issues #66 and #90.*
+
+*Every figure below is read directly from this repository's committed pipeline output
+(`data/hvi_pca_log.json`, `data/sensitivity.json`, `data/hvi_uncertainty.json`,
+`data/weighting_comparison.json`, `data/lst_validation.json`,
+`data/elderly_evaluation.json`, `data/nbs_recommendations.json`,
 `data/cells_ndvi_change.geojson`) and pipeline source (`pipeline/05_hvi.py`,
 `pipeline/06_nbs.py`, `pipeline/08_sensitivity.py`, `pipeline/09_ndvi_change.py`,
-`frontend/src/lib/coefficients.ts`) as of this writing, not re-derived or estimated.*
+`pipeline/13_validate_lst.py`, `pipeline/uncertainty.py`,
+`pipeline/compare_weightings.py`, `pipeline/elderly_evaluation.py`,
+`frontend/src/lib/coefficients.ts`), not re-derived or estimated. The dataset is archived
+at doi:10.5281/zenodo.22923919.*
 
 ---
 
@@ -34,6 +40,25 @@ important to state openly: land surface temperature is not air temperature, seve
 demographic layers are proxies rather than ward-level census figures, and the cooling
 coefficients used elsewhere in the product are transferred from other cities rather
 than Mumbai-calibrated.
+
+We report four independent checks on the resulting ranking rather than one. A
+one-at-a-time weight perturbation gives a mean Kendall tau of 0.978. A 1000-replicate
+bootstrap over the cells, rerunning the entire chain per replicate, finds the median
+ward's 95% rank interval spans 6 of 24 places and that no ward's rank is certain.
+Comparing the PCA weighting against the published equal weighting it falls back to gives
+Kendall tau 0.913, with 13 of 24 ranks identical. Rebuilding the dataset on a 500 m grid,
+1975 cells instead of 541, moves 8 of 24 wards, and every one of those 24 ranks falls
+inside that ward's own bootstrap interval from the 1 km data. Two methods sharing no
+machinery thus disagree about the ordering and agree about which parts of it carry
+information.
+
+We also report a negative result about our own indicator set. `elderly_pct`, drawn from
+WorldPop's 100 m age-sex raster, carries district rather than sub-district information:
+80% of cells share one value, and the two dominant values split the city exactly along
+the revenue district boundary. It nonetheless takes 14.1% of total absolute contribution
+to ward scores, so a ward's rank is partly determined by an administrative boundary under
+a demographic label. We document this rather than quietly correcting it because the same
+raster is widely used the same way.
 
 ## 1. Introduction and Motivation
 
@@ -202,6 +227,96 @@ the one consistent alternative that displaces the baseline's 3rd-5th-ranked ward
 perturbation. This is a more qualified result than "top 5 is stable," and we consider
 reporting it exactly as computed more honest than rounding up.
 
+## 6a. How Precise Is a Ward's Rank? A Bootstrap
+
+The perturbation study in §6 varies the weights and holds the sample fixed. It
+therefore answers "would a different analyst's weights change the answer" and not
+"would a different sample change the answer". The second question matters at least as
+much, because the PCA weights are themselves estimated from 541 cells and carry
+sampling uncertainty of their own.
+
+`pipeline/uncertainty.py` resamples the cells with replacement 1000 times (seed 20260923)
+and reruns the entire chain on each replicate: z-scores, PCA, weight derivation, per-cell
+index, 0-100 rescale, ward rollup and rank. Holding the z-scores and the rescale fixed
+and varying only the weights would understate the uncertainty while looking rigorous, so
+the whole chain is rerun. Percentile intervals at 95% follow.
+
+**Results.** The median ward's 95% rank interval spans **6 of 24 places**. The widest is
+**14 places**: ward B, ranked 6th, has an interval running from 1st to 15th. **No ward's
+rank is certain**, in the sense that no ward's interval collapses to a single place.
+
+This is a substantive qualification, not a formality. It means the ranking should be read
+as broad bands. "C is the most vulnerable ward" survives, with an interval of 1st to 3rd,
+and "T and R/C are among the least vulnerable" survives. The difference between 8th and
+12th does not survive: those intervals overlap almost entirely, and a planner choosing
+between two mid-table wards should treat them as tied and decide on other grounds.
+
+We report this because the alternative, publishing a rank to a single integer and letting
+readers infer a precision the method does not have, is the failure mode that makes
+indices of this kind harmful in practice.
+
+## 6b. Does the Weighting Choice Change the Answer?
+
+§5 derives weights from PC1 and documents a fallback to published equal weighting when
+PC1 explains too little variance. `pipeline/compare_weightings.py` computes both rankings
+on the same data and compares them directly.
+
+**Results.** Kendall's tau between the two rankings is **0.913** and Spearman's rho is
+**0.977**. Thirteen of 24 wards receive an identical rank under both schemes, the largest
+single shift is **3 places** (ward L), and 4 of the top 5 are shared. The PCA top 5 is
+C, G/N, L, E, F/S; the published-weighting top 5 is C, G/N, F/S, E, B.
+
+The correct reading is narrow. A high correlation does not show the PCA weighting is
+correct; nothing here could show that. It shows the ranking is **insensitive to the
+choice between them**, which is the more useful claim: wards near the top are there
+because of the data rather than because of the weighting.
+
+## 6c. Does the Grid Resolution Change the Answer?
+
+The two checks above resample or reweight a fixed 1 km grid. Rebuilding the dataset at
+500 m is an independent test, because it changes the unit of analysis rather than
+perturbing it: 1975 published cells instead of 541, roughly 82 per ward instead of 23,
+with every stage from the fishnet through the Earth Engine reductions rerun.
+
+**Results.** Eight of the 24 wards change rank, and ward B moves from 6th to 1st.
+
+Taken alone that looks like instability. Taken with §6a it is the opposite. **Every
+ward's 500 m rank falls inside that ward's own 95% bootstrap interval from the 1 km
+data, 24 out of 24.** Ward B's interval was 1st to 15th, the widest in the table, and
+1st is inside it.
+
+Two methods that share no machinery, resampling cells at one resolution and rebuilding
+the grid at another, disagree about the ordering and agree about which parts of the
+ordering carry information. We regard this as the strongest validation in this report of
+the claim in §6a: a rank near the top or the bottom of the table is a finding, and a rank
+in the middle is an artefact of where the grid lines fell.
+
+1 km remains the published resolution. The 500 m dataset is reproducible with
+`python pipeline/run_pipeline.py --cell-size 500` and is not published, because it is not
+a better dataset, only a different one, and switching would reshuffle the top of the
+table without making it more correct.
+
+## 6d. Validation Against Station Observations
+
+`pipeline/13_validate_lst.py` correlates the satellite composite against NOAA GSOD
+station air temperature. Per-overpass Landsat 8/9 ST_B10 LST, cloud-masked, is averaged
+within 500 m of each station and matched to that day's station mean.
+
+**Results.** Pooled within-station Pearson r is **0.716** over 23 matched
+station-days, computed on anomalies about each station's own mean. The
+LST-minus-air offset ranges from **3.43 to 13.94 C** across stations.
+
+Both numbers need reading carefully. Land surface temperature is not air temperature:
+LST is the radiometric temperature of the ground and station temperature is shaded air at
+roughly 1.5 m, so a large positive bias is expected and is not an error. The figure that
+tests measurement quality is the correlation, which asks whether the composite tracks
+real day-to-day thermal variation rather than sensor noise or cloud artefacts. It does.
+
+The spread of the offset is itself a finding: because the offset depends on what the
+ground is made of, **no single additive correction converts this LST layer into air
+temperature**. That is why the index uses LST as a relative indicator and never reports
+it as a temperature a person would feel.
+
 ## 7. Nature-Based Solutions Engine and the Ecological Plantability Filter
 
 Given a cell's HVI and its underlying indicators, `pipeline/06_nbs.py` fires one or
@@ -280,10 +395,28 @@ Stated here in full, matching `docs/methodology.md` section 10:
   Santamouris's city-scale review, Li/Bou-Zeid/Oppenheimer's Baltimore-DC simulation,
   Bowler et al.'s meta-analysis); no Mumbai-specific field validation of these
   magnitudes has been performed.
-- **Slum-density and elderly layers are proxies.** `slum_pct` comes from mapped
-  slum-cluster boundaries (Datameet) rather than a household survey, and `elderly_pct`
-  comes from WorldPop's 2020 age-sex structure (the most recent year available for
-  India in that collection) rather than ward-level census data.
+- **`slum_pct` is a mapped proxy.** It comes from mapped slum-cluster boundaries
+  (Datameet) rather than a household survey.
+- **`elderly_pct` is not a demographic surface at all; it is an administrative
+  boundary.** WorldPop's India age-sex product is a 100 m raster, which implies a
+  measured surface at that resolution. It is not: it applies *district* age structure to
+  a population raster. Across the 541 cells, 80% share a single value and two values
+  cover 95.6%, and those two values split the city exactly along the revenue district
+  line. All nine Mumbai City wards read 5.586 and all fifteen Mumbai Suburban wards read
+  4.757, with intermediate values only where a 1 km cell straddles the boundary.
+
+  It is not inert, which is why this is a limitation rather than a curiosity.
+  Standardisation divides by the standard deviation, and a near-degenerate variable has
+  a small one, so an 0.83-point district gap becomes a large z-score. The indicator takes
+  14.1% of total absolute contribution to ward scores, fourth of seven, and removing it
+  entirely moves 13 of the 24 wards by up to 4 places. **A ward's published rank is
+  therefore partly determined by which side of the City and Suburban line it sits on,
+  under a label that reads as demographic.** Measured in `pipeline/elderly_evaluation.py`.
+
+  The remedy is ward-level Census age structure, 24 values in place of 2. Note that the
+  usual objection, that 2011 Census data is too old to mix with 2025-26 imagery, does not
+  apply: WorldPop's age structure is itself derived from the 2011 Census, so the choice is
+  between the same census at district resolution and the same census at ward resolution.
 - **The simulator (Section 9) is a first-order estimate**, explicitly not a validated
   microclimate model, and is labelled as such in its own UI.
 - **The ecological plantability layer is coarse-resolution**, driven by ESA WorldCover
@@ -292,6 +425,14 @@ Stated here in full, matching `docs/methodology.md` section 10:
 - **PCA weights are a function of the current snapshot**, as noted in Section 5; they
   are expected to be broadly stable given the Section 6 sensitivity results, but are
   not literally fixed across every possible re-run of the pipeline.
+- **No ward's rank is certain.** Section 6a quantifies this: the median ward's 95% rank
+  interval spans 6 of 24 places. Any use of this ranking that turns on a difference of a
+  few places is unsupported by the data behind it.
+- **The number of clear satellite observations varies by cell.** Cells are flagged when
+  the dry-season composite behind them rests on fewer than three clear Landsat
+  observations; across the published grid the count runs from 8.7 to 12.0 per cell, so no
+  cell in the current snapshot is flagged, but the flag travels with the data for
+  refreshes and cities where it will fire.
 
 ## 11. Reproducibility
 
