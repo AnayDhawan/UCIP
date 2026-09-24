@@ -53,6 +53,7 @@ PIPELINE_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(PIPELINE_DIR))
 
 from _publish import publish  # noqa: E402
+from _indicators import DIRECTIONS, REQUIRED, present
 
 ROOT = PIPELINE_DIR.parent
 DATA_DIR = ROOT / "data"
@@ -60,12 +61,14 @@ CELLS_PATH = DATA_DIR / "cells_hvi.geojson"
 OUT_PATH = DATA_DIR / "hvi_uncertainty.json"
 OUT_PUBLIC_PATH = ROOT / "frontend" / "public" / "hvi_uncertainty.json"
 
-# Same direction convention as stages 05 and 08.
-INDICATORS_DIRECTION = {
-    "LST_C": 1, "NDVI": -1, "pop_density_km2": 1, "elderly_pct": 1,
-    "slum_pct": 1, "hospital_dist_m": 1, "impervious_pct": 1,
-}
-COLS = list(INDICATORS_DIRECTION)
+# The same direction table as stages 05 and 08, from _indicators.py.
+INDICATORS_DIRECTION = DIRECTIONS
+
+# Which indicators this run resamples. Starts as the required set and is set
+# from the cells actually loaded in main(): child_pct is optional, and a bootstrap
+# over a different indicator set than the index it is qualifying would report
+# uncertainty for a model nobody published.
+COLS: list[str] = list(REQUIRED)
 
 DEFAULT_REPLICATES = 1000
 # Fixed so a rerun reproduces the published intervals. A refresh should move
@@ -129,6 +132,9 @@ def main() -> int:
         return 1
 
     gdf = gpd.read_file(CELLS_PATH)
+    global COLS
+    COLS = present(gdf.columns)
+    print(f"[ok] resampling {len(COLS)} indicators: {COLS}")
     raw = gdf[COLS].to_numpy(dtype=float)
     ward_ids = gdf["ward_id"].to_numpy()
     wards = sorted(pd.unique(ward_ids).tolist())

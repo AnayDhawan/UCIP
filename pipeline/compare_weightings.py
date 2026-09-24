@@ -51,6 +51,7 @@ PIPELINE_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(PIPELINE_DIR))
 
 from _publish import publish  # noqa: E402
+from _indicators import DIRECTIONS
 
 ROOT = PIPELINE_DIR.parent
 DATA_DIR = ROOT / "data"
@@ -61,10 +62,7 @@ OUT_PUBLIC_PATH = ROOT / "frontend" / "public" / "weighting_comparison.json"
 
 # Same direction convention as stages 05 and 08: NDVI is protective, the rest
 # add to vulnerability.
-INDICATORS_DIRECTION = {
-    "LST_C": 1, "NDVI": -1, "pop_density_km2": 1, "elderly_pct": 1,
-    "slum_pct": 1, "hospital_dist_m": 1, "impervious_pct": 1,
-}
+INDICATORS_DIRECTION = DIRECTIONS
 TOP_N = 5
 
 

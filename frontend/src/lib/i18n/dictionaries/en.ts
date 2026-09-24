@@ -59,12 +59,13 @@ const en = {
     score: "Heat vulnerability index",
     cells: "Grid cells",
     close: "Close",
-    /** The seven indicators, as the ward dialog labels them. */
+    /** The indicators, as the ward dialog labels them. */
     factors: {
       LST_C: "Land surface temperature",
       NDVI: "Green cover",
       pop_density_km2: "Population density",
       elderly_pct: "Share aged 60 and over",
+      child_pct: "Share aged under 7",
       slum_pct: "Informal settlement share",
       hospital_dist_m: "Distance to a hospital",
       impervious_pct: "Built-up surface",

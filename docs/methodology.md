@@ -11,7 +11,7 @@
 - UCIP's difference: transparent literature-weighted index + NBS engine + ecological plantability filter + budget layer, vs static vulnerability assessments.
 
 ## 3. Indicators
-- LST (+), NDVI inverted (-), population density (+), elderly % (+), slum index (+), hospital distance (+), impervious % (+).
+- LST (+), NDVI inverted (-), population density (+), elderly % (+), young-child % (+), slum index (+), hospital distance (+), impervious % (+). Eight in all. `child_pct` is ward-level Census 2011 data and is optional per city; see 10c.
 - Each z-standardized; direction set per the heat-vulnerability literature.
 
 ## 4. HVI computation
@@ -21,7 +21,7 @@
 - Explainability = per-factor contribution (weight x z-score), shown as a ranked bar breakdown. Transparent linear index — **no SHAP** (nothing black-box to explain).
 
 ## 4b. Ward-level figures (what the ward dialog shows)
-- HVI, rank and the seven contributions come straight from `wards_hvi.geojson` (stage 05); the dialog never recomputes them.
+- HVI, rank and the eight contributions come straight from `wards_hvi.geojson` (stage 05); the dialog never recomputes them.
 - The raw indicator figures are the **unweighted mean of the ward's member cells** (stage 10, `ward_profiles.json`). A ward with 2 cells and a ward with 61 cells are both simple means over their own cells, so small wards are noisier.
 - "Hotter than X%" is the ward's HVI percentile among the 24, derived from rank, not a separate statistic.
 - "Biggest driver" is the largest positive per-factor contribution, i.e. the same numbers as the bar breakdown, not a separate model.
@@ -48,7 +48,7 @@ rigorous.
 | | |
 |---|---|
 | Median rank interval | **6 places** |
-| Widest | 14 places (ward B, ranked 6th, interval 1st to 15th) |
+| Widest | 15 places (ward B, ranked 5th, interval 1st to 16th) |
 | Wards whose rank is certain | **0 of 24** |
 
 Read the ranking as broad bands rather than an ordering. "C is the most
@@ -68,11 +68,11 @@ dataset at 500 m is an independent test of the same claim, because it changes
 the unit of analysis rather than resampling it: 1975 published cells instead of
 541, roughly 82 per ward instead of 23.
 
-Eight of the 24 wards change rank, and ward B moves from 6th to 1st.
+Nine of the 24 wards change rank. Ward B moves from 5th to 1st and G/N from 2nd to 5th.
 
 The agreement is the interesting part. **Every ward's 500 m rank falls inside
 that ward's own 95% bootstrap interval from the 1 km data, 24 out of 24.** Ward
-B's interval was 1st to 15th, the widest in the table, and 1st is inside it. The
+B's interval was 1st to 16th, the widest in the table, and 1st is inside it. The
 two methods disagree about the ordering and agree about which parts of the
 ordering mean anything, which is what §4c said to expect.
 
@@ -114,13 +114,15 @@ sparse cells can; the pipeline does not reshape itself silently.
 
   | Measure | Result |
   |---|---|
-  | Kendall tau | 0.913 |
-  | Spearman rho | 0.977 |
-  | Wards with an identical rank | 13 of 24 |
-  | Largest single move | ward L, 3 places (3rd to 6th) |
-  | Top-5 overlap | 4 of 5 |
+  | Kendall tau | 0.841 |
+  | Spearman rho | 0.959 |
+  | Wards with an identical rank | 4 of 24 |
+  | Largest single move | ward C, 4 places (1st under PCA, 5th under equal weights) |
+  | Top-5 overlap | 5 of 5 (same set, different order) |
 
-  Read this correctly. A high correlation does not show the PCA weighting is right; it shows the ranking is largely insensitive to the choice, which is the more useful claim. The wards at the top are there because of the data rather than because of the weighting. The one disagreement that would matter to a spending decision is L, which the PCA weighting places 3rd and the published weighting 6th.
+  Read this correctly. A high correlation would not show the PCA weighting is right. What this shows is narrower: which wards sit near the top depends little on the weighting, but their order does. Ward C is first under PCA weights and fifth under equal weights.
+
+  Agreement was higher (tau 0.913, 13 identical ranks) before `child_pct` was added. Holding the equal-weight scheme at seven indicators, adding `child_pct` to the PCA side alone takes tau to 0.891. Equal weights then give `child_pct` an eighth of the total where PCA gives it 1.9%, which takes it to 0.841.
 
 ## 6. NBS recommendation engine
 - Rule-based; each fired rule carries a rationale + citation.
@@ -193,7 +195,7 @@ a population raster, so across Mumbai's 541 cells:
 |---|---|
 | Distinct values | 26, but 80% of cells share one |
 | Two values cover | 95.6% of cells |
-| Coefficient of variation | 0.064, the lowest of the seven indicators |
+| Coefficient of variation | 0.064, the lowest of the eight indicators |
 
 The two values split the city exactly along the revenue district boundary. All
 nine Mumbai City wards carry 5.586; all fifteen Mumbai Suburban wards carry
@@ -207,7 +209,7 @@ whatever their actual age structure.
 **It is not inert, which is the problem.** Standardisation divides by the
 standard deviation, and a near-degenerate variable has a small one, so a
 0.83-point gap between two districts becomes a large z-score. The indicator
-takes 14.1% of total absolute contribution to ward scores, fourth of seven.
+takes 13.6% of total absolute contribution to ward scores, fourth of eight.
 Dropping it entirely moves **13 of the 24 wards, by up to 4 places**.
 
 A ward's rank is therefore partly determined by which side of the City and
@@ -223,8 +225,77 @@ imagery. That objection does not apply, because WorldPop's age structure is
 itself derived from the 2011 Census. The choice is not modern-modelled against
 old-census; it is the same census at district resolution against the same
 census at ward resolution. Ward-level Census age tables would be a strict
-improvement, 24 values where there are currently 2, and sourcing them is the
-open task.
+improvement, 24 values where there are currently 2.
 
-Until then, read `elderly_pct` as "is this ward on the island", and treat any
-ranking difference that turns on it as unsupported.
+They do not exist in the open tables. Both files in OpenCity's ward-wise Census
+release (Primary Census Abstract for Mumbai City and for Mumbai Suburban, 97
+Census wards between them) carry population, sex, SC and ST, literacy and
+workers, and the age band 0 to 6. There is no 60+ column. See 10c for what was
+done instead.
+
+Until real ward-level 60+ data turns up, read `elderly_pct` as "is this ward on
+the island", and treat any ranking difference that turns on it as unsupported.
+
+**The same layer drives a recommendation.** The cooling-centre rule fires where
+`elderly_pct` is at or above its 75th percentile. That condition holds for 136
+cells: all 94 cells in Mumbai City wards, plus 42 suburban cells whose value
+sits marginally above the suburban one because of boundary blending. The rule
+fires on 18 cells, in 9 ward-level rows. "High elderly share" here means which
+district a cell is in.
+
+### 10c. `child_pct`: real ward-level Census data, and why it moves so little
+
+`pipeline/build_census_table.py`, table `data/census2011_ward_age_mumbai.csv`.
+
+Since the Census has no ward-level 60+ figure, the age-structure signal that does
+exist at ward resolution is the 0 to 6 share. It is in the index as an eighth
+indicator, named for what it measures: young children, not the elderly.
+
+Census wards are smaller than BMC wards. 97 of them roll up into the 24, using
+the mapping OpenCity publishes. The build refuses to write a table unless the
+two source files agree on every Census ward's population, every ward is
+accounted for, and the total equals the Census's own figure for Greater Mumbai,
+12,442,373. It does, exactly.
+
+| | `elderly_pct` | `child_pct` |
+|---|---|---|
+| Distinct values across 24 wards | 2 | 24 |
+| Range | 4.76 to 5.59 by district | 6.75% to 13.09% |
+| Resolution | district | ward |
+| Vintage | WorldPop 2020 (from the 2011 Census) | 2011 |
+| PCA weight | 0.074 | 0.019 |
+| Share of ward-score contribution | 13.6% | 2.1% |
+
+**It changes the ranking very little, and that is a finding.** PCA weights an
+indicator by how much variance it shares with the others. Child share is nearly
+uncorrelated with them (at most 0.22 in absolute value at cell level), so PC1
+barely loads on it: 0.050. Adding it lowered PC1's explained variance from 58.0%
+to 50.9%, moved ten wards by one place each, and put ward B into the top five in
+place of F/S.
+
+So the index now uses real data for every ward, and it is not much better
+informed for it. Those are different achievements, and only the first is
+claimed.
+
+It matters much more under equal weighting, where it gets 12.5% (section 5).
+
+The value is assigned flat to every cell in a ward, because the Census gives
+nothing finer. A city without a ward-level table runs on the required seven
+indicators instead of failing.
+
+### 10d. With the plantability filter corrected, tree planting fires nowhere
+
+After the 10b correction the tree-planting recommendation fires for no cell in
+Mumbai. It fired for 12 ward-level rows before, all on cells that should have
+been refused.
+
+The reason is in the data. 81 cells are both hot (HVI at or above the 75th
+percentile) and bare (NDVI at or below the 25th). All 81 are built-up
+(WorldCover class 50) with a median impervious share of 78.4% against a
+plantable ceiling of 68.4%. The ward-level recommendation rows went from 81 to
+70: 24 rain-garden, 19 cool-roof, 18 pocket-park and 9 cooling-centre.
+
+The caveat matters. Each cell takes the most common WorldCover class inside it,
+and a cell that is mostly built-up can still contain green pockets. This is a
+statement about whole 1 km cells, not about whether Mumbai has anywhere to plant
+a tree.

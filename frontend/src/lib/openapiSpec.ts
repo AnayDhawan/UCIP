@@ -65,7 +65,7 @@ const ward: Schema = {
       ...nullableNumber,
       description:
         "That indicator's share of total absolute contribution, 0 to 1. " +
-        "An even spread across the seven indicators is about 0.14.",
+        "An even spread across the eight indicators is 0.125.",
     },
     single_factor_dominated: {
       type: ["boolean", "null"],

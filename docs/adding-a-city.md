@@ -157,8 +157,8 @@ once per cell: stage 02 took 88 seconds at 500 m against roughly 25 at 1 km.
 That is not the binding constraint. The browser payload is, and it is why 1 km
 remains the default.
 
-**500 m is not a strictly better dataset.** Eight of the 24 wards change rank,
-and ward B moves from 6th to 1st. That is not a bug in either run: every ward's
+**500 m is not a strictly better dataset.** Nine of the 24 wards change rank,
+and ward B moves from 5th to 1st. That is not a bug in either run: every ward's
 500 m rank falls inside that ward's own 95% bootstrap interval from the 1 km
 data (`pipeline/uncertainty.py`, issue #87), so the two resolutions agree, to
 within the uncertainty the 1 km data already reported. It does mean a published
@@ -167,6 +167,26 @@ reshuffle the top of the table without making it more correct.
 
 Anything that reports these ranks should read
 [`docs/methodology.md`](methodology.md) on what they do and do not support.
+
+## 4c. Optional: a ward-level Census table
+
+The index has an eighth indicator, `child_pct`, the share of the population aged 0 to 6. It comes from a
+ward-level Census table and is optional. A city without one runs on the seven required indicators and
+nothing fails.
+
+To add one, put `data/census2011_ward_age_<slug>.csv` in place with the columns `ward_id, tot_p, p_06,
+child_pct, source`, one row for every ward in the city. Stage 04 joins it by `ward_id` and refuses to run
+if any ward is missing, because a missing ward would come out as an empty value and the cells in it would
+be dropped without any error.
+
+`pipeline/build_census_table.py` shows how Mumbai's was built and the checks it makes. The ones worth copying
+are that the two source files must agree on every ward's population and that the total must match the
+Census's own figure for the city. Census wards are usually smaller than administrative wards, so a roll-up
+is normally involved, and a wrong join there gives plausible numbers.
+
+Read methodology.md 10c before relying on it. PCA gives an indicator like this almost no weight, because it
+is nearly uncorrelated with the others, so adding it makes the index use real data without changing the
+ranking much.
 
 ## 5. Calibrate the ecology. Do not skip this.
 

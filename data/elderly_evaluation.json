@@ -11,6 +11,7 @@
       "NDVI": 0.4112,
       "pop_density_km2": 0.6464,
       "elderly_pct": 0.0638,
+      "child_pct": 0.1531,
       "slum_pct": 1.7593,
       "hospital_dist_m": 0.9943,
       "impervious_pct": 0.8102
@@ -57,48 +58,48 @@
         "without": 13
       },
       "B": {
-        "with": 6,
-        "without": 8
+        "with": 5,
+        "without": 6
       },
-      "D": {
-        "with": 13,
-        "without": 14
+      "C": {
+        "with": 1,
+        "without": 2
       },
       "E": {
         "with": 4,
         "without": 5
       },
       "F/N": {
-        "with": 10,
-        "without": 12
+        "with": 9,
+        "without": 11
       },
       "F/S": {
-        "with": 5,
-        "without": 6
+        "with": 6,
+        "without": 8
       },
       "G/N": {
         "with": 2,
         "without": 3
       },
       "G/S": {
-        "with": 7,
-        "without": 11
+        "with": 8,
+        "without": 12
       },
       "H/E": {
-        "with": 8,
+        "with": 7,
         "without": 4
       },
       "H/W": {
-        "with": 14,
+        "with": 13,
         "without": 10
       },
       "K/E": {
-        "with": 9,
+        "with": 10,
         "without": 7
       },
       "L": {
         "with": 3,
-        "without": 2
+        "without": 1
       },
       "M/W": {
         "with": 12,

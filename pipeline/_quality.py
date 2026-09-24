@@ -41,12 +41,17 @@ class Bound:
     # envelope can, in principle, which is why the two are distinguished: one
     # is a bug, the other is worth a second look.
     physical: bool = False
+    # An indicator that only some cities have. Its range is checked wherever it
+    # is present, but its absence is not a failure. Without this a city with no
+    # ward-level Census table would fail the gate for lacking child_pct, when
+    # the missing-column guard exists to catch a stage that produced nothing.
+    optional: bool = False
 
 
 # Observed Mumbai ranges as of the 2026-09 dataset, for context on how much
 # room each envelope leaves:
 #   LST_C 26.2..40.0, NDVI -0.07..0.71, pop_density 16..115272,
-#   elderly_pct 4.0..5.6, slum_pct 0..68.6, hospital_dist_m 3.9..6199,
+#   elderly_pct 4.0..5.6, child_pct 6.75..13.1 (ward-level, Census 2011), slum_pct 0..68.6, hospital_dist_m 3.9..6199,
 #   impervious_pct 0..96.8, HVI 0..100
 CELL_BOUNDS: dict[str, Bound] = {
     "LST_C": Bound(
@@ -63,6 +68,12 @@ CELL_BOUNDS: dict[str, Bound] = {
         "ceiling catches a unit error, such as people per square metre.",
     ),
     "elderly_pct": Bound(0.0, 100.0, "A percentage.", physical=True),
+    "child_pct": Bound(
+        0.0, 100.0,
+        "A percentage. Census 2011 ward-level share of the population aged 0 to 6.",
+        physical=True,
+        optional=True,
+    ),
     "slum_pct": Bound(0.0, 100.0, "A percentage.", physical=True),
     "impervious_pct": Bound(0.0, 100.0, "A percentage.", physical=True),
     "hospital_dist_m": Bound(
@@ -106,6 +117,8 @@ def check_bounds(
             # A column that vanished entirely is a worse failure than one out
             # of range, and would otherwise pass silently as "nothing to check".
             if any(column in r for r in rows):
+                continue
+            if bound.optional:
                 continue
             failures.append(f"{label}: column '{column}' is missing from every record")
             continue

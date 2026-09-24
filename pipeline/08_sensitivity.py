@@ -43,6 +43,7 @@ import matplotlib.pyplot as plt
 
 from _publish import publish
 from _city import load_city
+from _indicators import DIRECTIONS
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
@@ -65,10 +66,7 @@ OUT_CHART_PATH = _CITY.out("sensitivity_chart.png")
 # browser-fetched outputs.
 OUT_CHART_PUBLIC_PATH = ROOT / "frontend" / "public" / "sensitivity_chart.png"
 
-INDICATORS_DIRECTION = {
-    "LST_C": 1, "NDVI": -1, "pop_density_km2": 1, "elderly_pct": 1,
-    "slum_pct": 1, "hospital_dist_m": 1, "impervious_pct": 1,
-}
+INDICATORS_DIRECTION = DIRECTIONS
 PERTURBATION = 0.20
 TOP_N = 5
 

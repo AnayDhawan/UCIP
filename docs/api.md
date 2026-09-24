@@ -180,6 +180,7 @@ visible through [`/meta`](#get-meta).
 
 | Date | Change |
 |---|---|
+| 2026-09-24 | `contrib` on `/wards`, `/wards/{wardId}` and `/lookup` gains a `child_pct` key, and the `contrib_child_pct` column joins the ward export. Additive. The ward scores, ranks and recommendations also changed, because the index now has an eighth indicator and the plantability filter was corrected. Both are data changes and not contract changes. See methodology.md 10b to 10d. |
 | 2026-09-24 | `/export` and `/cells` now return the documented field names in every case. See the note below. |
 | 2026-09-24 | `/wards` now returns `dominant_factor`, `dominant_share` and `single_factor_dominated` on the database path as well as the snapshot path. Additive: those fields were previously present or absent depending on which backend answered. |
 | 2026-09-23 | Added per-IP [rate limiting](#rate-limiting) at 120 requests a minute. Normal use is well under it. |

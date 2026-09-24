@@ -41,6 +41,7 @@ from pathlib import Path
 import geopandas as gpd
 from _city import load_city
 from _publish import publish_text
+from _indicators import REQUIRED, present
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
@@ -59,16 +60,11 @@ IN_BOUNDARIES_PATH = _CITY.boundaries_path
 OUT_PATH = _CITY.out("ward_profiles.json")
 OUT_PUBLIC_PATH = ROOT / "frontend" / "public" / "ward_profiles.json"
 
-# Same seven indicators as 05_hvi.py INDICATORS, in the same order.
-INDICATORS = [
-    "LST_C",
-    "NDVI",
-    "pop_density_km2",
-    "elderly_pct",
-    "slum_pct",
-    "hospital_dist_m",
-    "impervious_pct",
-]
+# The indicators a ward profile reports, from _indicators.py so it cannot drift
+# from the ones 05_hvi.py scores. Starts as the required set and is set from the
+# cells actually loaded in main(), because child_pct exists only for a city with
+# a ward-level Census table.
+INDICATORS: list[str] = list(REQUIRED)
 
 EXPECTED_WARDS = 24
 
@@ -112,10 +108,13 @@ def main() -> int:
     cells = gpd.read_file(cells_path)
     print(f"[ok] loaded {len(cells)} cells from {cells_path.name}")
 
-    missing = [c for c in INDICATORS if c not in cells.columns]
+    missing = [c for c in REQUIRED if c not in cells.columns]
     if missing:
         print(f"[FAIL] {cells_path.name} is missing indicator columns: {missing}")
         return 1
+
+    global INDICATORS
+    INDICATORS = present(cells.columns)
 
     # ------------------------------------------------------- city baseline --
     city = {"hvi_mean": float(cells["HVI"].mean())}

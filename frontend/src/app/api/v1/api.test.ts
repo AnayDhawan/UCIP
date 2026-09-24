@@ -21,6 +21,7 @@ import { GET as getRecs } from "./recommendations/route";
 import { GET as getCells, CELL_FIELDS } from "./cells/route";
 import { GET as getSpec } from "./openapi.json/route";
 import { GET as getExport } from "./export/route";
+import { INDICATOR_KEYS } from "@/lib/wardTypes";
 
 const BASE = "https://uciplatform.vercel.app";
 
@@ -523,7 +524,7 @@ describe("GET /api/v1/export", () => {
     const json = await (await getExport(req("/api/v1/export?dataset=wards"))).json();
     const keys = Object.keys(json.features[0].properties);
     expect(keys).not.toContain("contrib");
-    expect(keys.filter((k) => k.startsWith("contrib_")).length).toBe(7);
+    expect(keys.filter((k) => k.startsWith("contrib_")).length).toBe(INDICATOR_KEYS.length);
   });
 
   it("serves CSV with a header row and one row per cell", async () => {

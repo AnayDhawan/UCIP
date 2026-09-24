@@ -1,7 +1,8 @@
 """Stage 05 — Compute the Heat Vulnerability Index. The core of the project.
 
 What it does:
-    Standardises the seven indicators to z-scores, orients each one so that
+    Standardises the indicators (eight for Mumbai, seven for a city with no
+    ward-level Census table) to z-scores, orients each one so that
     higher always means more vulnerable (NDVI is inverted; more greenery is less
     vulnerability), then derives the weights from a PCA over the standardised
     cells, following Reid et al. 2009. The weighted sum is rescaled to 0-100 and
@@ -60,6 +61,7 @@ from _city import load_city
 from _boundaries import load_boundaries
 import _provenance
 from _hvi import DOMINANCE_THRESHOLD, factor_dominance
+from _indicators import DIRECTIONS as INDICATORS, present
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
@@ -81,16 +83,9 @@ OUT_METHOD_PATH = _CITY.out("hvi_pca_log.json")
 # 12_hero_region.py already use for their own outputs.
 OUT_WARDS_PUBLIC_PATH = ROOT / "frontend" / "public" / "wards_hvi.geojson"
 
-# direction: +1 means "higher raw value = more vulnerable", -1 = inverted (methodology.md §3)
-INDICATORS = {
-    "LST_C": 1,
-    "NDVI": -1,
-    "pop_density_km2": 1,
-    "elderly_pct": 1,
-    "slum_pct": 1,
-    "hospital_dist_m": 1,
-    "impervious_pct": 1,
-}
+# direction: +1 means "higher raw value = more vulnerable", -1 = inverted
+# (methodology.md §3). Imported from _indicators.py, where the set now lives
+# once; this stage used to carry its own copy and so did four others.
 
 # Explained-variance floor below which PC1 loadings are considered unstable
 # for a single-city, single-snapshot sample (documented fallback trigger).
@@ -121,7 +116,10 @@ def main() -> int:
     gdf = gpd.read_file(IN_PATH)
     print(f"[ok] loaded {len(gdf)} cells")
 
-    cols = list(INDICATORS.keys())
+    # Whichever indicators this run's cells actually carry. child_pct exists only
+    # for a city with a ward-level Census table, and a city without one runs on
+    # the required set instead of failing.
+    cols = present(gdf.columns)
     z = gdf[cols].apply(zscore)
     signed_z = z * np.array([INDICATORS[c] for c in cols])
     signed_z.columns = [f"z_{c}" for c in cols]
@@ -178,7 +176,7 @@ def main() -> int:
     ward_hvi = ward_hvi.sort_values("rank")
 
     # Which indicator is doing the work in each ward (issue #97). The index is a
-    # weighted sum of seven, and nothing checked whether one of them was
+    # weighted sum of the indicators, and nothing checked whether one of them was
     # carrying a ward on its own. A ward that is hot because it has no tree
     # cover needs a different intervention from one that is hot across every
     # indicator, and the contributions to say so were already being stored.

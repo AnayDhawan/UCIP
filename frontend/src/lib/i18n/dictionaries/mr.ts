@@ -76,6 +76,7 @@ const mr: Dictionary = {
       NDVI: "हिरवळ",
       pop_density_km2: "लोकसंख्येची घनता",
       elderly_pct: "60 वर्षांवरील लोकांचे प्रमाण",
+      child_pct: "7 वर्षांखालील मुलांचे प्रमाण",
       slum_pct: "वस्त्यांचे प्रमाण",
       hospital_dist_m: "रुग्णालयापर्यंतचे अंतर",
       impervious_pct: "बांधकामाखालील जमीन",

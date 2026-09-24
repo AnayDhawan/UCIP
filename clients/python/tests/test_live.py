@@ -72,7 +72,7 @@ def test_wards_frame_is_ranked_and_decomposed(api):
     assert list(frame["rank"]) == sorted(frame["rank"])
     # The explainability claim: a score decomposes into its drivers.
     contrib = [c for c in frame.columns if c.startswith("contrib_")]
-    assert len(contrib) == 7
+    assert len(contrib) == 8
 
 
 def test_cells_frame_covers_the_whole_grid(api):

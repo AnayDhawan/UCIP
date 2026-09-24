@@ -32,7 +32,7 @@ export type Ward = {
   dominant_factor?: string | null;
   /**
    * That indicator's share of total absolute contribution, 0 to 1. An even
-   * spread across the seven indicators is about 0.14.
+   * spread across the eight indicators is 0.125.
    */
   dominant_share?: number | null;
   /**

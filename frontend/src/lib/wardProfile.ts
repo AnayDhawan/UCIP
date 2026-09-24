@@ -20,6 +20,7 @@ export type CityProfile = {
   NDVI: number;
   pop_density_km2: number;
   elderly_pct: number;
+  child_pct: number;
   slum_pct: number;
   hospital_dist_m: number;
   impervious_pct: number;
@@ -42,6 +43,8 @@ export type WardProfile = {
   pop_density_km2_delta_city: number;
   elderly_pct: number;
   elderly_pct_delta_city: number;
+  child_pct: number;
+  child_pct_delta_city: number;
   slum_pct: number;
   slum_pct_delta_city: number;
   hospital_dist_m: number;

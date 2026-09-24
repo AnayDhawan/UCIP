@@ -42,18 +42,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from _city import load_city  # noqa: E402
 
-# Mirrors 05_hvi.py. Duplicated deliberately rather than imported: the stage
-# modules are numbered and not importable as packages, and a copy that is read
-# alongside its original in review is safer here than a sys.path trick.
-INDICATORS = {
-    "LST_C": 1,
-    "NDVI": -1,
-    "pop_density_km2": 1,
-    "elderly_pct": 1,
-    "slum_pct": 1,
-    "hospital_dist_m": 1,
-    "impervious_pct": 1,
-}
+# The published index's indicator set, from _indicators.py. This used to be a
+# copy that said "duplicated deliberately, since the stage modules are numbered
+# and not importable". Adding child_pct showed what that cost: the copy would
+# have kept measuring the old seven-indicator index while everything else moved
+# to eight, and the ranking effect it reports would have described a model that
+# was no longer the published one.
+from _indicators import DIRECTIONS as INDICATORS, present  # noqa: E402
+
 MIN_EXPLAINED_VARIANCE = 0.30
 
 # Mumbai is two revenue districts: Mumbai City, the island wards in the south,
@@ -107,7 +103,8 @@ def main() -> int:
 
     raw = json.loads(path.read_text(encoding="utf-8"))
     cells = pd.DataFrame([f["properties"] for f in raw["features"]])
-    cells = cells.dropna(subset=list(INDICATORS))
+    active = {c: INDICATORS[c] for c in present(cells.columns)}
+    cells = cells.dropna(subset=list(active))
     print(f"[ok] loaded {len(cells)} cells from {path.name}")
 
     report: dict = {"city": city.slug, "n_cells": int(len(cells))}
@@ -123,9 +120,9 @@ def main() -> int:
     print(f"    most common value          : {top_value} on {top_n} cells ({top_n/len(values):.1%})")
     print(f"    top two values cover       : {two_share:.1%} of cells")
 
-    print("\n    coefficient of variation, all seven indicators:")
+    print("\n    coefficient of variation, all indicators:")
     cvs = {}
-    for col in INDICATORS:
+    for col in active:
         series = cells[col]
         cv = float(series.std(ddof=0) / abs(series.mean())) if series.mean() else float("nan")
         cvs[col] = cv
@@ -175,8 +172,8 @@ def main() -> int:
     }
 
     # ---- 3. What it does to the ranking ----------------------------------
-    with_it = ward_ranks(cells, INDICATORS)
-    without = ward_ranks(cells, {k: v for k, v in INDICATORS.items() if k != "elderly_pct"})
+    with_it = ward_ranks(cells, active)
+    without = ward_ranks(cells, {k: v for k, v in active.items() if k != "elderly_pct"})
 
     moved = [(w, int(with_it[w]), int(without[w])) for w in with_it.index if with_it[w] != without[w]]
     biggest = max((abs(a - b) for _, a, b in moved), default=0)

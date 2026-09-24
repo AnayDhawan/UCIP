@@ -69,6 +69,7 @@ const hi: Dictionary = {
       NDVI: "हरियाली",
       pop_density_km2: "आबादी का घनत्व",
       elderly_pct: "60 साल से ऊपर के लोगों का हिस्सा",
+      child_pct: "7 साल से कम उम्र के बच्चों का हिस्सा",
       slum_pct: "बस्तियों का हिस्सा",
       hospital_dist_m: "अस्पताल की दूरी",
       impervious_pct: "पक्की ज़मीन",

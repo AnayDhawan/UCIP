@@ -54,7 +54,7 @@ export function format(template: string, values?: Record<string, string | number
  * Reads a dotted key out of a dictionary.
  *
  * Exists for the cases where a key is computed rather than written, such as
- * the seven indicator labels being looked up by indicator id. Component code
+ * the indicator labels being looked up by indicator id. Component code
  * should prefer reaching into the dictionary directly, which the type checker
  * can verify and this cannot.
  */

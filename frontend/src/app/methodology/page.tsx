@@ -50,6 +50,7 @@ const INDICATOR_LABELS: Record<string, { label: string; direction: string }> = {
   NDVI: { label: "Green cover (NDVI)", direction: "− (higher = less vulnerable)" },
   pop_density_km2: { label: "Population density", direction: "+" },
   elderly_pct: { label: "Elderly %", direction: "+" },
+  child_pct: { label: "Children under 7 %", direction: "+" },
   slum_pct: { label: "Slum index", direction: "+" },
   hospital_dist_m: { label: "Hospital distance", direction: "+" },
   impervious_pct: { label: "Impervious / built-up %", direction: "+" },
@@ -92,8 +93,8 @@ export default function MethodologyPage() {
         <h1 className="text-2xl font-semibold text-foreground">Methodology</h1>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           In plain terms: satellites measure how hot each square kilometre of Mumbai gets and how
-          green it is. Public data adds how many people live there, how many are elderly, how much
-          housing is informal, and how far the nearest hospital is. Those seven factors combine into
+          green it is. Public data adds how many people live there, how many are elderly or under seven,
+          how much housing is informal, and how far the nearest hospital is. Those eight factors combine into
           one vulnerability score per ward, and rules grounded in published research turn each score
           into a concrete recommendation. The steps below document that process exactly, including
           its limitations.
@@ -124,7 +125,7 @@ export default function MethodologyPage() {
         )}
 
         <div className="mt-8 space-y-6">
-          <StepCard step={1} title="What we measure" description="Seven standardized indicators, each z-scored.">
+          <StepCard step={1} title="What we measure" description="Eight standardized indicators, each z-scored.">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border text-left">

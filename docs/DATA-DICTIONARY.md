@@ -20,7 +20,7 @@ Unless stated otherwise: geometry is **WGS84 (EPSG:4326)** with coordinates orde
 
 **Refresh vintage:** the satellite and demographic inputs are re-pulled monthly; several layers are single snapshots pinned by design (WorldPop 2020, one Datameet slum snapshot, current OpenStreetMap, one WorldCover epoch). `data/pipeline_run_log.json` records when a run happened and which dry-season Landsat window it used (see below). The dry-season window is Nov–Feb (Mumbai's monsoon imagery is unusable for LST).
 
-## The seven HVI indicators (per grid cell)
+## The HVI indicators (per grid cell)
 
 Defined over every 1 km cell, then standardised and weighted in stage 05. Ranges quoted are those observed in the current 541-cell Mumbai run (verified in `pipeline/10_ward_profile.py`).
 
@@ -29,7 +29,8 @@ Defined over every 1 km cell, then standardised and weighted in stage 05. Ranges
 | `LST_C` | degrees Celsius | observed 26.2–39.9 | Landsat 8/9 Collection 2 Level 2, `ST_B10`, dry-season median composite | Cloud-masked median over the dry-season window (Nov–Feb), 30 m reduced per cell | **Land-surface, not air, temperature** (radiometric ground temperature). Validated against GSOD stations in stage 13. |
 | `NDVI` | index, unitless | −1 to 1; observed −0.07 to 0.71 | Landsat 8/9 C2 L2, `SR_B5`/`SR_B4` | Dry-season median `(NIR − red)/(NIR + red)` | A vegetation index, **not a canopy percentage**. |
 | `pop_density_km2` | people / km² | ≥ 0; observed 16–115,272 | WorldPop 100 m age-sex rasters via Earth Engine | Summed population per cell / cell area | **Modelled surface, pinned to the 2020 WorldPop vintage**, not a census count; does not vary annually. |
-| `elderly_pct` | percent (0-100) | 0-100; observed 4.02-5.59 | WorldPop 100 m age-sex (60+), same surface | 60+ population / total population per cell | **A district dummy, not a surface.** WorldPop applies district age structure to a population raster, so 80% of cells share one value and two values cover 95.6%, split exactly along the Mumbai City / Mumbai Suburban boundary. The 100 m resolution is the raster's, not the information's. Still takes 14.1% of ward score contribution, and dropping it moves 13 of 24 ward ranks. See methodology.md §10a. |
+| `elderly_pct` | percent (0-100) | 0-100; observed 4.02-5.59 | WorldPop 100 m age-sex (60+), same surface | 60+ population / total population per cell | **A district dummy, not a surface.** WorldPop applies district age structure to a population raster, so 80% of cells share one value and two values cover 95.6%, split exactly along the Mumbai City / Mumbai Suburban boundary. The 100 m resolution is the raster's, not the information's. Still takes 13.6% of ward score contribution, and dropping it moves 13 of 24 ward ranks. See methodology.md §10a. |
+| `child_pct` | percent (0-100) | 0-100; observed 6.75-13.09 | Census of India 2011 Primary Census Abstract, Census-ward level, republished by OpenCity (public domain) | Population aged 0-6 / total population, summed over the Census wards in each BMC ward, then assigned to every cell in the ward | **Young children, not the elderly.** Real ward-level data with 24 distinct values, but 2011 vintage and flat within a ward. Optional per city: a city without a ward-level Census table runs without it. PCA weight is 0.019, so it moves the PCA ranking very little. Built and cross-checked by `pipeline/build_census_table.py`. See methodology.md §10c. |
 | `slum_pct` | percent (0–100) | 0–100; observed 0.00–68.55 | Datameet slum-cluster polygons | Share of cell area covered by mapped slum clusters | **Proxy**: mapped clusters, not a slum census; any cell with no mapped cluster reads 0. Real observed boundaries (preferred over the modelled GHS-SMOD proxy). |
 | `hospital_dist_m` | metres | ≥ 0; observed 3.86–6,199 | OpenStreetMap hospitals via osmnx | Straight-line distance from cell centroid to nearest hospital | **Euclidean, not network** distance — a river or rail line in between is not accounted for. Current OSM snapshot, not static. |
 | `impervious_pct` | percent (0–100) | 0–100; observed 0.00–96.79 | ESA WorldCover | Built-up share per cell from WorldCover class 50 (10 m) | Single WorldCover epoch; does not vary annually. |
@@ -66,12 +67,12 @@ One feature per ward (`FeatureCollection`). Properties:
 | `n_cells` | Number of grid cells inside the ward. |
 | `contrib_*` (×7) | Ward-level mean of the cell contributions. |
 | `dominant_factor` | Indicator with the largest **absolute** contribution. Magnitude, not sign: a factor pushing the score down hard is driving it as much as one pushing it up. Null only if every contribution is zero. |
-| `dominant_share` | That indicator's share of the ward's total absolute contribution, 0–1. An even spread across the seven is about 0.14. On the current Mumbai data the range is 0.19–0.35. |
-| `single_factor_dominated` | True when `dominant_share` ≥ 0.5, i.e. one indicator accounts for half or more of the movement in the score. Such a ward needs a different intervention from one scoring high across all seven. **No Mumbai ward currently crosses this**, which is itself a result: the index is not being carried by a single indicator anywhere. Threshold: `DOMINANCE_THRESHOLD` in `pipeline/_hvi.py`. |
+| `dominant_share` | That indicator's share of the ward's total absolute contribution, 0–1. An even spread across the eight is 0.125. On the current Mumbai data the range is 0.19–0.35. |
+| `single_factor_dominated` | True when `dominant_share` ≥ 0.5, i.e. one indicator accounts for half or more of the movement in the score. Such a ward needs a different intervention from one scoring high across all eight. **No Mumbai ward currently crosses this**, which is itself a result: the index is not being carried by a single indicator anywhere. Threshold: `DOMINANCE_THRESHOLD` in `pipeline/_hvi.py`. |
 
 ### `ward_profiles.json` (`pipeline/10_ward_profile.py`)
 
-Additive descriptive layer for the dashboard's ward dialog — reads the outputs above, recomputes nothing. One object per ward with the seven indicators' ward means, each with a `_delta_city` companion (ward value minus city mean), plus:
+Additive descriptive layer for the dashboard's ward dialog — reads the outputs above, recomputes nothing. One object per ward with the indicators' ward means, each with a `_delta_city` companion (ward value minus city mean), plus:
 
 | Field | Meaning |
 |---|---|
@@ -183,7 +184,7 @@ What the last refresh actually did, and the site's data-age statement (issue #12
 
 - `data/bmc_wards.geojson` — Datameet BMC ward boundaries (EPSG:4326), the geometry source of truth; `ward_gid`/`ward_id` originate here.
 - `data/slumClusters.geojson` — mapped Datameet slum-cluster polygons (input to `slum_pct`).
-- `data/grid_1km*.geojson`, `data/cells.geojson`, `data/cells_hvi.geojson` — pipeline intermediates; `cells.geojson` is the tidy seven-indicator table.
+- `data/grid_1km*.geojson`, `data/cells.geojson`, `data/cells_hvi.geojson` — pipeline intermediates; `cells.geojson` is the tidy per-cell indicator table.
 - `data/hero_city.json`, `data/hero_region.json` — the landing page's 3D model geometry in **model space** (EPSG:32643 UTM 43N projected + scaled; see each file's `projection`, `space`, and `note`), *not* georeferenced coordinates. `generated_from` names the source files.
 - `data/wards_hvi.geojson` / `cells_nbs.geojson` / `cells_ndvi_change.geojson` / `nbs_recommendations.json` / `ward_profiles.json` / `ward_timeseries.json` / `sensitivity.json` + `sensitivity_chart.png` / `lst_validation.json` / `hvi_pca_log.json` / `budget_allocation.json` — as above; the browser-fetched copies live in `frontend/public/`.
 

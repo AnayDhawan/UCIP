@@ -12,9 +12,9 @@ from __future__ import annotations
 # different recommendation problem from a ward scoring high across the board,
 # and a planner needs to be able to tell them apart (issue #97).
 #
-# The threshold is a judgement, so it is named rather than buried. With seven
-# indicators an even spread gives each about 0.14 of the total; half of all the
-# signal coming from one of the seven is the point at which describing the ward
+# The threshold is a judgement, so it is named rather than buried. With eight
+# indicators an even spread gives each 0.125 of the total; half of all the
+# signal coming from one of the eight is the point at which describing the ward
 # by that one factor stops being a simplification and starts being the
 # honest summary.
 DOMINANCE_THRESHOLD = 0.5

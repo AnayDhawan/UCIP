@@ -210,7 +210,12 @@ class TestPureFunctions:
                         "impervious_pct": 20 + i * 8 + w * 5.5,
                     }
                 )
-        ranks = mod.ward_ranks(pd.DataFrame(rows), mod.INDICATORS)
+        frame = pd.DataFrame(rows)
+        # Only the indicators this frame carries, as the evaluation does with
+        # present(). The shared table also lists child_pct, which this frame
+        # deliberately lacks: a city without a Census table runs on the rest.
+        active = {k: v for k, v in mod.INDICATORS.items() if k in frame.columns}
+        ranks = mod.ward_ranks(frame, active)
         assert sorted(ranks.tolist()) == [1, 2, 3, 4]
 
     def test_the_district_ward_list_is_the_real_one(self, mod):

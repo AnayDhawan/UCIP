@@ -18,12 +18,13 @@ export type WardProps = {
   contrib_NDVI: number | null;
   contrib_pop_density_km2: number | null;
   contrib_elderly_pct: number | null;
+  contrib_child_pct: number | null;
   contrib_slum_pct: number | null;
   contrib_hospital_dist_m: number | null;
   contrib_impervious_pct: number | null;
   /** Indicator with the largest absolute contribution to this ward's score. */
   dominant_factor?: string | null;
-  /** Its share of total absolute contribution, 0 to 1. An even spread is about 0.14. */
+  /** Its share of total absolute contribution, 0 to 1. An even spread across the eight is 0.125. */
   dominant_share?: number | null;
   /** True when one indicator accounts for half or more of the movement in the score. */
   single_factor_dominated?: boolean | null;
@@ -61,12 +62,19 @@ export type CellNdviProps = {
   [key: string]: unknown;
 };
 
-/** The seven HVI indicators, in the canonical order used by pipeline/05_hvi.py. */
+/**
+ * The eight HVI indicators, in the canonical order of pipeline/_indicators.py.
+ *
+ * child_pct is the Census 2011 ward-level share of population aged 0 to 6. It
+ * is optional in the pipeline (a city needs a ward-level Census table for it),
+ * but the published city has one, so the site treats it as present.
+ */
 export const INDICATOR_KEYS = [
   "LST_C",
   "NDVI",
   "pop_density_km2",
   "elderly_pct",
+  "child_pct",
   "slum_pct",
   "hospital_dist_m",
   "impervious_pct",
@@ -74,12 +82,13 @@ export const INDICATOR_KEYS = [
 
 export type IndicatorKey = (typeof INDICATOR_KEYS)[number];
 
-/** Plain-language labels for the seven factors, shared by the bars and the table. */
+/** Plain-language labels for the factors, shared by the bars and the table. */
 export const FACTOR_LABELS: Record<IndicatorKey, string> = {
   LST_C: "Land surface temp",
   NDVI: "Green cover (NDVI)",
   pop_density_km2: "Population density",
   elderly_pct: "Elderly %",
+  child_pct: "Children under 7 %",
   slum_pct: "Slum index",
   hospital_dist_m: "Hospital distance",
   impervious_pct: "Impervious / built-up",

@@ -13,22 +13,22 @@ a top-5 list that disagrees with the ranking it came from.
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
 import pytest
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from _indicators import DIRECTIONS  # noqa: E402
+
 ROOT = Path(__file__).resolve().parent.parent.parent
 DATA = ROOT / "data"
 
-INDICATORS = [
-    "LST_C",
-    "NDVI",
-    "pop_density_km2",
-    "elderly_pct",
-    "slum_pct",
-    "hospital_dist_m",
-    "impervious_pct",
-]
+# The published Mumbai index scores every indicator in the shared table. Taken
+# from _indicators.py rather than restated here, so adding one cannot leave this
+# file asserting the old set; a second copy is what it took to find that out.
+INDICATORS = list(DIRECTIONS)
 
 
 def load(name: str):

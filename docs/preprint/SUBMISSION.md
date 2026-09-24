@@ -19,10 +19,10 @@ were added since:
 | Gap | Status | Where |
 |---|---|---|
 | #65 ground-truth validation | Closed. Pooled within-station Pearson r = 0.716 against NOAA GSOD. | §6d |
-| #87 uncertainty bands | Closed. 1000-replicate bootstrap; median rank interval 6 of 24 places; no ward's rank certain. | §6a |
-| #88 weight cross-validation | Closed. PCA against published weighting: Kendall tau 0.913, 13 of 24 ranks identical. | §6b |
-| #96 cross-resolution check | Added. 500 m rebuild moves 8 of 24 wards, and all 24 fall inside their 1 km bootstrap intervals. | §6c |
-| #95 indicator audit | Added. `elderly_pct` carries district, not sub-district, information. | §10 |
+| #87 uncertainty bands | Closed. 1000-replicate bootstrap; median rank interval 6 of 24 places, widest 15; no ward's rank certain. | §6a |
+| #88 weight cross-validation | Closed. PCA against equal weighting: Kendall tau 0.841, 4 of 24 ranks identical, same top-5 set. | §6b |
+| #96 cross-resolution check | Added. 500 m rebuild moves 9 of 24 wards, and all 24 fall inside their 1 km bootstrap intervals. | §6c |
+| #95 indicator audit | Added. `elderly_pct` carries district, not sub-district, information. Real ward-level `child_pct` added beside it. | §4, §10 |
 
 §6c is the part worth submitting on. Two methods that share no machinery, a
 bootstrap over cells and a rebuild at a different resolution, disagree about the
@@ -38,53 +38,36 @@ gradient is arguably more useful to other people than the index itself.
 The dataset already has a DOI, `10.5281/zenodo.22923919` (#84), so the paper can
 cite its own data properly, which is half of what a preprint is for.
 
-## Needs you
+## Decided
 
-**1. Authorship.** Single author, or do Yash and Shaurya belong on it? They
-contribute to StudentSuite; I do not know what, if anything, either contributed
-to this specific work, and guessing in either direction is wrong. Nobody should
-appear on a paper without being asked.
+Recorded 2026-09-24, so nobody has to ask again.
 
-**2. Affiliation.** "Independent researcher" is a legitimate and common choice
-and is probably the accurate one. If you would rather list your school, ask them
-first: some institutions require review before their name goes on a preprint,
-and doing it the other way round is the kind of thing that causes a real
-problem later.
+- **Authorship.** Anay Dhawan, sole author. No co-authors.
+- **Affiliation.** None. Listed as an independent researcher, and no school is named.
+- **Server.** EarthArXiv. Earth and environmental science, no peer review, free, issues a DOI. Submission is a moderation check for scope and usually clears in a couple of days. arXiv is the alternative, but a first submission there needs an endorsement in `physics.ao-ph`.
+- **Manuscript licence.** CC-BY-4.0. This is the licence on the paper's text: anyone may copy, share and build on it if they credit the author. It is separate from the code's Apache-2.0 and from the data's per-source terms.
 
-**3. ORCID.** Free, takes ten minutes at <https://orcid.org/register>, and
-permanently disambiguates your name from every other A. Dhawan. Worth doing
-before the first preprint rather than after, because retrofitting it across
-records is tedious.
+## Still open
 
-**4. Server.** EarthArXiv is the obvious fit: it takes earth and environmental
-science, requires no peer review, issues a DOI, and is free.
-[eartharxiv.org](https://eartharxiv.org/). Submission is a moderation check for
-scope, not review, and usually clears in a couple of days. Alternatives are
-arXiv, which needs an endorsement in `physics.ao-ph` and is therefore slower for
-a first submission, and SSRN, which is a worse fit for this subject.
+**ORCID iD.** An ORCID account exists, but the iD itself (the `0000-0000-0000-0000` number) has not been given, and it has to go in the header.
 
-**5. Licence for the manuscript.** The code is Apache-2.0 and the data has its
-own per-source terms. A preprint is usually CC-BY-4.0. That is a separate
-decision from the repository's licence and EarthArXiv will ask for it.
+**Email on the paper.** Whether `dhawansanay@gmail.com` is printed on it. That is public and permanent.
+
+**A new dataset release, before submitting.** The Zenodo record the paper cites is at v1.0.2. That release predates two changes the paper describes: the plantability correction (section 7) and the eighth indicator `child_pct`. Someone who downloads v1.0.2 will not reproduce the paper's numbers. Tag a new release first, let the release workflow archive it, and the concept DOI then resolves to data that matches. Section 11 already tells readers to cite a later release than 1.0.2.
 
 ## Before you submit
 
-- [ ] Fill authorship and affiliation in the manuscript header
-- [ ] Read §10 in full. It is unusually candid about the index's own weaknesses,
-      and that is deliberate, but you are the one whose name goes on it and you
-      should agree with every sentence of it before it becomes permanent
-- [ ] Convert to PDF. `pandoc docs/HVI-methodology-report.md -o ucip-preprint.pdf`
-      is enough; most servers accept PDF only
-- [ ] Check every figure in the manuscript still matches committed output. A
-      pipeline refresh between now and submission changes numbers, and a
-      preprint citing figures that no longer reproduce is worse than a late one.
-      `python pipeline/run_pipeline.py --dry-run` will tell you whether anything
-      has been rerun
-- [ ] Cite the dataset DOI, `10.5281/zenodo.22923919`, in the references
-- [ ] After it is posted: add the preprint DOI to `README.md` and
-      `CITATION.cff`, and close #90
+- [ ] Give the ORCID iD and decide about the email; both go in the manuscript header
+- [ ] Cut a new release so the archived data matches the paper
+- [ ] Read section 10 in full. It is candid about the index's own weaknesses, on purpose, but your name goes on it and you should agree with every sentence before it becomes permanent
+- [ ] Convert to PDF. `pandoc docs/HVI-methodology-report.md -o ucip-preprint.pdf` is enough, and most servers accept PDF only. Remove the italic draft-status note at the top first
+- [ ] Check every figure still matches committed output. A pipeline refresh between now and submission changes numbers, and a preprint citing figures that no longer reproduce is worse than a late one. The twice-weekly refresh will move the satellite-derived values, so do this check on the day
+- [ ] After it is posted: add the preprint DOI to `README.md` and `CITATION.cff`, and close #90
 
-## What I deliberately did not do
+## What was deliberately not done
 
-Submit it. Fill in an author. Pick an affiliation. Invent an ORCID. Choose a
-licence on your behalf. Each of those is permanent and attributable to you.
+The paper has not been submitted, and no ORCID iD or email has been invented. Both are permanent and attributable, and the iD in particular has to be the real one.
+
+## A note on how the paper was written
+
+It was rewritten in plain prose after the numbers changed, and checked mechanically for em dashes, curly quotes, the usual filler vocabulary and negative parallelisms. Every figure was recomputed from the committed output files and not copied from the earlier draft. Two claims in it were checked against the code before being written down: the cooling-centre rule's comparison operator, and the count of hot, bare cells that are built-up land.

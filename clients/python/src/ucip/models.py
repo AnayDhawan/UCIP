@@ -52,7 +52,7 @@ class Ward(TypedDict, total=False):
     dominant_share: float | None
     """
     That indicator's share of total absolute contribution, 0 to 1. An even
-    spread across the seven indicators is about 0.14.
+    spread across the eight indicators is 0.125.
     """
     single_factor_dominated: bool | None
     """

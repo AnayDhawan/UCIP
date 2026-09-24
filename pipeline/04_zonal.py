@@ -29,6 +29,7 @@ Run:
     python 04_zonal.py
 """
 
+import csv
 import sys
 from pathlib import Path
 
@@ -36,6 +37,7 @@ import geopandas as gpd
 import _provenance
 
 from _city import load_city
+from _indicators import REQUIRED
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
@@ -47,18 +49,60 @@ _CITY = load_city()
 IN_PATH = _CITY.grid_path("_vectors")
 OUT_PATH = _CITY.out("cells.geojson")
 
-# Canonical indicator set consumed by 05_hvi.py (methodology.md §3).
-INDICATOR_COLS = [
-    "LST_C", "NDVI", "pop_density_km2", "elderly_pct",
-    "slum_pct", "hospital_dist_m", "impervious_pct",
-]
+# The indicators every run must have, from _indicators.py. child_pct is optional
+# and joined below when a ward-level Census table exists for the city.
+INDICATOR_COLS = list(REQUIRED)
 KEEP_COLS = ["grid_id", "ward_id", "ward_gid", "NDVI_prev", "geometry"] + INDICATOR_COLS
+
+# Ward-level Census age table, an input rather than an output, so it lives flat
+# in data/ beside slumClusters.geojson and does not move with the grid
+# resolution. Built by build_census_table.py. Absent for a city that has none.
+CENSUS_TABLE = DATA_DIR / f"census2011_ward_age_{_CITY.slug}.csv"
 
 # Carried through when present, but not required. elderly_source (issue #95)
 # says where a cell's age structure came from, and a dataset produced before
 # that column existed is still perfectly valid input; demanding it would fail
 # a refresh over provenance metadata rather than over data.
-OPTIONAL_COLS = ["elderly_source"]
+OPTIONAL_COLS = ["elderly_source", "child_source"]
+
+
+def attach_child_share(gdf: "gpd.GeoDataFrame") -> bool:
+    """Join the Census 0-6 share onto the cells by ward. Returns whether it did.
+
+    Done here rather than in stage 03 on purpose. Stage 03 re-pulls WorldPop and
+    OpenStreetMap, both of which can move between runs for reasons unrelated to
+    this change, so adding a ward-level join there would have made a rerun
+    change unrelated columns. This is a pure lookup against a committed table:
+    offline, deterministic, and cheap enough that nobody has to think about it.
+
+    Every ward in the grid must have a row. A missing ward would come out as
+    NaN and the dropna below would then silently discard every cell in it, which
+    is the kind of failure that looks like a smaller dataset instead of an
+    error, so it stops the run instead.
+
+    The share is the ward's, assigned flat to each of its cells. That is honest
+    about the source: the Census has no finer resolution than the ward, and
+    spreading it smoothly across cells would invent detail it does not have.
+    """
+    if not CENSUS_TABLE.exists():
+        print(f"[note] no Census table at {CENSUS_TABLE.name}; running without child_pct")
+        return False
+
+    with CENSUS_TABLE.open(encoding="utf-8", newline="") as handle:
+        table = {row["ward_id"]: row for row in csv.DictReader(handle)}
+
+    missing = sorted(set(gdf["ward_id"].unique()) - set(table))
+    if missing:
+        raise SystemExit(
+            f"[FAIL] {CENSUS_TABLE.name} has no row for ward(s) {missing}; "
+            "refusing to drop their cells silently. Rebuild it with build_census_table.py."
+        )
+
+    gdf["child_pct"] = gdf["ward_id"].map(lambda w: float(table[w]["child_pct"]))
+    gdf["child_source"] = gdf["ward_id"].map(lambda w: table[w]["source"])
+    print(f"[ok] joined Census child share for {gdf['ward_id'].nunique()} wards "
+          f"({gdf['child_pct'].min():.2f}% to {gdf['child_pct'].max():.2f}%)")
+    return True
 
 
 def main() -> int:
@@ -74,10 +118,14 @@ def main() -> int:
         print(f"[FAIL] missing expected columns: {missing_cols}")
         return 1
 
-    tidy = gdf[KEEP_COLS + [c for c in OPTIONAL_COLS if c in gdf.columns]].copy()
+    has_child = attach_child_share(gdf)
+    indicator_cols = INDICATOR_COLS + (["child_pct"] if has_child else [])
+
+    tidy = gdf[KEEP_COLS + (["child_pct"] if has_child else [])
+               + [c for c in OPTIONAL_COLS if c in gdf.columns]].copy()
 
     before = len(tidy)
-    tidy = tidy.dropna(subset=INDICATOR_COLS)
+    tidy = tidy.dropna(subset=indicator_cols)
     dropped = before - len(tidy)
     if dropped:
         print(f"[WARN] dropped {dropped}/{before} cells with a missing indicator value")

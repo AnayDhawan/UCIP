@@ -1,473 +1,229 @@
 # A Transparent, Literature-Weighted Heat Vulnerability Index for Mumbai's 24 Wards
 
-**A standalone technical report for the Urban Cooling Intervention Platform (UCIP)**
+Anay Dhawan, independent researcher
 
-*Status: **submission-ready draft, not submitted.** Authorship and affiliation are
-deliberately unfilled; see `docs/preprint/SUBMISSION.md` for what remains and who has to
-decide it. Prepared per issues #66 and #90.*
+Technical report for the Urban Climate Intelligence Platform (UCIP)
 
-*Every figure below is read directly from this repository's committed pipeline output
-(`data/hvi_pca_log.json`, `data/sensitivity.json`, `data/hvi_uncertainty.json`,
-`data/weighting_comparison.json`, `data/lst_validation.json`,
-`data/elderly_evaluation.json`, `data/nbs_recommendations.json`,
-`data/cells_ndvi_change.geojson`) and pipeline source (`pipeline/05_hvi.py`,
-`pipeline/06_nbs.py`, `pipeline/08_sensitivity.py`, `pipeline/09_ndvi_change.py`,
-`pipeline/13_validate_lst.py`, `pipeline/uncertainty.py`,
-`pipeline/compare_weightings.py`, `pipeline/elderly_evaluation.py`,
-`frontend/src/lib/coefficients.ts`), not re-derived or estimated. The dataset is archived
-at doi:10.5281/zenodo.22923919.*
+*Draft status, removed before submission: written for issues #66 and #90 and not yet submitted. What remains to be decided is listed in `docs/preprint/SUBMISSION.md`. Every figure below was read from this repository's committed pipeline output (`data/hvi_pca_log.json`, `data/sensitivity.json`, `data/hvi_uncertainty.json`, `data/weighting_comparison.json`, `data/lst_validation.json`, `data/elderly_evaluation.json`, `data/nbs_recommendations.json`, `data/cells_ndvi_change.geojson`) and not re-derived. The dataset is archived at doi:10.5281/zenodo.22923919.*
 
 ---
 
 ## Abstract
 
-Urban heat is not distributed evenly across a city, and neither is the capacity to
-adapt to it. This report documents the Heat Vulnerability Index (HVI) computed by the
-Urban Cooling Intervention Platform (UCIP) for Mumbai's 24 Brihanmumbai Municipal
-Corporation (BMC) wards: a seven-indicator, Principal Component Analysis (PCA)-weighted
-index built on dry-season satellite land surface temperature and vegetation data,
-WorldPop demographic layers, OpenStreetMap hospital access, and Datameet administrative
-and slum-cluster boundaries. We describe the indicator set and its directionality, the
-PCA weight-derivation procedure and its published fallback, a one-at-a-time
-weight-perturbation sensitivity analysis, the rule-based Nature-Based Solutions (NBS)
-recommendation engine, and its ecological plantability filter, which withholds
-afforestation recommendations for cells that are ecologically unsuitable for tree
-planting rather than recommending trees everywhere heat is high. Every indicator,
-weight, and coefficient in this report traces to either a value the pipeline actually
-computed from real geospatial data, or a specific cited publication; nothing here is an
-invented or illustrative placeholder. We close with the limitations we consider most
-important to state openly: land surface temperature is not air temperature, several
-demographic layers are proxies rather than ward-level census figures, and the cooling
-coefficients used elsewhere in the product are transferred from other cities rather
-than Mumbai-calibrated.
+Heat risk is uneven within a city, and so is the ability to cope with it. This report describes the Heat Vulnerability Index (HVI) that UCIP computes for the 24 Brihanmumbai Municipal Corporation (BMC) wards of Mumbai. The index combines eight indicators on a 1 km grid: dry-season land surface temperature, vegetation, population density, the share of elderly people, the share of young children, informal-settlement coverage, distance to a hospital, and impervious surface. Weights come from the first principal component of the standardised indicators. A rule-based engine turns each cell's scores into a cooling recommendation, and an ecological filter withholds tree planting where the land cover makes it inappropriate.
 
-We report four independent checks on the resulting ranking rather than one. A
-one-at-a-time weight perturbation gives a mean Kendall tau of 0.978. A 1000-replicate
-bootstrap over the cells, rerunning the entire chain per replicate, finds the median
-ward's 95% rank interval spans 6 of 24 places and that no ward's rank is certain.
-Comparing the PCA weighting against the published equal weighting it falls back to gives
-Kendall tau 0.913, with 13 of 24 ranks identical. Rebuilding the dataset on a 500 m grid,
-1975 cells instead of 541, moves 8 of 24 wards, and every one of those 24 ranks falls
-inside that ward's own bootstrap interval from the 1 km data. Two methods sharing no
-machinery thus disagree about the ordering and agree about which parts of it carry
-information.
+Most of the report is about how far the ranking can be trusted. We test it four ways: perturbing the weights, bootstrapping the cells, comparing principal-component weights with equal weights, and rebuilding the whole dataset on a 500 m grid. The median ward's 95% rank interval spans 6 of 24 places, and no ward's rank is certain. The 500 m rebuild reorders nine wards, yet every ward's 500 m rank sits inside its own bootstrap interval from the 1 km data. Equal weighting is less forgiving than we expected. It agrees with the principal-component ranking at Kendall's tau 0.84 and moves ward C from first place to fifth, although the set of five most vulnerable wards is the same under both.
 
-We also report a negative result about our own indicator set. `elderly_pct`, drawn from
-WorldPop's 100 m age-sex raster, carries district rather than sub-district information:
-80% of cells share one value, and the two dominant values split the city exactly along
-the revenue district boundary. It nonetheless takes 14.1% of total absolute contribution
-to ward scores, so a ward's rank is partly determined by an administrative boundary under
-a demographic label. We document this rather than quietly correcting it because the same
-raster is widely used the same way.
+We also report two problems with our own inputs. The elderly share, taken from WorldPop, has two values across the whole city and follows the revenue district boundary exactly, so it carries district-level information under a ward-level label. And with the ecological filter working as intended, the tree-planting recommendation fires for no cell in Mumbai, because every cell that is both hot and bare is built-up land.
 
-## 1. Introduction and Motivation
+## 1. Introduction
 
-Heat is increasingly recognized as an urban public-health hazard, and IPCC AR6's
-Working Group II urban chapter frames adaptation planning as needing spatial
-granularity: a city-wide average temperature says little about which specific
-neighborhoods need intervention first, or what kind of intervention fits their
-physical and ecological constraints. UCIP's premise is that a heat-vulnerability tool
-is only useful to a city planner if it goes past "here is a heat map" to "here is which
-of your 24 administrative units to act on first, why, and with what intervention,"
-grounded in data the tool actually computed rather than expert judgment or arbitrary
-weighting.
+Heat is a public-health hazard in cities, and adaptation planning needs to know where to act. Knowing that a city is warm does not say that. A single citywide temperature says nothing about which neighbourhoods to look at first or what kind of intervention suits them. UCIP tries to answer at the level a municipal planner works: which of the 24 wards to act on first, why, and with what.
 
-This report elevates the project's existing in-app methodology page (`/methodology`)
-and its outline-form source (`docs/methodology.md`, `docs/references.md`) into a
-self-contained technical document: one that can be read, cited, and checked without
-the surrounding product.
+The index and the recommendation engine are built so that they can be checked. Weights are derived from the data by a published method instead of being set by judgment, every score breaks down into per-indicator contributions, and the sections below say where the results are weak. The in-app methodology page (`/methodology`) and `docs/methodology.md` describe the same work in outline. This report is the version that can be read and cited without the product.
 
-## 2. Prior Art
+## 2. Prior art
 
-UCIP's design was informed by a comparison against existing heat-vulnerability and
-urban-cooling work, including the Mumbai Climate Action Plan (MCAP 2022), the RAND/Azhar
-et al. India district-level HVI (Azhar et al. 2017), IIT-Bombay's work on Mumbai's
-surface urban heat island, the C40 Urban Cooling Toolbox, and the Ahmedabad Heat Action
-Plan (documented via Knowlton et al. 2014). Relative to that prior art, UCIP's stated
-point of difference is combining (a) a transparent, literature-weighted index rather
-than a static or expert-weighted vulnerability score, (b) a rule-based NBS
-recommendation engine tied to that index, and (c) an ecological plantability filter
-that can reject afforestation on ecological grounds, described in Section 7.
+UCIP was designed after comparing existing heat-vulnerability and urban-cooling work: the Mumbai Climate Action Plan (MCAP 2022), the district-level India HVI of Azhar et al. (2017), IIT Bombay's work on Mumbai's surface urban heat island, the C40 Urban Cooling Toolbox, and the Ahmedabad Heat Action Plan (Knowlton et al. 2014). It differs from that work in three ways. The index weights come from the data. A rule-based engine attaches a recommendation to each score. And an ecological filter can reject afforestation on ecological grounds (section 7).
 
-## 3. Study Area and Data
+## 3. Study area and data
 
-The study area is Mumbai, analyzed at 1 km grid-cell resolution and rolled up to the
-city's 24 BMC administrative wards. The pipeline (`pipeline/01_grid.py`) builds this
-grid by clipping a fishnet to ward boundaries in a metric CRS (EPSG:32643, UTM zone
-43N) and assigning each cell to the ward containing its largest fragment. As of the
-data underlying this report, that raw fishnet produces 547 cells across all 24 wards
-(`data/grid_1km.geojson`). A later consolidation step, `pipeline/04_zonal.py`, drops
-any cell missing one or more of the seven indicators in Section 4 before the indicators
-can be z-standardized; as of this run that drops 6 of the 547 cells (about 1%, well
-under the pipeline's own 15% sanity-check ceiling for data loss), leaving the 541-cell
-table (`data/cells.geojson`) that every subsequent stage, and every other cell count in
-this report, is computed from.
+Mumbai is analysed on a 1 km grid and rolled up to the 24 BMC wards. `pipeline/01_grid.py` clips a fishnet to the ward boundaries in a metric projection (EPSG:32643, UTM zone 43N) and assigns each cell to the ward that holds its largest fragment, which gives 547 cells. Stage 04 (`pipeline/04_zonal.py`) then drops any cell that is missing an indicator, since it cannot be standardised. That removes 6 of the 547, about 1%, against a pipeline ceiling of 15%. The remaining 541 cells (`data/cells.geojson`) are the basis for every later stage and every cell count in this report.
 
 | Layer | Source | Access | Note |
 |---|---|---|---|
-| Land surface temperature (LST) | Landsat 8/9 Collection 2 Level-2, `ST_B10` | Google Earth Engine | Dry-season median composite, cloud/shadow-masked via `QA_PIXEL` |
-| NDVI (current + baseline) | Landsat 8/9 Collection 2 Level-2, `SR_B4`/`SR_B5` | Google Earth Engine | Two dry-season composites roughly nine years apart, for the green-cover-change layer (Section 8) |
-| Population density, elderly share | WorldPop age-sex structure, pinned to the `IND_2020` image | Google Earth Engine | **Proxy.** 2020 is the most recent year WorldPop publishes for India in this collection; the pin is explicit in `pipeline/03_vectors.py` rather than left to whichever vintage the API returns first |
-| Slum index | Datameet `slumClusters.geojson` (mapped cluster boundaries) | Repository data | **Proxy**, but based on observed cluster polygons rather than a modeled index |
-| Hospital access | OpenStreetMap `amenity=hospital` | `osmnx` / Overpass | Per-cell straight-line distance to the nearest hospital centroid |
-| Impervious / built-up surface, land-cover class | ESA WorldCover v200 | Google Earth Engine | Also the input to the plantability filter (Section 7) |
-| Ward boundaries | Datameet BMC ward boundaries | Repository data | 24 features, validated against Mumbai's known extent |
+| Land surface temperature (LST) | Landsat 8/9 Collection 2 Level-2, `ST_B10` | Google Earth Engine | Dry-season median composite, cloud and shadow masked with `QA_PIXEL` |
+| NDVI (current and baseline) | Landsat 8/9 Collection 2 Level-2, `SR_B4` and `SR_B5` | Google Earth Engine | Two dry-season composites about nine years apart, for the green-cover-change layer (section 8) |
+| Population density, elderly share | WorldPop age-sex structure, pinned to the `IND_2020` image | Google Earth Engine | Proxy. 2020 is the latest year WorldPop publishes for India in this collection, and the pin is explicit in `pipeline/03_vectors.py` so a newer vintage cannot be picked up silently. See section 10 for what the elderly layer contains |
+| Young-child share | Census of India 2011, Primary Census Abstract at Census-ward level, as republished by OpenCity | Repository data (`data/census2011_ward_age_mumbai.csv`) | Ward level, so every cell in a ward carries its ward's value. Ninety-seven Census wards roll up into the 24 BMC wards. The build checks that the population sums to the Census figure for Greater Mumbai, 12,442,373 |
+| Slum index | Datameet `slumClusters.geojson`, mapped cluster boundaries | Repository data | Proxy, though it rests on observed cluster polygons and not on a modelled index |
+| Hospital access | OpenStreetMap `amenity=hospital` | `osmnx` and Overpass | Straight-line distance from each cell to the nearest hospital centroid |
+| Impervious surface, land-cover class | ESA WorldCover v200 | Google Earth Engine | Also the input to the plantability filter (section 7) |
+| Ward boundaries | Datameet BMC ward boundaries | Repository data | 24 features, checked against Mumbai's known extent |
 
-## 4. Indicators and Directionality
+## 4. Indicators and direction
 
-Seven indicators feed the index, each assigned a direction reflecting whether a higher
-raw value indicates *more* vulnerability (`+1`) or *less* (`-1`, i.e. inverted before
-scoring):
+Eight indicators feed the index. Each has a direction: +1 when a higher raw value means more vulnerability, and -1 when it means less, in which case the value is inverted before scoring. NDVI is the only -1.
 
 | Indicator | Direction | Unit | Observed range (541 cells) |
 |---|---|---|---|
-| `LST_C` (land surface temperature) | + | °C (land surface, not air) | 26.24 to 39.95 |
-| `NDVI` (vegetation index) | − | unitless index, not a canopy percentage | −0.07 to 0.71 |
-| `pop_density_km2` (population density) | + | people / km² | 16 to 115,272 |
-| `elderly_pct` (elderly share, 60+) | + | % (0-100), WorldPop 2020 proxy | 4.02 to 5.59 |
-| `slum_pct` (slum-cluster coverage) | + | % (0-100), mapped-boundary proxy | 0.00 to 68.55 |
+| `LST_C` (land surface temperature) | + | degrees C, land surface and not air | 26.24 to 39.95 |
+| `NDVI` (vegetation index) | - | unitless index, not a canopy percentage | -0.07 to 0.71 |
+| `pop_density_km2` (population density) | + | people per km2 | 16 to 115,272 |
+| `elderly_pct` (share aged 60 and over) | + | % (0-100), WorldPop 2020 | 4.02 to 5.59 |
+| `child_pct` (share aged 0 to 6) | + | % (0-100), Census 2011, by ward | 6.75 to 13.09 |
+| `slum_pct` (slum-cluster coverage) | + | % (0-100), mapped boundaries | 0.00 to 68.55 |
 | `hospital_dist_m` (distance to nearest hospital) | + | metres | 3.86 to 6199.03 |
 | `impervious_pct` (impervious surface share) | + | % (0-100) | 0.00 to 96.79 |
 
-`elderly_pct` spans only 1.6 percentage points across the entire city in this dataset,
-so on its own it separates wards weakly; the PCA weighting in Section 5 reflects this
-by assigning it the lowest weight of the seven indicators; the product's own UI copy
-does not lean on it as a standalone talking point.
+The two age indicators behave very differently. `elderly_pct` spans 1.6 percentage points across the whole city, and section 10 shows why: it is a district-level value spread over a raster. `child_pct` is real ward-level Census data with 24 distinct values from 6.75% to 13.09%.
 
-## 5. HVI Computation
+It measures children under seven and not the elderly, and those are different populations. It is in the index because the ward-level Census tables we could find have no 60+ column, and 0 to 6 is the only age-structure signal in them. Including it is a modelling choice and not a settled one, and as section 5 shows, the weighting method gives it very little influence.
 
-**Standardization.** Each indicator is z-standardized across all cells
-(`pipeline/05_hvi.py`): for indicator column $x$, $z = (x - \bar{x}) / \sigma_x$
-(population standard deviation, i.e. `ddof=0`), and then multiplied by its direction
-sign so that, after this step, a higher signed z-score always means "more
-vulnerable" for every indicator.
+## 5. Computing the HVI
 
-**Weight derivation (PCA, Reid et al. 2009).** A Principal Component Analysis is fit
-on the seven signed z-score columns. The first principal component's explained
-variance ratio is checked against a floor of 0.30; if it is at or above that floor, the
-component's loadings are used to derive weights. The component is first sign-oriented
-so that a higher PC1 score means more vulnerable (checked by correlating PC1 scores
-against the signed `LST_C` z-score and flipping the sign if that correlation is
-negative), and the final weight for indicator $i$ is the absolute loading normalized
-across all seven indicators:
+**Standardisation.** Each indicator is z-standardised across all cells (`pipeline/05_hvi.py`). For an indicator column $x$, $z = (x - \bar{x}) / \sigma_x$, using the population standard deviation (`ddof=0`). The result is then multiplied by the indicator's direction sign, so a higher signed z-score always means more vulnerable.
 
-$$w_i = \frac{|\ell_i|}{\sum_{j=1}^{7} |\ell_j|}$$
+**Weights (PCA, Reid et al. 2009).** A principal component analysis is fitted to the signed z-score columns. The explained-variance ratio of the first component is compared with a floor of 0.30. If it is at or above the floor, the component's loadings give the weights. The component is first oriented so that a higher score means more vulnerable, by correlating its scores with the signed `LST_C` z-score and flipping the sign if the correlation is negative. The weight for indicator $i$ is its absolute loading divided by the sum of absolute loadings:
 
-where $\ell_i$ is indicator $i$'s (sign-oriented) PC1 loading. **Fallback.** If PC1's
-explained variance ratio is below the 0.30 floor, the pipeline treats the loadings as
-unstable for this single-city, single-snapshot sample and falls back to equal
-weighting across all seven indicators (the published component-level default per Reid
-et al. 2009), logging that the fallback fired and why.
+$$w_i = \frac{|\ell_i|}{\sum_{j=1}^{p} |\ell_j|}$$
 
-**Current run's values.** As of the pipeline output committed to this repository, PC1
-explained 58.0% of variance, comfortably above the 0.30 floor, so the PCA-derived
-weights below were used (fallback not triggered):
+where $\ell_i$ is the oriented PC1 loading and $p$ is the number of indicators. If PC1 falls below the 0.30 floor, the pipeline treats the loadings as unstable for a single-city, single-snapshot sample and falls back to equal weights across all indicators, which is the published component-level default in Reid et al. (2009). It logs that the fallback fired and why.
+
+**Values in the committed run.** PC1 explains 50.9% of the variance, above the floor, so the fallback did not fire.
 
 | Indicator | PC1 loading | Weight |
 |---|---:|---:|
-| `LST_C` | 0.432 | 0.168 |
-| `NDVI` | 0.384 | 0.149 |
-| `pop_density_km2` | 0.432 | 0.168 |
-| `elderly_pct` | 0.197 | 0.077 |
-| `slum_pct` | 0.276 | 0.107 |
-| `hospital_dist_m` | −0.383 | 0.149 |
-| `impervious_pct` | 0.466 | 0.181 |
+| `LST_C` | 0.434 | 0.166 |
+| `NDVI` | 0.383 | 0.146 |
+| `pop_density_km2` | 0.432 | 0.165 |
+| `elderly_pct` | 0.193 | 0.074 |
+| `child_pct` | 0.050 | 0.019 |
+| `slum_pct` | 0.279 | 0.107 |
+| `hospital_dist_m` | -0.381 | 0.146 |
+| `impervious_pct` | 0.464 | 0.177 |
 
-These weights are **recomputed from the current run's data on every pipeline refresh**,
-not fixed constants; a materially different snapshot of Mumbai's cells could shift
-PC1's loadings and therefore these weights. What is fixed, and cited, is the *procedure*
-(PCA on signed z-scores, with the stated fallback), not any particular numeric weight.
+The index was first built with seven indicators, and PC1 then explained 58.0%. Adding `child_pct` lowered that to 50.9%. Child share is nearly uncorrelated with the other indicators (its correlation with each is at most 0.22 in absolute value), so it adds variance that PC1 does not capture, and PCA gives it the smallest weight of the eight. The effect on the ranking is small. Ten wards move by one place each, and ward B enters the top five in place of F/S.
 
-**HVI score.** Per cell, `HVI_raw` is the weighted sum of signed z-scores
-($\sum_i w_i z_i$), and the final `HVI` is `HVI_raw` linearly rescaled to 0-100 across
-all cells in the run (min mapped to 0, max to 100). Ward-level HVI is the unweighted
-mean of its member cells' scores, and ward rank is `HVI` sorted descending (rank 1 =
-most vulnerable). As of this run, the five highest-ranked wards are C, G/N, L, E, and
-F/S (HVI 73.6, 69.7, 65.8, 65.0, and 64.8 respectively). Reading each ward's largest
-per-factor contribution directly from `data/wards_hvi.geojson`: C, G/N, and E are each
-driven primarily by `impervious_pct` (contributions 0.292, 0.217, and 0.233
-respectively); L primarily by `LST_C` (0.209); and F/S primarily by `elderly_pct`
-(0.170), narrowly ahead of `impervious_pct` (0.140) for that one ward.
+The weights are recomputed from the current data on every pipeline run. What is fixed, and cited, is the procedure: PCA on signed z-scores, with the stated fallback. A materially different snapshot of Mumbai could shift the loadings.
 
-**Explainability.** Per-cell, per-indicator contributions (`weight × signed z-score`)
-are stored alongside the score and shown as a ranked bar breakdown in the product.
-Because the index is a transparent weighted linear sum, this contribution decomposition
-*is* the full explanation of any given score; the project deliberately does not use a
-post-hoc explainability method (e.g. SHAP) because there is no black-box model to
-explain.
+**Score.** For each cell, `HVI_raw` is the weighted sum of signed z-scores, $\sum_i w_i z_i$, and `HVI` is `HVI_raw` rescaled linearly to 0-100 across all cells in the run. A ward's HVI is the unweighted mean of its cells' scores, and its rank is `HVI` sorted in descending order, so rank 1 is the most vulnerable. In the committed run the five highest-ranked wards are C, G/N, L, E and B, with HVI of 72.1, 69.5, 66.7, 64.8 and 64.6. The largest single contribution comes from `impervious_pct` for C, G/N and E (0.286, 0.213 and 0.228), from `LST_C` for L (0.206), and from `NDVI` for B (0.207).
 
-## 6. Sensitivity Analysis
+**Explanation.** Each cell's contribution from each indicator (weight times signed z-score) is stored with its score and shown as a ranked bar chart in the product. The index is a weighted linear sum, so this breakdown is the complete explanation of any score. There is no black-box model, and so no need for a post-hoc method such as SHAP.
 
-A weight-transfer validity question, namely whether these literature-derived weights
-actually produce a stable, trustworthy ranking for Mumbai specifically, or whether
-small disagreements about the "right" weights would change which wards get
-prioritized, is addressed with a one-at-a-time perturbation study (`pipeline/08_sensitivity.py`): each
-of the seven weights is perturbed ±20% in turn, the remaining six renormalized to keep
-all weights summing to 1, and the ward ranking recomputed. Fourteen perturbation runs
-result (7 indicators × 2 directions), each compared to the unperturbed baseline ranking
-by Kendall's tau (rank-correlation over all 24 wards) and by top-5 overlap (how many of
-the baseline top-5 most-vulnerable wards remain in the perturbed top-5).
+## 6. Sensitivity to the weights
 
-**Results.** Mean Kendall tau across all 14 runs was 0.978 (1.0 = identical ranking),
-and mean top-5 overlap was 4.43 of 5. Overlap was 5 of 5 (the entire top-5 set matched
-baseline exactly) in 6 of the 14 runs, and 4 of 5 in the other 8; it never fell below 4
-in any run. Reading `data/sensitivity.json`'s per-run rankings directly rather than
-summarizing from memory: only the top TWO wards by HVI, C and G/N, were unchanged in
-every one of the 14 perturbations. Ward L (baseline rank 3) dropped out of the top 5 in
-2 of the 14 runs (`elderly_pct` +20%, `slum_pct` -20%), ward E (baseline rank 4)
-dropped out in 2 runs (`hospital_dist_m` +20%, `impervious_pct` -20%), and ward F/S
-(baseline rank 5) dropped out in 4 runs (`LST_C` -20%, `NDVI` +20%,
-`pop_density_km2` -20%, `impervious_pct` +20%). In every one of these 8 runs, the ward
-dropped from the top 5 was replaced by exactly one ward, B, and never by any other
-ward. No perturbation altered which ward ranked most vulnerable overall: ward C is
-rank 1 in the baseline and in all 14 perturbed rankings. We read this as the top of the
-ranking (ranks 1-2) being fully robust to plausible weight disagreement, with
-increasing but still bounded sensitivity moving down through ranks 3-5, where ward B is
-the one consistent alternative that displaces the baseline's 3rd-5th-ranked wards under
-perturbation. This is a more qualified result than "top 5 is stable," and we consider
-reporting it exactly as computed more honest than rounding up.
+This section asks whether small disagreements about the right weights would change which wards get priority. `pipeline/08_sensitivity.py` perturbs each of the eight weights by +20% and by -20% in turn, renormalises the other seven so the weights still sum to 1, and recomputes the ranking. That gives 16 runs. Each is compared with the unperturbed ranking by Kendall's tau over all 24 wards and by top-5 overlap.
 
-## 6a. How Precise Is a Ward's Rank? A Bootstrap
+Mean tau across the 16 runs is 0.985, and mean top-5 overlap is 4.88 of 5. In 14 of the 16 runs the top five is exactly the baseline set (C, G/N, L, E, B). In the other two, lowering the NDVI weight by 20% and raising the population-density weight by 20%, ward B drops out and F/S takes its place. Wards C, G/N, L and E are in the top five in every run, and ward C is first in all 16. In four runs B and E swap places.
 
-The perturbation study in §6 varies the weights and holds the sample fixed. It
-therefore answers "would a different analyst's weights change the answer" and not
-"would a different sample change the answer". The second question matters at least as
-much, because the PCA weights are themselves estimated from 541 cells and carry
-sampling uncertainty of their own.
+One indicator barely registers. Perturbing `child_pct` by 20% in either direction leaves every rank unchanged (tau 1.000), which follows from its 1.9% weight.
 
-`pipeline/uncertainty.py` resamples the cells with replacement 1000 times (seed 20260923)
-and reruns the entire chain on each replicate: z-scores, PCA, weight derivation, per-cell
-index, 0-100 rescale, ward rollup and rank. Holding the z-scores and the rescale fixed
-and varying only the weights would understate the uncertainty while looking rigorous, so
-the whole chain is rerun. Percentile intervals at 95% follow.
+The run output records only the top five for each perturbation, so this section says nothing about how ranks below fifth move. Section 6a covers the whole table.
 
-**Results.** The median ward's 95% rank interval spans **6 of 24 places**. The widest is
-**14 places**: ward B, ranked 6th, has an interval running from 1st to 15th. **No ward's
-rank is certain**, in the sense that no ward's interval collapses to a single place.
+## 6a. How precise is a ward's rank? A bootstrap
 
-This is a substantive qualification, not a formality. It means the ranking should be read
-as broad bands. "C is the most vulnerable ward" survives, with an interval of 1st to 3rd,
-and "T and R/C are among the least vulnerable" survives. The difference between 8th and
-12th does not survive: those intervals overlap almost entirely, and a planner choosing
-between two mid-table wards should treat them as tied and decide on other grounds.
+The perturbation study varies the weights and holds the sample fixed. It answers whether a different analyst's weights would change the result, and it does not answer whether a different sample would. The second question matters just as much, since the PCA weights are themselves estimated from 541 cells and carry sampling error.
 
-We report this because the alternative, publishing a rank to a single integer and letting
-readers infer a precision the method does not have, is the failure mode that makes
-indices of this kind harmful in practice.
+`pipeline/uncertainty.py` resamples the cells with replacement 1000 times (seed 20260923) and reruns the whole chain on each replicate: z-scores, PCA, weights, per-cell index, 0-100 rescale, ward roll-up and rank. Holding the z-scores and the rescale fixed and varying only the weights would understate the uncertainty while looking rigorous, so everything is recomputed. The intervals below are 95% percentile intervals.
 
-## 6b. Does the Weighting Choice Change the Answer?
+The median ward's rank interval spans 6 of 24 places. The widest belongs to ward B, ranked 5th, whose interval runs from 1st to 16th, 15 places. No ward's rank is certain: no interval collapses to a single place.
 
-§5 derives weights from PC1 and documents a fallback to published equal weighting when
-PC1 explains too little variance. `pipeline/compare_weightings.py` computes both rankings
-on the same data and compares them directly.
+Some statements about the ranking survive this and some do not. Ward C's interval is 1st to 3rd, so C being among the most vulnerable holds. T and R/C, ranked 24th and 23rd, have intervals of 22nd to 24th and 21st to 24th, so being among the least vulnerable holds too. The 8th-ranked ward (G/S, 6th to 12th) and the 12th (M/W, 7th to 14th) overlap almost completely, and a planner choosing between two mid-table wards should treat them as tied and decide on other grounds.
 
-**Results.** Kendall's tau between the two rankings is **0.913** and Spearman's rho is
-**0.977**. Thirteen of 24 wards receive an identical rank under both schemes, the largest
-single shift is **3 places** (ward L), and 4 of the top 5 are shared. The PCA top 5 is
-C, G/N, L, E, F/S; the published-weighting top 5 is C, G/N, F/S, E, B.
+We report this because publishing a rank as a bare integer invites readers to assume a precision the method does not have.
 
-The correct reading is narrow. A high correlation does not show the PCA weighting is
-correct; nothing here could show that. It shows the ranking is **insensitive to the
-choice between them**, which is the more useful claim: wards near the top are there
-because of the data rather than because of the weighting.
+## 6b. Does the choice of weights change the answer?
 
-## 6c. Does the Grid Resolution Change the Answer?
+Section 5 derives weights from PC1 and documents a fallback to equal weights. `pipeline/compare_weightings.py` computes both rankings on the same data and compares them.
 
-The two checks above resample or reweight a fixed 1 km grid. Rebuilding the dataset at
-500 m is an independent test, because it changes the unit of analysis rather than
-perturbing it: 1975 published cells instead of 541, roughly 82 per ward instead of 23,
-with every stage from the fishnet through the Earth Engine reductions rerun.
+Kendall's tau between the two is 0.841 and Spearman's rho is 0.959. Four of the 24 wards get the same rank under both schemes. The largest shift is 4 places: ward C is first under PCA weights and fifth under equal weights, and ward M/E goes from 16th to 12th. The top-5 set is identical (PCA order C, G/N, L, E, B; equal-weight order G/N, L, B, E, C), but the order inside it is not.
 
-**Results.** Eight of the 24 wards change rank, and ward B moves from 6th to 1st.
+This is weaker agreement than the same comparison gave before `child_pct` was added, when tau was 0.913. Two things account for the drop. Holding the equal-weight scheme at seven indicators, adding `child_pct` to the PCA side alone takes tau from 0.913 to 0.891. Then giving `child_pct` an eighth of the total under equal weights (12.5%, against 1.9% under PCA) takes it the rest of the way, to 0.841.
 
-Taken alone that looks like instability. Taken with §6a it is the opposite. **Every
-ward's 500 m rank falls inside that ward's own 95% bootstrap interval from the 1 km
-data, 24 out of 24.** Ward B's interval was 1st to 15th, the widest in the table, and
-1st is inside it.
+A high correlation would not have shown that PCA weighting is correct, and nothing here could. What the comparison shows is narrower. Which wards are near the top depends little on the weighting, but their order depends on it. The choice of weights matters more than the perturbation study in section 6 suggests, because that study only moves the PCA weights a little way and never tries a different scheme.
 
-Two methods that share no machinery, resampling cells at one resolution and rebuilding
-the grid at another, disagree about the ordering and agree about which parts of the
-ordering carry information. We regard this as the strongest validation in this report of
-the claim in §6a: a rank near the top or the bottom of the table is a finding, and a rank
-in the middle is an artefact of where the grid lines fell.
+## 6c. Does the grid resolution change the answer?
 
-1 km remains the published resolution. The 500 m dataset is reproducible with
-`python pipeline/run_pipeline.py --cell-size 500` and is not published, because it is not
-a better dataset, only a different one, and switching would reshuffle the top of the
-table without making it more correct.
+The checks above resample or reweight a fixed 1 km grid. Rebuilding the dataset at 500 m is an independent test, because it changes the unit of analysis. It produces 1975 published cells instead of 541, about 82 per ward instead of 23, with every stage from the fishnet through the Earth Engine reductions rerun. PC1 explains 49.6% of the variance at this resolution.
 
-## 6d. Validation Against Station Observations
+Nine of the 24 wards change rank. Ward B moves from 5th to 1st and G/N from 2nd to 5th. The top-five set is the same as at 1 km (B, C, L, E, G/N at 500 m), in a different order.
 
-`pipeline/13_validate_lst.py` correlates the satellite composite against NOAA GSOD
-station air temperature. Per-overpass Landsat 8/9 ST_B10 LST, cloud-masked, is averaged
-within 500 m of each station and matched to that day's station mean.
+On its own that looks like instability. Set against section 6a it is close to the opposite. Every ward's 500 m rank falls inside that ward's own 95% bootstrap interval from the 1 km data, 24 out of 24. Ward B's interval was the widest in the table, 1st to 16th, and 1st is inside it. Resampling cells at one resolution and rebuilding the grid at another share no machinery, and they disagree about the order while agreeing about which parts of the order carry information. That is the strongest support this report has for section 6a's conclusion: a rank near the top or bottom is a finding, and a rank in the middle depends on where the grid lines fell.
 
-**Results.** Pooled within-station Pearson r is **0.716** over 23 matched
-station-days, computed on anomalies about each station's own mean. The
-LST-minus-air offset ranges from **3.43 to 13.94 C** across stations.
+1 km remains the published resolution. The 500 m dataset can be reproduced with `python pipeline/run_pipeline.py --cell-size 500` and is not published. It is a different dataset and not a better one, and switching would reshuffle the top of the table without making it more correct.
 
-Both numbers need reading carefully. Land surface temperature is not air temperature:
-LST is the radiometric temperature of the ground and station temperature is shaded air at
-roughly 1.5 m, so a large positive bias is expected and is not an error. The figure that
-tests measurement quality is the correlation, which asks whether the composite tracks
-real day-to-day thermal variation rather than sensor noise or cloud artefacts. It does.
+## 6d. Validation against station observations
 
-The spread of the offset is itself a finding: because the offset depends on what the
-ground is made of, **no single additive correction converts this LST layer into air
-temperature**. That is why the index uses LST as a relative indicator and never reports
-it as a temperature a person would feel.
+`pipeline/13_validate_lst.py` compares the satellite composite with NOAA GSOD station air temperature. Per-overpass Landsat 8/9 `ST_B10` LST, cloud masked, is averaged within 500 m of each station and matched to the station's mean for that day.
 
-## 7. Nature-Based Solutions Engine and the Ecological Plantability Filter
+The pooled within-station Pearson r is 0.716 over 23 matched station-days, computed on anomalies about each station's own mean. The LST-minus-air offset ranges from 3.43 to 13.94 degrees C across stations.
 
-Given a cell's HVI and its underlying indicators, `pipeline/06_nbs.py` fires one or
-more rule-based recommendations, each carrying a plain-language rationale and a
-citation. "High" and "low" thresholds are the 75th/25th percentile of that indicator
-**within the current run's cells**, not fixed absolute cutoffs. Several indicators
-(notably `elderly_pct`) have too narrow an observed range across Mumbai for an absolute
-threshold to be meaningful.
+Both numbers need careful reading. Land surface temperature is the radiometric temperature of the ground, and station temperature is shaded air at about 1.5 m, so a large positive offset is expected and is no error. The number that speaks to measurement quality is the correlation, which asks whether the composite follows real day-to-day thermal variation and not sensor noise or cloud artefacts. At 0.716 it does, with the caution that 23 station-days is a small sample.
+
+The spread of the offset is a result too. It depends on what the ground is made of, so no single additive correction turns this LST layer into air temperature. That is why the index treats LST as a relative indicator and the product never shows it as a temperature a person would feel.
+
+## 7. Recommendations and the ecological plantability filter
+
+Given a cell's HVI and its indicators, `pipeline/06_nbs.py` fires one or more rule-based recommendations, each with a plain-language rationale and a citation. "High" and "low" mean the 75th and 25th percentile of that indicator across the current run's cells, and are not fixed cutoffs. A fixed threshold would mean little for indicators with a narrow range across Mumbai.
 
 | Condition | Recommendation | Citation |
 |---|---|---|
-| HVI ≥ p75, NDVI ≤ p25, cell is plantable | Native tree planting + green corridors | Bastin et al. 2019 |
-| HVI ≥ p75, NDVI ≤ p25, cell is **not** plantable | Cool roofs + reflective pavements + cooling centres | Veldman et al. 2019 |
-| impervious_pct ≥ p75 and within 500 m of mapped water/wetland | Rain gardens + water-sensitive urban design (WSUD) | Methodology proxy (no dedicated hydrology layer) |
-| pop_density_km2 ≥ p75 and NDVI ≤ p25 | Pocket parks | C40 Urban Cooling Toolbox |
-| elderly_pct ≥ p75 and hospital_dist_m ≥ p75 | Cooling centres, priority siting | Knowlton et al. 2014 |
+| HVI at or above p75, NDVI at or below p25, cell plantable | Native tree planting and green corridors | Bastin et al. 2019 |
+| HVI at or above p75, NDVI at or below p25, cell not plantable | Cool roofs, reflective pavements and cooling centres | Veldman et al. 2019 |
+| `impervious_pct` at or above p75 and within 500 m of mapped water or wetland | Rain gardens and water-sensitive urban design | Methodology proxy (no dedicated hydrology layer) |
+| `pop_density_km2` at or above p75 and NDVI at or below p25 | Pocket parks | C40 Urban Cooling Toolbox |
+| `elderly_pct` at or above p75 and `hospital_dist_m` at or above p75 | Cooling centres, priority siting | Knowlton et al. 2014 |
 
-**The ecological plantability filter** is the headline design decision of this engine:
-a cell is only eligible for the tree-planting recommendation if it is *not* water,
-wetland, mangrove, or built-up (ESA WorldCover classes 50/80/90/95), *not* native
-grassland (WorldCover class 30, per Veldman et al. 2019's caution against afforesting
-grassland/savanna ecosystems), and has impervious cover below the 75th percentile
-(physical room to plant). A cell that clears the vulnerability bar but fails this
-ecological check is routed to the non-tree recommendation (cool roofs / reflective
-pavements / cooling centres) instead. The product is deliberately built to be able to
-say "this ward needs cooling, but not via tree planting" rather than defaulting to
-trees everywhere.
+The filter is the main design decision in the engine. A cell can receive the tree-planting recommendation only if it is not water, wetland, mangrove or built-up (WorldCover classes 50, 80, 90 and 95), is not native grassland (class 30, following Veldman et al. 2019 on afforesting grassland and savanna), and has impervious cover below the 75th percentile, meaning there is physical room to plant. A cell that clears the vulnerability bar but fails the ecological check gets the non-tree recommendation instead. The tool is built to be able to say that a ward needs cooling and that trees are not the way to get it.
 
-**As of this run:** 337 of 541 cells (62%) were classified plantable. Across all 24
-wards, 81 ward-level recommendation rows fired: 24 rain-garden/WSUD, 18 cool-roof, 18
-pocket-park, 12 native-tree-planting, and 9 cooling-centre-priority recommendations.
-Every ward received at least one recommendation.
+In the committed run 161 of 541 cells (30%) are plantable. The engine fires 70 ward-level recommendation rows: 24 rain-garden, 19 cool-roof, 18 pocket-park and 9 cooling-centre rows. Every ward receives at least one. **The tree-planting recommendation fires nowhere.**
 
-## 8. Green Cover Change Classification
+The reason is in the data. Eighty-one cells are both hot (HVI at or above p75) and bare (NDVI at or below p25). All 81 are classified as built-up land, with a median impervious share of 78.4% against a plantable ceiling of 68.4%, so none passes the filter and all are routed to cool roofs. A dense city's hottest, barest 1 km cells are built-up, and the filter is doing what it was designed to do. One caveat applies. Each cell takes the most common WorldCover class within it, and a cell whose most common class is built-up can still contain green pockets. The result says that no whole cell is a planting site at this resolution. It does not say that Mumbai has nowhere to plant a tree.
 
-`pipeline/09_ndvi_change.py` classifies each cell's NDVI delta between the current
-dry-season composite and an older dry-season baseline (`NDVI - NDVI_prev`, roughly a
-nine-year gap) as `gained` (delta > +0.05), `lost` (delta < −0.05), or `stable`
-(otherwise). The ±0.05 threshold is a deliberate, documented choice, chosen in the
-same spirit as the ±20% perturbation tolerance in Section 6, as "the size of change
-trusted as real signal rather than noise" for this dataset, not a value taken from a
-specific external paper. As of this run, the classification split 445 cells stable, 84
-gained, and 12 lost, across the 541-cell grid.
+An earlier build of this filter compared floating-point class codes with integers. Earth Engine's mode reducer returns a float, so a built-up cell could arrive as 50.00000000000015 and fail an equality test against 50. That let 175 of the 337 cells then marked plantable through: 127 built-up, 30 mangrove, 17 open water and 1 native grassland. It was corrected on 2026-09-24, and every figure in this section is for the corrected filter. Dataset releases up to and including 1.0.2 predate the correction and carry the error.
 
-## 9. Illustrative Cooling Coefficients (Simulator)
+## 8. Green-cover change
 
-A separate, clearly-labelled part of the product (`/simulate`,
-`frontend/src/lib/coefficients.ts`) lets a user estimate the illustrative cooling effect
-of a hypothetical intervention, using coefficients transferred from the cited
-literature rather than fit to Mumbai: canopy cooling follows Ziter et al. 2019
-(negligible effect below ~40% canopy cover, up to ~1.0°C of daytime cooling by 80%
-cover, non-linear and capped rather than extrapolated past the paper's own range);
-cool-roof/high-albedo cooling uses a conservative 0.6°C per +0.1 albedo headline figure
-with a 0.57-2.3°C per +0.1 range exposed as uncertainty (Santamouris 2014), with Li,
-Bou-Zeid & Oppenheimer (2014) cited as structural support for treating the relationship
-as linear; pocket-park cooling scales a 0.94°C park-cool-island ceiling (Bowler et al.
-2010) linearly by the share of ward area converted to park-like green space, an
-explicit simplifying assumption stated as such rather than presented as a result from
-the source paper. These three terms are summed independently, with no attempt to model
-interaction effects (e.g. double-counting trees that are also inside a park). This
-simulator is not part of the HVI computation itself; it is included in this report
-because it draws on the same citation discipline and the same cited coefficients
-appear in `docs/references.md`.
+`pipeline/09_ndvi_change.py` classifies each cell's NDVI change between the current dry-season composite and an older baseline (`NDVI - NDVI_prev`, roughly nine years apart) as gained (above +0.05), lost (below -0.05) or stable. The threshold is a documented choice and not a value from a specific paper. It is meant to be the size of change we trust as signal and not noise, in the same spirit as the 20% tolerance in section 6. Across the 541 cells, 445 are stable, 84 gained and 12 lost.
+
+## 9. Simulator coefficients
+
+A separate part of the product (`/simulate`, `frontend/src/lib/coefficients.ts`) estimates the cooling effect of a hypothetical intervention, using coefficients from the literature and not fitted to Mumbai. Canopy cooling follows Ziter et al. (2019): negligible below about 40% canopy cover, rising to about 1.0 degree C of daytime cooling at 80%, and capped instead of extrapolated beyond the paper's range. Cool-roof cooling uses 0.6 degrees C per +0.1 albedo as the headline figure, with the 0.57 to 2.3 range from Santamouris (2014) exposed as uncertainty, and Li, Bou-Zeid and Oppenheimer (2014) cited in support of treating the relationship as linear. Pocket-park cooling scales a 0.94 degree C park-cool-island ceiling (Bowler et al. 2010) linearly by the share of ward area converted to park-like green space, which is a simplifying assumption of ours and not a result from that paper. The three terms are added independently, with no attempt to model interactions such as counting a tree that stands inside a park twice.
+
+The simulator is not part of the HVI. It appears here because it draws on the same citations, listed in `docs/references.md`.
 
 ## 10. Limitations
 
-Stated here in full, matching `docs/methodology.md` section 10:
+**Land surface temperature is not air temperature.** `LST_C` measures the surface and only correlates with the air temperature a person feels. The live-weather widget (`frontend/src/lib/weather.ts`) exists to make the distinction visible, with a real air-temperature reading fetched at the same time.
 
-- **Land surface temperature is not air temperature.** `LST_C` is a satellite-derived
-  surface measurement; it correlates with but is not equivalent to the air temperature
-  a person actually experiences. The product's live-weather widget
-  (`frontend/src/lib/weather.ts`) exists specifically to make this distinction
-  tangible with a real, concurrently-fetched air-temperature reading.
-- **Cooling coefficients are transferred, not Mumbai-calibrated.** The Section 9
-  coefficients come from other cities' studies (Ziter et al. in eastern North America,
-  Santamouris's city-scale review, Li/Bou-Zeid/Oppenheimer's Baltimore-DC simulation,
-  Bowler et al.'s meta-analysis); no Mumbai-specific field validation of these
-  magnitudes has been performed.
-- **`slum_pct` is a mapped proxy.** It comes from mapped slum-cluster boundaries
-  (Datameet) rather than a household survey.
-- **`elderly_pct` is not a demographic surface at all; it is an administrative
-  boundary.** WorldPop's India age-sex product is a 100 m raster, which implies a
-  measured surface at that resolution. It is not: it applies *district* age structure to
-  a population raster. Across the 541 cells, 80% share a single value and two values
-  cover 95.6%, and those two values split the city exactly along the revenue district
-  line. All nine Mumbai City wards read 5.586 and all fifteen Mumbai Suburban wards read
-  4.757, with intermediate values only where a 1 km cell straddles the boundary.
+**The cooling coefficients come from other cities.** They come from studies in eastern North America, city-scale reviews and a Baltimore-Washington simulation, and nobody has validated them in Mumbai.
 
-  It is not inert, which is why this is a limitation rather than a curiosity.
-  Standardisation divides by the standard deviation, and a near-degenerate variable has
-  a small one, so an 0.83-point district gap becomes a large z-score. The indicator takes
-  14.1% of total absolute contribution to ward scores, fourth of seven, and removing it
-  entirely moves 13 of the 24 wards by up to 4 places. **A ward's published rank is
-  therefore partly determined by which side of the City and Suburban line it sits on,
-  under a label that reads as demographic.** Measured in `pipeline/elderly_evaluation.py`.
+**`slum_pct` is a mapped proxy.** It comes from Datameet's mapped cluster boundaries and not from a household survey.
 
-  The remedy is ward-level Census age structure, 24 values in place of 2. Note that the
-  usual objection, that 2011 Census data is too old to mix with 2025-26 imagery, does not
-  apply: WorldPop's age structure is itself derived from the 2011 Census, so the choice is
-  between the same census at district resolution and the same census at ward resolution.
-- **The simulator (Section 9) is a first-order estimate**, explicitly not a validated
-  microclimate model, and is labelled as such in its own UI.
-- **The ecological plantability layer is coarse-resolution**, driven by ESA WorldCover
-  at its native ~10 m pixel size aggregated to 1 km cells, and by a single flood-risk
-  proxy (distance to mapped water/wetland) rather than a dedicated hydrology layer.
-- **PCA weights are a function of the current snapshot**, as noted in Section 5; they
-  are expected to be broadly stable given the Section 6 sensitivity results, but are
-  not literally fixed across every possible re-run of the pipeline.
-- **No ward's rank is certain.** Section 6a quantifies this: the median ward's 95% rank
-  interval spans 6 of 24 places. Any use of this ranking that turns on a difference of a
-  few places is unsupported by the data behind it.
-- **The number of clear satellite observations varies by cell.** Cells are flagged when
-  the dry-season composite behind them rests on fewer than three clear Landsat
-  observations; across the published grid the count runs from 8.7 to 12.0 per cell, so no
-  cell in the current snapshot is flagged, but the flag travels with the data for
-  refreshes and cities where it will fire.
+**`elderly_pct` is an administrative boundary and not a demographic surface.** WorldPop's India age-sex product is a 100 m raster, which suggests a measured surface at that resolution. It applies district age structure to a population raster instead. Across the 541 cells, 80% share one value and two values cover 95.6%, and the two values split the city exactly along the revenue district line. All nine Mumbai City wards read 5.586 and all fifteen Mumbai Suburban wards read 4.757. Values in between appear only where a 1 km cell straddles the boundary.
+
+The layer is not inert, which is why this is a limitation and not a curiosity. Standardising divides by the standard deviation, and a near-constant variable has a small one, so a gap of 0.83 percentage points between two districts becomes a large z-score. The indicator takes 13.6% of total absolute contribution to ward scores, fourth of the eight, and removing it moves 13 of the 24 wards by up to 4 places. A ward's rank is therefore partly decided by which side of the City and Suburban line it sits on, under a label that reads as demographic (`pipeline/elderly_evaluation.py`).
+
+The same layer feeds a recommendation. The cooling-centre rule requires `elderly_pct` at or above its 75th percentile, and that condition holds for 136 cells: all 94 cells in Mumbai City wards plus 42 suburban cells whose value sits marginally above the district's because of boundary blending. In the current run the rule fires on 18 cells. "High elderly share" is therefore a description of which district a cell is in, and the recommendation should be read that way.
+
+The fix would be ward-level Census age structure at 60 and over, and we could not find it. The ward-level Primary Census Abstract has the 0 to 6 age band only, which is why `child_pct` is in the index. The usual objection to Census data is that 2011 is too old to combine with 2025-26 imagery, and it does not apply here, because WorldPop's age structure is itself derived from the 2011 Census. The choice is between the same census at district resolution and at ward resolution.
+
+**`child_pct` is 2011 data, and it measures children.** It is real and varies by ward, but it describes young children and not the elderly, it is fifteen years old, and it is assigned flat to every cell in a ward because the Census gives nothing finer. Its weight of 1.9% means it changes little in the PCA ranking, and it matters far more under equal weighting (section 6b).
+
+**Tree planting never fires.** Section 7 explains why. It is a result about the 1 km grid and the modal land-cover class, and it should not be read as a claim about individual sites.
+
+**The ranking is imprecise.** Section 6a puts the median ward's 95% rank interval at 6 places and finds no certain rank. Any use of the ranking that turns on a difference of a few places is not supported by the data behind it. Equal weights change the order inside the top five (section 6b).
+
+**Weights depend on the snapshot.** The PCA weights are recomputed from the current cells, as section 5 notes. The sensitivity results suggest they are fairly stable, but they are not fixed across every possible rerun.
+
+**Satellite coverage varies by cell.** Cells are flagged when their dry-season composite rests on fewer than three clear Landsat observations. Across the published grid the count runs from 8.7 to 12.0 per cell, so no cell in the current snapshot is flagged. The flag travels with the data for refreshes and for cities where it will fire.
+
+**Coarse land cover.** WorldCover is 10 m data aggregated to 1 km cells by modal class, and flood risk is a single proxy, distance to mapped water or wetland, and not a hydrology layer.
 
 ## 11. Reproducibility
 
-Every figure in this report was read from files this repository's own pipeline
-produced: `data/hvi_pca_log.json` (Section 5), `data/sensitivity.json` (Section 6),
-`data/nbs_recommendations.json` and `data/cells_hvi.geojson` (Section 7),
-`data/cells_ndvi_change.geojson` (Section 8). The full pipeline can be re-run end to
-end with `python pipeline/run_pipeline.py` (see `pipeline/README.md`), which will
-regenerate all of the above from the same source data and procedure described here.
+Every figure in this report came from a file the repository's own pipeline produced, listed in the status note at the top. The pipeline runs end to end with `python pipeline/run_pipeline.py` (see `pipeline/README.md`) and regenerates all of them from the same sources and procedure. The ward-level Census table is an input and not an output. It is committed as `data/census2011_ward_age_mumbai.csv` and rebuilt from the OpenCity source with `python pipeline/build_census_table.py`, which stops if the two source files disagree on any ward's population or if the total differs from the Census figure for Greater Mumbai.
+
+The evaluations that this report relies on are each a script in `pipeline/`: `uncertainty.py`, `compare_weightings.py`, `elderly_evaluation.py`, `08_sensitivity.py` and `13_validate_lst.py`. The 500 m comparison in section 6c is reproduced with `--cell-size 500`, which writes to its own directory and never overwrites the published 1 km outputs.
+
+The dataset is archived on Zenodo with the concept DOI 10.5281/zenodo.22923919, which resolves to the latest release. As section 7 notes, releases up to 1.0.2 predate a correction to the plantability filter, so cite a later one.
 
 ## 12. References
 
 | Use | Citation | DOI |
 |---|---|---|
 | HVI weighting method | Reid et al. 2009, *Environ. Health Perspect.* 117(11):1730-1736 | 10.1289/ehp.0900683 |
-| Local credibility, first South Asian HAP | Knowlton et al. 2014, *IJERPH* 11(4):3473-3492 | 10.3390/ijerph110403473 |
-| India-wide district HVI precedent | Azhar et al. 2017 (RAND India HVI), *IJERPH* 14(4):357 | 10.3390/ijerph14040357 |
+| First South Asian heat action plan | Knowlton et al. 2014, *IJERPH* 11(4):3473-3492 | 10.3390/ijerph110403473 |
+| India-wide district HVI | Azhar et al. 2017 (RAND India HVI), *IJERPH* 14(4):357 | 10.3390/ijerph14040357 |
 | Tree restoration potential | Bastin et al. 2019, *Science* 365(6448):76-79 | 10.1126/science.aax0848 |
-| Plantability filter (critique of afforestation-everywhere) | Veldman et al. 2019, *Science* 366(6463):eaay7976 | 10.1126/science.aay7976 |
-| Carbon-cycle critique companion | Friedlingstein et al. 2019, *Science* 366(6463):eaay8060 | 10.1126/science.aay8060 |
-| Regrowth critique companion | Lewis et al. 2019, *Science* 366(6463):eaaz0388 | 10.1126/science.aaz0388 |
-| Canopy → LST reduction coefficient | Ziter et al. 2019, *PNAS* 116(15):7575-7580 | 10.1073/pnas.1817561116 |
-| Cool-roof city-scale simulation | Li, Bou-Zeid & Oppenheimer 2014, *Environ. Res. Lett.* 9(5):055002 | 10.1088/1748-9326/9/5/055002 |
-| Albedo → peak-temperature coefficient | Santamouris 2014, *Solar Energy* 103:682-703 | 10.1016/j.solener.2012.07.003 |
-| Pocket-park cooling coefficient | Bowler et al. 2010, *Landscape and Urban Planning* 97:147-155 | 10.1016/j.landurbplan.2010.05.006 |
+| Critique of afforestation everywhere (plantability filter) | Veldman et al. 2019, *Science* 366(6463):eaay7976 | 10.1126/science.aay7976 |
+| Carbon-cycle critique, companion | Friedlingstein et al. 2019, *Science* 366(6463):eaay8060 | 10.1126/science.aay8060 |
+| Regrowth critique, companion | Lewis et al. 2019, *Science* 366(6463):eaaz0388 | 10.1126/science.aaz0388 |
+| Canopy and LST reduction | Ziter et al. 2019, *PNAS* 116(15):7575-7580 | 10.1073/pnas.1817561116 |
+| City-scale cool-roof simulation | Li, Bou-Zeid and Oppenheimer 2014, *Environ. Res. Lett.* 9(5):055002 | 10.1088/1748-9326/9/5/055002 |
+| Albedo and peak temperature | Santamouris 2014, *Solar Energy* 103:682-703 | 10.1016/j.solener.2012.07.003 |
+| Pocket-park cooling | Bowler et al. 2010, *Landscape and Urban Planning* 97:147-155 | 10.1016/j.landurbplan.2010.05.006 |
+| Ward-level age data | Census of India 2011, Primary Census Abstract, Greater Mumbai (M Corp.), Census-ward level, republished by OpenCity (public domain) | Dataset: data.opencity.in/dataset/mumbai-ward-wise-census-data |
 
-DOIs above were verified against the publisher resolvers as documented in
-`docs/references.md`; this report does not re-verify them independently. For the
-complete citation table, including data-source access details not repeated here, see
-`docs/references.md`.
-
----
-
-*This report mirrors and extends `docs/methodology.md`; where the two differ in level
-of detail, this document is the more complete one and `docs/methodology.md` should be
-treated as the shorter in-app summary of it. Prepared for issue #66. Not submitted to
-arXiv, SSRN, or any external venue; that step, if pursued, is a decision for the
-project maintainer and is outside what this PR does.*
+The DOIs were checked against publisher resolvers as recorded in `docs/references.md`, and this report does not check them again. That file also holds the data-source access details not repeated here.

@@ -42,6 +42,7 @@ import json
 import os
 import sys
 from _city import load_city
+from _indicators import DIRECTIONS
 from pathlib import Path
 
 import geopandas as gpd
@@ -65,7 +66,10 @@ SNAP_CELLS = _CITY.out("snapshot_cells.geojson")
 SNAP_WARDS = _CITY.out("snapshot_wards.geojson")
 SNAP_RECS = _CITY.out("snapshot_nbs_recommendations.json")
 
-CONTRIB_COLS = ["LST_C", "NDVI", "pop_density_km2", "elderly_pct", "slum_pct", "hospital_dist_m", "impervious_pct"]
+# From _indicators.py so the stored contributions cannot drift from the ones
+# 05_hvi.py computed. A key is stored only when the run has it (see below), so a
+# city without a Census table does not get a null child_pct in its JSON.
+CONTRIB_COLS = list(DIRECTIONS)
 
 INTERVENTIONS = [
     {"name": "Native tree planting + green corridors", "category": "greening",
@@ -198,7 +202,7 @@ def main() -> int:
                 "hvi": float(r["HVI"]) if r["HVI"] is not None else None,
                 "rank": int(r["rank"]) if r["rank"] is not None else None,
                 "n_cells": int(r["n_cells"]) if r["n_cells"] is not None else None,
-                "contrib": {c: r.get(f"contrib_{c}") for c in CONTRIB_COLS},
+                "contrib": {c: r.get(f"contrib_{c}") for c in CONTRIB_COLS if f"contrib_{c}" in r},
                 "geom_geojson": json.loads(gpd.GeoSeries([r.geometry]).to_json())["features"][0]["geometry"],
             })
 
@@ -217,7 +221,7 @@ def main() -> int:
                 "hospital_dist_m": float(r["hospital_dist_m"]),
                 "impervious_pct": float(r["impervious_pct"]),
                 "hvi": float(r["HVI"]),
-                "contrib": {c: r.get(f"contrib_{c}") for c in CONTRIB_COLS},
+                "contrib": {c: r.get(f"contrib_{c}") for c in CONTRIB_COLS if f"contrib_{c}" in r},
                 "worldcover_class": int(r["worldcover_class"]) if r.get("worldcover_class") is not None else None,
                 "dist_to_water_m": float(r["dist_to_water_m"]) if r.get("dist_to_water_m") is not None else None,
                 "plantable": bool(r["plantable"]),

@@ -4,32 +4,32 @@
     "G/N",
     "L",
     "E",
-    "F/S"
+    "B"
   ],
   "perturbation_pct": 0.2,
-  "n_runs": 14,
-  "mean_kendall_tau": 0.9782608695652172,
-  "mean_top5_overlap": 4.428571428571429,
+  "n_runs": 16,
+  "mean_kendall_tau": 0.9846014492753623,
+  "mean_top5_overlap": 4.875,
   "all_top5_stable": false,
   "runs": [
     {
       "indicator": "LST_C",
       "perturbation": "+20%",
-      "kendall_tau": 1.0,
+      "kendall_tau": 0.9927536231884059,
       "top5_overlap": 5,
       "top5_ranking": [
         "C",
         "G/N",
         "L",
         "E",
-        "F/S"
+        "B"
       ]
     },
     {
       "indicator": "LST_C",
       "perturbation": "-20%",
-      "kendall_tau": 0.9710144927536233,
-      "top5_overlap": 4,
+      "kendall_tau": 0.9782608695652174,
+      "top5_overlap": 5,
       "top5_ranking": [
         "C",
         "G/N",
@@ -42,7 +42,7 @@
       "indicator": "NDVI",
       "perturbation": "+20%",
       "kendall_tau": 0.9710144927536233,
-      "top5_overlap": 4,
+      "top5_overlap": 5,
       "top5_ranking": [
         "C",
         "G/N",
@@ -55,65 +55,91 @@
       "indicator": "NDVI",
       "perturbation": "-20%",
       "kendall_tau": 0.9855072463768115,
-      "top5_overlap": 5,
-      "top5_ranking": [
-        "C",
-        "G/N",
-        "L",
-        "F/S",
-        "E"
-      ]
-    },
-    {
-      "indicator": "pop_density_km2",
-      "perturbation": "+20%",
-      "kendall_tau": 0.9782608695652174,
-      "top5_overlap": 5,
-      "top5_ranking": [
-        "C",
-        "G/N",
-        "L",
-        "F/S",
-        "E"
-      ]
-    },
-    {
-      "indicator": "pop_density_km2",
-      "perturbation": "-20%",
-      "kendall_tau": 0.9637681159420289,
       "top5_overlap": 4,
-      "top5_ranking": [
-        "C",
-        "G/N",
-        "L",
-        "E",
-        "B"
-      ]
-    },
-    {
-      "indicator": "elderly_pct",
-      "perturbation": "+20%",
-      "kendall_tau": 0.9565217391304348,
-      "top5_overlap": 4,
-      "top5_ranking": [
-        "C",
-        "G/N",
-        "E",
-        "F/S",
-        "B"
-      ]
-    },
-    {
-      "indicator": "elderly_pct",
-      "perturbation": "-20%",
-      "kendall_tau": 0.9782608695652174,
-      "top5_overlap": 5,
       "top5_ranking": [
         "C",
         "G/N",
         "L",
         "E",
         "F/S"
+      ]
+    },
+    {
+      "indicator": "pop_density_km2",
+      "perturbation": "+20%",
+      "kendall_tau": 0.9855072463768115,
+      "top5_overlap": 4,
+      "top5_ranking": [
+        "C",
+        "G/N",
+        "L",
+        "E",
+        "F/S"
+      ]
+    },
+    {
+      "indicator": "pop_density_km2",
+      "perturbation": "-20%",
+      "kendall_tau": 0.9710144927536233,
+      "top5_overlap": 5,
+      "top5_ranking": [
+        "C",
+        "G/N",
+        "L",
+        "E",
+        "B"
+      ]
+    },
+    {
+      "indicator": "elderly_pct",
+      "perturbation": "+20%",
+      "kendall_tau": 0.9782608695652174,
+      "top5_overlap": 5,
+      "top5_ranking": [
+        "C",
+        "G/N",
+        "L",
+        "E",
+        "B"
+      ]
+    },
+    {
+      "indicator": "elderly_pct",
+      "perturbation": "-20%",
+      "kendall_tau": 0.9782608695652174,
+      "top5_overlap": 5,
+      "top5_ranking": [
+        "C",
+        "G/N",
+        "L",
+        "E",
+        "B"
+      ]
+    },
+    {
+      "indicator": "child_pct",
+      "perturbation": "+20%",
+      "kendall_tau": 1.0,
+      "top5_overlap": 5,
+      "top5_ranking": [
+        "C",
+        "G/N",
+        "L",
+        "E",
+        "B"
+      ]
+    },
+    {
+      "indicator": "child_pct",
+      "perturbation": "-20%",
+      "kendall_tau": 1.0,
+      "top5_overlap": 5,
+      "top5_ranking": [
+        "C",
+        "G/N",
+        "L",
+        "E",
+        "B"
       ]
     },
     {
@@ -126,37 +152,11 @@
         "G/N",
         "L",
         "E",
-        "F/S"
-      ]
-    },
-    {
-      "indicator": "slum_pct",
-      "perturbation": "-20%",
-      "kendall_tau": 0.9710144927536233,
-      "top5_overlap": 4,
-      "top5_ranking": [
-        "C",
-        "G/N",
-        "E",
-        "B",
-        "F/S"
-      ]
-    },
-    {
-      "indicator": "hospital_dist_m",
-      "perturbation": "+20%",
-      "kendall_tau": 0.9782608695652174,
-      "top5_overlap": 4,
-      "top5_ranking": [
-        "C",
-        "G/N",
-        "L",
-        "F/S",
         "B"
       ]
     },
     {
-      "indicator": "hospital_dist_m",
+      "indicator": "slum_pct",
       "perturbation": "-20%",
       "kendall_tau": 0.9782608695652174,
       "top5_overlap": 5,
@@ -164,15 +164,41 @@
         "C",
         "G/N",
         "L",
+        "B",
+        "E"
+      ]
+    },
+    {
+      "indicator": "hospital_dist_m",
+      "perturbation": "+20%",
+      "kendall_tau": 0.9855072463768115,
+      "top5_overlap": 5,
+      "top5_ranking": [
+        "C",
+        "G/N",
+        "L",
+        "B",
+        "E"
+      ]
+    },
+    {
+      "indicator": "hospital_dist_m",
+      "perturbation": "-20%",
+      "kendall_tau": 0.9855072463768115,
+      "top5_overlap": 5,
+      "top5_ranking": [
+        "C",
+        "G/N",
+        "L",
         "E",
-        "F/S"
+        "B"
       ]
     },
     {
       "indicator": "impervious_pct",
       "perturbation": "+20%",
       "kendall_tau": 0.9855072463768115,
-      "top5_overlap": 4,
+      "top5_overlap": 5,
       "top5_ranking": [
         "C",
         "G/N",
@@ -185,13 +211,13 @@
       "indicator": "impervious_pct",
       "perturbation": "-20%",
       "kendall_tau": 0.9782608695652174,
-      "top5_overlap": 4,
+      "top5_overlap": 5,
       "top5_ranking": [
         "C",
         "G/N",
         "L",
-        "F/S",
-        "B"
+        "B",
+        "E"
       ]
     }
   ]
