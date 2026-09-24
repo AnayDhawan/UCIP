@@ -78,6 +78,10 @@ WGS84 = "EPSG:4326"
 # vintage the moment WorldPop adds a newer India image, with no code change to notice.
 WORLDPOP_YEAR = "2020"
 
+# Provenance values for the elderly_source column. Spelled out rather than
+# left as bare strings so a future Census merge has one place to add its own.
+ELDERLY_SOURCE_WORLDPOP = "worldpop_2020_district"
+
 # WorldPop age-sex bands 60+ (both sexes) — elderly definition per methodology.
 ELDERLY_BANDS = [f"{sex}_{age}" for sex in ("M", "F") for age in ("60", "65", "70", "75", "80")]
 
@@ -202,6 +206,19 @@ def main() -> int:
 
     grid_gdf["pop_density_km2"] = pop_density
     grid_gdf["elderly_pct"] = elderly_pct
+    # Where each cell's age structure came from (issue #95). One value today,
+    # because WorldPop is the only source wired in, but the column exists so
+    # that a ward-level Census table can be merged per ward without the
+    # resulting dataset hiding which cells it improved and which it did not.
+    #
+    # Why this matters more than it looks: WorldPop's India age-sex product
+    # applies DISTRICT age structure to a population raster, so across all 541
+    # Mumbai cells elderly_pct takes 2 meaningful values, one per revenue
+    # district, and 80% of cells share a single one. It is a district dummy
+    # wearing a demographic label, and it is not a 100 m measurement however
+    # the raster is advertised. Run pipeline/elderly_evaluation.py for the
+    # measurement behind that claim.
+    grid_gdf["elderly_source"] = ELDERLY_SOURCE_WORLDPOP
     grid_gdf["slum_pct"] = grid_gdf["grid_id"].map(slum_by_id)
     grid_gdf["hospital_dist_m"] = grid_gdf["grid_id"].map(hosp_by_id)
 

@@ -54,6 +54,12 @@ INDICATOR_COLS = [
 ]
 KEEP_COLS = ["grid_id", "ward_id", "ward_gid", "NDVI_prev", "geometry"] + INDICATOR_COLS
 
+# Carried through when present, but not required. elderly_source (issue #95)
+# says where a cell's age structure came from, and a dataset produced before
+# that column existed is still perfectly valid input; demanding it would fail
+# a refresh over provenance metadata rather than over data.
+OPTIONAL_COLS = ["elderly_source"]
+
 
 def main() -> int:
     if not IN_PATH.exists():
@@ -68,7 +74,7 @@ def main() -> int:
         print(f"[FAIL] missing expected columns: {missing_cols}")
         return 1
 
-    tidy = gdf[KEEP_COLS].copy()
+    tidy = gdf[KEEP_COLS + [c for c in OPTIONAL_COLS if c in gdf.columns]].copy()
 
     before = len(tidy)
     tidy = tidy.dropna(subset=INDICATOR_COLS)

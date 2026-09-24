@@ -138,7 +138,56 @@ sparse cells can; the pipeline does not reshape itself silently.
 ## 10. Limitations (state these openly)
 - Land-surface temperature != air temperature.
 - Cooling coefficients transferred from other cities, not Mumbai-calibrated.
-- Slum-density and elderly layers are proxies (WorldPop 2020 — most recent year available for
-  India — and mapped slum-cluster boundaries, OSM), not ward-level census.
+- Slum-density and elderly layers are proxies (WorldPop 2020, the most recent year available
+  for India, and mapped slum-cluster boundaries, OSM), not ward-level census. **`elderly_pct`
+  is weaker than "proxy" suggests: see §10a.**
 - Simulator is a first-order estimate, not a validated climate model.
 - Ecological plantability layer is coarse-resolution.
+
+### 10a. `elderly_pct` carries one bit, and it is a district boundary
+
+`pipeline/elderly_evaluation.py`, output `data/elderly_evaluation.json`.
+
+WorldPop's India age-sex product is a 100 m raster, which implies a measured
+surface at that resolution. It is not. It applies **district** age structure to
+a population raster, so across Mumbai's 541 cells:
+
+| | |
+|---|---|
+| Distinct values | 26, but 80% of cells share one |
+| Two values cover | 95.6% of cells |
+| Coefficient of variation | 0.064, the lowest of the seven indicators |
+
+The two values split the city exactly along the revenue district boundary. All
+nine Mumbai City wards carry 5.586; all fifteen Mumbai Suburban wards carry
+4.757. Only the wards on the line hold anything in between, and that is 1 km
+cells straddling the boundary, not demography.
+
+So the layer resolves one administrative boundary and nothing inside it. Two
+wards on the same side of that line are indistinguishable on this indicator,
+whatever their actual age structure.
+
+**It is not inert, which is the problem.** Standardisation divides by the
+standard deviation, and a near-degenerate variable has a small one, so a
+0.83-point gap between two districts becomes a large z-score. The indicator
+takes 14.1% of total absolute contribution to ward scores, fourth of seven.
+Dropping it entirely moves **13 of the 24 wards, by up to 4 places**.
+
+A ward's rank is therefore partly determined by which side of the City and
+Suburban line it sits on, under a label that reads as demographic.
+
+The cell-level `elderly_source` column records where each cell's age structure
+came from, so a future ward-level Census merge is visible per cell rather than
+silently blended. Today every cell reads `worldpop_2020_district`.
+
+**What this means for the issue that asked whether to swap in Census data**
+(#95): the stated objection was mixing a 2011 Census vintage with 2025-26
+imagery. That objection does not apply, because WorldPop's age structure is
+itself derived from the 2011 Census. The choice is not modern-modelled against
+old-census; it is the same census at district resolution against the same
+census at ward resolution. Ward-level Census age tables would be a strict
+improvement, 24 values where there are currently 2, and sourcing them is the
+open task.
+
+Until then, read `elderly_pct` as "is this ward on the island", and treat any
+ranking difference that turns on it as unsupported.
