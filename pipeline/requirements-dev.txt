@@ -16,4 +16,4 @@ cryptography
 # city.schema.json declares draft 2020-12 and jsonschema 3.x has no validator
 # for it; an older version silently falls back to draft 7 and stops enforcing
 # prefixItems, which is what checks the bbox is four numbers.
-jsonschema>=4.18
+jsonschema>=4.26.0
