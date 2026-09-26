@@ -26,7 +26,9 @@ published climate and ecology literature. Every weight, dataset, and assumption 
 > Leaflet frontend (choropleth, plantability layer, green-cover-change layer, ward cards,
 > methodology page) are built and running end-to-end on real Mumbai data.
 
-![Demo](docs/media/demo.gif)
+<div align="center">
+<img src="docs/media/demo.gif" alt="UCIP dashboard overview" width="720">
+</div>
 
 ## What it does
 
@@ -36,7 +38,13 @@ published climate and ecology literature. Every weight, dataset, and assumption 
 4. **Green-cover change**: per-cell NDVI delta classified as gained/stable/lost across two dry-season composites.
 5. **Methodology page**: every variable, weight, dataset, assumption, and limitation with citations, computed live from pipeline output.
 
-![Methodology](docs/media/ucip-method.gif)
+<div align="center">
+<img src="docs/media/ucip-dashboard.gif" alt="Dashboard interaction: toggling layers and selecting wards" width="720">
+</div>
+
+<div align="center">
+<img src="docs/media/ucip-method.gif" alt="Methodology page: weights, variables, citations" width="720">
+</div>
 
 **City-agnostic:** This architecture runs on any city. See [docs/adding-a-city.md](docs/adding-a-city.md) to replicate.
 
