@@ -12,7 +12,10 @@ user-submitted data path in the prototype — the main surfaces worth reporting 
 
 ## Supported versions
 
-UCIP is pre-release (no tagged versions yet). Only the `main` branch is supported.
+| Version | Supported |
+| ------- | --------- |
+| 1.0.x   | Yes       |
+| < 1.0   | No        |
 
 ## Reporting a vulnerability
 
