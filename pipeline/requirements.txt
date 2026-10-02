@@ -1,6 +1,6 @@
 earthengine-api==1.7.46
 geemap==0.38.8
-geopandas==1.1.4
+geopandas==1.2.0
 rasterio==1.5.1
 shapely==2.1.2
 scikit-learn==1.9.1
