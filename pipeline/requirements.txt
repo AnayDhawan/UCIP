@@ -1,5 +1,5 @@
-earthengine-api==1.7.45
-geemap==0.38.5
+earthengine-api==1.7.46
+geemap==0.38.8
 geopandas==1.1.4
 rasterio==1.5.1
 shapely==2.1.2
