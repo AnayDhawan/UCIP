@@ -1,7 +1,7 @@
-earthengine-api==1.7.46
-geemap==0.38.8
+earthengine-api==1.7.47
+geemap==0.38.9
 geopandas==1.2.0
-rasterio==1.5.1
+rasterio==1.5.2
 shapely==2.1.2
 scikit-learn==1.9.1
 pandas==3.0.6
@@ -23,6 +23,6 @@ supabase==2.31.0
 # scikit-learn), but 01_grid.py, 05_hvi.py and 08_sensitivity.py import them
 # directly, so a future release dropping either transitive edge would break the
 # pipeline for a reason with no visible connection to the change.
-python-dotenv==1.2.3
+python-dotenv==1.2.4
 numpy==2.5.3
 scipy==1.18.1
