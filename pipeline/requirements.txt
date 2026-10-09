@@ -7,7 +7,7 @@ scikit-learn==1.9.1
 pandas==3.0.6
 osmnx==2.1.1
 matplotlib==3.11.2
-supabase==2.31.0
+supabase==2.32.0
 
 # Imported directly by pipeline stages, so declared directly rather than relied
 # on as a transitive dependency of something above.
