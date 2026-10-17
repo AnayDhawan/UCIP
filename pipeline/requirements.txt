@@ -2,12 +2,12 @@ earthengine-api==1.7.48
 geemap==0.38.9
 geopandas==1.2.0
 rasterio==1.5.2
-shapely==2.1.2
+shapely==2.2.0
 scikit-learn==1.9.1
 pandas==3.0.6
 osmnx==2.1.1
 matplotlib==3.11.2
-supabase==2.31.0
+supabase==2.32.0
 
 # Imported directly by pipeline stages, so declared directly rather than relied
 # on as a transitive dependency of something above.
