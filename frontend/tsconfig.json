@@ -20,7 +20,7 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "ucip-client": ["../clients/typescript/src/index.ts"]
+      "@ucip/client": ["../clients/typescript/src/index.ts"]
     }
   },
   "include": [

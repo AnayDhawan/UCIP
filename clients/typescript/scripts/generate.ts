@@ -40,7 +40,7 @@ const PRIMITIVES: Record<string, string> = {
  *
  * `Error` is the conventional OpenAPI name for an error envelope and a
  * terrible exported type name: the package re-exports its types, so consumers
- * would get a `ucip-client` export that shadows the global `Error`. Renamed at
+ * would get a `@ucip/client` export that shadows the global `Error`. Renamed at
  * the boundary rather than in the spec, where `Error` is the right name.
  */
 const TYPE_NAMES: Record<string, string> = { Error: "ApiError" };

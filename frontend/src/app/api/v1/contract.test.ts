@@ -23,7 +23,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import type { Cell, Ward, Recommendation, ApiError } from "ucip-client";
+import type { Cell, Ward, Recommendation, ApiError } from "@ucip/client";
 import type { WardRow } from "./wards/route";
 import type { CellRow } from "./cells/route";
 
@@ -72,11 +72,11 @@ describe("the published client types describe these routes", () => {
 
   it("names the client as the source of truth for consumers", async () => {
     // A cheap guard against the alias being removed and this file silently
-    // falling back to `any`: if `ucip-client` stopped resolving, the import
+    // falling back to `any`: if `@ucip/client` stopped resolving, the import
     // above would fail to typecheck and the build would break, but a stale
     // alias pointing somewhere empty would not. Importing it for real catches
     // that.
-    const client = await import("ucip-client");
+    const client = await import("@ucip/client");
     expect(typeof client.UcipClient).toBe("function");
     expect(client.DEFAULT_BASE_URL).toContain("/api/v1");
   });

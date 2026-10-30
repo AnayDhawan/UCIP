@@ -1,4 +1,4 @@
-# ucip-client
+# @ucip/client
 
 Typed TypeScript client for the [UCIP API](https://uciplatform.vercel.app/api/v1/openapi.json):
 Mumbai ward-level heat vulnerability data and cited nature-based cooling
@@ -7,13 +7,13 @@ recommendations.
 No authentication, no key, no account. The API is public and read-only.
 
 ```bash
-npm install ucip-client
+npm install @ucip/client
 ```
 
 ## Three lines
 
 ```ts
-import { UcipClient } from "ucip-client";
+import { UcipClient } from "@ucip/client";
 
 const wards = await new UcipClient().allWards();
 console.log(wards[0]); // { ward_id: "C", hvi: 73.56, rank: 1, ... }
@@ -71,7 +71,7 @@ Methodology and limitations: <https://uciplatform.vercel.app/methodology>.
 ## Errors
 
 ```ts
-import { UcipHttpError, UcipNetworkError, UcipError } from "ucip-client";
+import { UcipHttpError, UcipNetworkError, UcipError } from "@ucip/client";
 
 try {
   await ucip.ward("ZZ");

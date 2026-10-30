@@ -1,5 +1,5 @@
 {
-  "name": "ucip-client",
+  "name": "@ucip/client",
   "version": "0.1.0",
   "description": "Typed client for the UCIP API: Mumbai ward-level heat vulnerability data and cited nature-based cooling recommendations.",
   "keywords": [
