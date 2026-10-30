@@ -1,6 +1,6 @@
 {
-  "started_at": "2026-10-17T12:35:32.885517+00:00",
-  "finished_at": "2026-10-17T12:43:05.764583+00:00",
+  "started_at": "2026-10-30T11:36:34.552803+00:00",
+  "finished_at": "2026-10-30T11:38:42.750606+00:00",
   "composite_window": {
     "start": "2025-11-01",
     "end": "2026-02-28"
@@ -12,7 +12,7 @@
       "cadence": "monthly",
       "status": "ok",
       "returncode": 0,
-      "seconds": 2.26,
+      "seconds": 0.91,
       "provenance": {
         "source_boundaries": "bmc_wards.geojson",
         "wards_in": 24,
@@ -27,7 +27,7 @@
       "cadence": "monthly",
       "status": "ok",
       "returncode": 0,
-      "seconds": 37.95,
+      "seconds": 19.95,
       "provenance": {
         "collections": [
           "LANDSAT/LC08/C02/T1_L2",
@@ -56,7 +56,10 @@
       "cadence": "monthly",
       "status": "ok",
       "returncode": 0,
-      "seconds": 30.13
+      "seconds": 81.75,
+      "provenance": {
+        "slum_layer": "slumClusters.geojson"
+      }
     },
     {
       "id": "04",
@@ -64,7 +67,7 @@
       "cadence": "monthly",
       "status": "ok",
       "returncode": 0,
-      "seconds": 1.1,
+      "seconds": 0.67,
       "provenance": {
         "cells_in": 547,
         "cells_out": 541,
@@ -91,12 +94,12 @@
       "cadence": "monthly",
       "status": "ok",
       "returncode": 0,
-      "seconds": 2.42,
+      "seconds": 1.76,
       "provenance": {
         "cells_in": 541,
         "wards_out": 24,
         "weight_source": "pca_reid2009",
-        "explained_variance_pc1": 0.7313,
+        "explained_variance_pc1": 0.7314,
         "fallback_used": false,
         "indicators": [
           "LST_C",
@@ -113,16 +116,18 @@
       "cadence": "monthly",
       "status": "ok",
       "returncode": 0,
-      "seconds": 26.62,
+      "seconds": 13.22,
       "provenance": {
         "collections": [
           "ESA/WorldCover/v200"
         ],
         "cells_in": 541,
-        "cells_plantable": 161,
+        "cells_plantable": 160,
+        "cells_worldcover_mixed": 106,
+        "worldcover_mixed_share_threshold": 0.5,
         "cells_with_recommendation": 123,
         "thresholds": {
-          "hvi_p75": 64.481,
+          "hvi_p75": 64.4772,
           "ndvi_p25": 0.2695,
           "density_p75": 74271.8605,
           "impervious_p75": 68.3779
@@ -135,7 +140,7 @@
       "cadence": "monthly",
       "status": "ok",
       "returncode": 0,
-      "seconds": 3.5
+      "seconds": 1.1
     },
     {
       "id": "08",
@@ -143,7 +148,7 @@
       "cadence": "monthly",
       "status": "ok",
       "returncode": 0,
-      "seconds": 4.56
+      "seconds": 1.93
     },
     {
       "id": "09",
@@ -151,7 +156,7 @@
       "cadence": "monthly",
       "status": "ok",
       "returncode": 0,
-      "seconds": 1.29
+      "seconds": 0.68
     },
     {
       "id": "10",
@@ -159,7 +164,7 @@
       "cadence": "monthly",
       "status": "ok",
       "returncode": 0,
-      "seconds": 1.28
+      "seconds": 0.69
     },
     {
       "id": "11",
@@ -167,7 +172,7 @@
       "cadence": "monthly",
       "status": "ok",
       "returncode": 0,
-      "seconds": 1.32
+      "seconds": 0.68
     },
     {
       "id": "12",
@@ -175,7 +180,7 @@
       "cadence": "monthly",
       "status": "ok",
       "returncode": 0,
-      "seconds": 1.69
+      "seconds": 0.84
     },
     {
       "id": "13",
@@ -183,15 +188,7 @@
       "cadence": "monthly",
       "status": "ok",
       "returncode": 0,
-      "seconds": 7.52
-    },
-    {
-      "id": "14",
-      "script": "14_timeseries.py",
-      "cadence": "annual",
-      "status": "ok",
-      "returncode": 0,
-      "seconds": 329.56
+      "seconds": 3.4
     },
     {
       "id": "15",
@@ -199,7 +196,7 @@
       "cadence": "monthly",
       "status": "ok",
       "returncode": 0,
-      "seconds": 1.67
+      "seconds": 0.61
     }
   ]
 }

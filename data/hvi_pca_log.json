@@ -1,19 +1,19 @@
 {
-  "explained_variance_pc1": 0.7312927168958078,
+  "explained_variance_pc1": 0.7314084487347992,
   "loadings_pc1": {
-    "LST_C": 0.4535137692938829,
-    "NDVI": 0.4058588431914468,
-    "pop_density_km2": 0.4681073230893391,
-    "hospital_dist_m": -0.4100608096713663,
-    "impervious_pct": 0.49226977045716697
+    "LST_C": 0.45356141664720645,
+    "NDVI": 0.4057367848318959,
+    "pop_density_km2": 0.46824402426920403,
+    "hospital_dist_m": -0.41020833091304953,
+    "impervious_pct": 0.4920735328677673
   },
   "weight_source": "pca_reid2009",
   "weights": {
-    "LST_C": 0.2033866851465901,
-    "NDVI": 0.18201494715951394,
-    "pop_density_km2": 0.20993143578467469,
-    "hospital_dist_m": 0.18389939718355303,
-    "impervious_pct": 0.2207675347256683
+    "LST_C": 0.20340681526271695,
+    "NDVI": 0.18195910015375974,
+    "pop_density_km2": 0.2099914636620883,
+    "hospital_dist_m": 0.18396443595677275,
+    "impervious_pct": 0.22067818496466216
   },
   "fallback_used": false,
   "fallback_trigger": "explained_variance_pc1 < 0.3"

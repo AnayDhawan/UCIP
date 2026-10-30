@@ -18,33 +18,33 @@
     "impervious_pct": "percent (0-100)"
   },
   "city": {
-    "hvi_mean": 46.44144770451016,
+    "hvi_mean": 46.39767635576464,
     "LST_C": 32.385121230872734,
     "NDVI": 0.37352965156203743,
-    "pop_density_km2": 47270.445945877655,
-    "hospital_dist_m": 1153.428821109481,
+    "pop_density_km2": 47270.44594587748,
+    "hospital_dist_m": 1146.7075119353933,
     "impervious_pct": 38.70748974869874
   },
   "wards": [
     {
       "ward_id": "C",
       "ward_gid": 3,
-      "hvi": 82.61368986954943,
+      "hvi": 82.60513606188601,
       "rank": 1,
       "n_cells": 2,
       "percentile": 100.0,
-      "LST_C": 35.759685671884085,
-      "LST_C_delta_city": 3.3745644410113513,
-      "NDVI": 0.1554568966267731,
-      "NDVI_delta_city": -0.21807275493526435,
-      "pop_density_km2": 73423.9921411156,
-      "pop_density_km2_delta_city": 26153.54619523794,
-      "hospital_dist_m": 478.31719493590504,
-      "hospital_dist_m_delta_city": -675.111626173576,
-      "impervious_pct": 89.24073960818262,
-      "impervious_pct_delta_city": 50.53324985948388,
+      "LST_C": 35.7596856718841,
+      "LST_C_delta_city": 3.3745644410113655,
+      "NDVI": 0.15545689662677303,
+      "NDVI_delta_city": -0.2180727549352644,
+      "pop_density_km2": 73423.99214111963,
+      "pop_density_km2_delta_city": 26153.546195242146,
+      "hospital_dist_m": 478.3171949361125,
+      "hospital_dist_m_delta_city": -668.3903169992808,
+      "impervious_pct": 89.24073960818261,
+      "impervious_pct_delta_city": 50.53324985948387,
       "top_driver": "impervious_pct",
-      "top_driver_contrib": 0.3557419339972747,
+      "top_driver_contrib": 0.355597956954536,
       "neighbours": [
         "A",
         "B",
@@ -53,17 +53,17 @@
       ],
       "coolest_neighbour": {
         "ward_id": "D",
-        "hvi": 55.797257080201454
+        "hvi": 55.78815210471284
       },
       "hottest_neighbour": {
         "ward_id": "B",
-        "hvi": 70.55059882851127
+        "hvi": 70.54321695420163
       }
     },
     {
       "ward_id": "L",
       "ward_gid": 24,
-      "hvi": 72.03093571074864,
+      "hvi": 72.02536663238902,
       "rank": 2,
       "n_cells": 16,
       "percentile": 95.7,
@@ -71,14 +71,14 @@
       "LST_C_delta_city": 3.139410980139502,
       "NDVI": 0.27143129162748836,
       "NDVI_delta_city": -0.10209835993454908,
-      "pop_density_km2": 77707.8129043934,
-      "pop_density_km2_delta_city": 30437.366958515748,
-      "hospital_dist_m": 392.47793055503985,
-      "hospital_dist_m_delta_city": -760.9508905544412,
-      "impervious_pct": 69.43868120436,
-      "impervious_pct_delta_city": 30.731191455661254,
+      "pop_density_km2": 77707.81290439307,
+      "pop_density_km2_delta_city": 30437.366958515588,
+      "hospital_dist_m": 392.47793055501495,
+      "hospital_dist_m_delta_city": -754.2295813803784,
+      "impervious_pct": 69.43868120435998,
+      "impervious_pct_delta_city": 30.73119145566124,
       "top_driver": "LST_C",
-      "top_driver_contrib": 0.2528430468227391,
+      "top_driver_contrib": 0.2528680718625579,
       "neighbours": [
         "F/N",
         "G/N",
@@ -90,17 +90,17 @@
       ],
       "coolest_neighbour": {
         "ward_id": "N",
-        "hvi": 41.837661520422095
+        "hvi": 41.799128307175835
       },
       "hottest_neighbour": {
         "ward_id": "G/N",
-        "hvi": 71.22946257750868
+        "hvi": 71.22180473597962
       }
     },
     {
       "ward_id": "G/N",
       "ward_gid": 9,
-      "hvi": 71.22946257750868,
+      "hvi": 71.22180473597962,
       "rank": 3,
       "n_cells": 9,
       "percentile": 91.3,
@@ -108,14 +108,14 @@
       "LST_C_delta_city": 1.727908591859567,
       "NDVI": 0.22966698137235994,
       "NDVI_delta_city": -0.1438626701896775,
-      "pop_density_km2": 80165.64559657045,
-      "pop_density_km2_delta_city": 32895.1996506928,
-      "hospital_dist_m": 255.29948982816254,
-      "hospital_dist_m_delta_city": -898.1293312813185,
+      "pop_density_km2": 80165.64559657106,
+      "pop_density_km2_delta_city": 32895.19965069358,
+      "hospital_dist_m": 255.29948982815307,
+      "hospital_dist_m_delta_city": -891.4080221072402,
       "impervious_pct": 76.2693638132733,
       "impervious_pct_delta_city": 37.56187406457456,
       "top_driver": "impervious_pct",
-      "top_driver_contrib": 0.2644265659036382,
+      "top_driver_contrib": 0.26431954631628574,
       "neighbours": [
         "F/N",
         "F/S",
@@ -126,32 +126,32 @@
       ],
       "coolest_neighbour": {
         "ward_id": "F/N",
-        "hvi": 58.442292388086294
+        "hvi": 58.43698528896003
       },
       "hottest_neighbour": {
         "ward_id": "L",
-        "hvi": 72.03093571074864
+        "hvi": 72.02536663238902
       }
     },
     {
       "ward_id": "B",
       "ward_gid": 2,
-      "hvi": 70.55059882851127,
+      "hvi": 70.54321695420163,
       "rank": 4,
       "n_cells": 4,
       "percentile": 87.0,
-      "LST_C": 34.59992113891981,
-      "LST_C_delta_city": 2.214799908047077,
-      "NDVI": 0.1557935081108483,
-      "NDVI_delta_city": -0.21773614345118913,
-      "pop_density_km2": 60525.75799134658,
-      "pop_density_km2_delta_city": 13255.312045468927,
-      "hospital_dist_m": 672.1569362237942,
-      "hospital_dist_m_delta_city": -481.27188488568686,
-      "impervious_pct": 65.38604362644098,
-      "impervious_pct_delta_city": 26.67855387774224,
+      "LST_C": 34.599921138919825,
+      "LST_C_delta_city": 2.214799908047091,
+      "NDVI": 0.15579350811084836,
+      "NDVI_delta_city": -0.21773614345118908,
+      "pop_density_km2": 60525.75799134257,
+      "pop_density_km2_delta_city": 13255.312045465093,
+      "hospital_dist_m": 672.1569362241123,
+      "hospital_dist_m_delta_city": -474.550575711281,
+      "impervious_pct": 65.386043626441,
+      "impervious_pct_delta_city": 26.678553877742253,
       "top_driver": "NDVI",
-      "top_driver_contrib": 0.2580102220438323,
+      "top_driver_contrib": 0.25793105767530106,
       "neighbours": [
         "A",
         "C",
@@ -159,17 +159,17 @@
       ],
       "coolest_neighbour": {
         "ward_id": "A",
-        "hvi": 57.5582070342305
+        "hvi": 57.54923826174824
       },
       "hottest_neighbour": {
         "ward_id": "C",
-        "hvi": 82.61368986954943
+        "hvi": 82.60513606188601
       }
     },
     {
       "ward_id": "E",
       "ward_gid": 5,
-      "hvi": 69.54832488485413,
+      "hvi": 69.53920412925642,
       "rank": 5,
       "n_cells": 7,
       "percentile": 82.6,
@@ -177,14 +177,14 @@
       "LST_C_delta_city": 2.3821276572601846,
       "NDVI": 0.230490267382045,
       "NDVI_delta_city": -0.14303938417999243,
-      "pop_density_km2": 62188.66350230918,
-      "pop_density_km2_delta_city": 14918.217556431526,
-      "hospital_dist_m": 308.7793427825961,
-      "hospital_dist_m_delta_city": -844.649478326885,
+      "pop_density_km2": 62188.663502298776,
+      "pop_density_km2_delta_city": 14918.217556421296,
+      "hospital_dist_m": 308.7577709396818,
+      "hospital_dist_m_delta_city": -837.9497409957115,
       "impervious_pct": 78.93051887118824,
       "impervious_pct_delta_city": 40.2230291224895,
       "top_driver": "impervious_pct",
-      "top_driver_contrib": 0.28316045793713507,
+      "top_driver_contrib": 0.28304585630753176,
       "neighbours": [
         "B",
         "C",
@@ -194,17 +194,17 @@
       ],
       "coolest_neighbour": {
         "ward_id": "D",
-        "hvi": 55.797257080201454
+        "hvi": 55.78815210471284
       },
       "hottest_neighbour": {
         "ward_id": "C",
-        "hvi": 82.61368986954943
+        "hvi": 82.60513606188601
       }
     },
     {
       "ward_id": "F/S",
       "ward_gid": 6,
-      "hvi": 68.88209754988947,
+      "hvi": 68.87791198655104,
       "rank": 6,
       "n_cells": 12,
       "percentile": 78.3,
@@ -212,14 +212,14 @@
       "LST_C_delta_city": 2.335677180120385,
       "NDVI": 0.2833306989219752,
       "NDVI_delta_city": -0.09019895264006222,
-      "pop_density_km2": 77248.22428079472,
-      "pop_density_km2_delta_city": 29977.778334917064,
-      "hospital_dist_m": 672.8366561988103,
-      "hospital_dist_m_delta_city": -480.5921649106708,
+      "pop_density_km2": 77248.2242807925,
+      "pop_density_km2_delta_city": 29977.778334915027,
+      "hospital_dist_m": 672.8366561986421,
+      "hospital_dist_m_delta_city": -473.8708557367512,
       "impervious_pct": 62.860914160328754,
       "impervious_pct_delta_city": 24.153424411630013,
       "top_driver": "pop_density_km2",
-      "top_driver_contrib": 0.20597501708021018,
+      "top_driver_contrib": 0.20603391365769877,
       "neighbours": [
         "E",
         "F/N",
@@ -228,17 +228,17 @@
       ],
       "coolest_neighbour": {
         "ward_id": "F/N",
-        "hvi": 58.442292388086294
+        "hvi": 58.43698528896003
       },
       "hottest_neighbour": {
         "ward_id": "G/N",
-        "hvi": 71.22946257750868
+        "hvi": 71.22180473597962
       }
     },
     {
       "ward_id": "H/E",
       "ward_gid": 18,
-      "hvi": 66.87038774178951,
+      "hvi": 66.86616070123785,
       "rank": 7,
       "n_cells": 13,
       "percentile": 73.9,
@@ -246,14 +246,14 @@
       "LST_C_delta_city": 1.9454832900539074,
       "NDVI": 0.27299701174902125,
       "NDVI_delta_city": -0.10053263981301619,
-      "pop_density_km2": 80978.18753166762,
-      "pop_density_km2_delta_city": 33707.74158578996,
-      "hospital_dist_m": 532.2904951873879,
-      "hospital_dist_m_delta_city": -621.1383259220931,
+      "pop_density_km2": 80978.18753166034,
+      "pop_density_km2_delta_city": 33707.74158578286,
+      "hospital_dist_m": 532.2904951875023,
+      "hospital_dist_m_delta_city": -614.417016747891,
       "impervious_pct": 57.58285427017399,
       "impervious_pct_delta_city": 18.875364521475248,
       "top_driver": "pop_density_km2",
-      "top_driver_contrib": 0.2316033086675235,
+      "top_driver_contrib": 0.23166953340876711,
       "neighbours": [
         "G/N",
         "H/W",
@@ -263,17 +263,17 @@
       ],
       "coolest_neighbour": {
         "ward_id": "K/W",
-        "hvi": 50.94133210487372
+        "hvi": 50.93498365035478
       },
       "hottest_neighbour": {
         "ward_id": "L",
-        "hvi": 72.03093571074864
+        "hvi": 72.02536663238902
       }
     },
     {
       "ward_id": "K/E",
       "ward_gid": 19,
-      "hvi": 65.8207397146236,
+      "hvi": 65.74840462473652,
       "rank": 8,
       "n_cells": 24,
       "percentile": 69.6,
@@ -281,14 +281,14 @@
       "LST_C_delta_city": 2.3754761643359146,
       "NDVI": 0.2931500026781965,
       "NDVI_delta_city": -0.08037964888384092,
-      "pop_density_km2": 64936.92138840531,
-      "pop_density_km2_delta_city": 17666.475442527655,
-      "hospital_dist_m": 537.0569492027254,
-      "hospital_dist_m_delta_city": -616.3718719067557,
+      "pop_density_km2": 64936.92138839993,
+      "pop_density_km2_delta_city": 17666.475442522453,
+      "hospital_dist_m": 526.1387878604941,
+      "hospital_dist_m_delta_city": -620.5687240748993,
       "impervious_pct": 67.65740536656763,
       "impervious_pct_delta_city": 28.94991561786889,
       "top_driver": "impervious_pct",
-      "top_driver_contrib": 0.2038004482117385,
+      "top_driver_contrib": 0.20371796542565637,
       "neighbours": [
         "H/E",
         "H/W",
@@ -299,17 +299,17 @@
       ],
       "coolest_neighbour": {
         "ward_id": "P/S",
-        "hvi": 40.66937637588956
+        "hvi": 40.66590450153512
       },
       "hottest_neighbour": {
         "ward_id": "L",
-        "hvi": 72.03093571074864
+        "hvi": 72.02536663238902
       }
     },
     {
       "ward_id": "M/W",
       "ward_gid": 17,
-      "hvi": 63.526509711926536,
+      "hvi": 63.43142485840672,
       "rank": 9,
       "n_cells": 18,
       "percentile": 65.2,
@@ -317,14 +317,14 @@
       "LST_C_delta_city": 1.1485316357984345,
       "NDVI": 0.3133688022519612,
       "NDVI_delta_city": -0.06016084931007626,
-      "pop_density_km2": 68316.17086541171,
-      "pop_density_km2_delta_city": 21045.724919534056,
-      "hospital_dist_m": 1556.3181184821892,
-      "hospital_dist_m_delta_city": 402.88929737270814,
+      "pop_density_km2": 68316.17086540438,
+      "pop_density_km2_delta_city": 21045.724919526896,
+      "hospital_dist_m": 1540.7364626108783,
+      "hospital_dist_m_delta_city": 394.028950675485,
       "impervious_pct": 49.95791739999752,
       "impervious_pct_delta_city": 11.250427651298779,
       "top_driver": "pop_density_km2",
-      "top_driver_contrib": 0.14460356272356914,
+      "top_driver_contrib": 0.1446449107231941,
       "neighbours": [
         "F/N",
         "L",
@@ -333,17 +333,17 @@
       ],
       "coolest_neighbour": {
         "ward_id": "N",
-        "hvi": 41.837661520422095
+        "hvi": 41.799128307175835
       },
       "hottest_neighbour": {
         "ward_id": "L",
-        "hvi": 72.03093571074864
+        "hvi": 72.02536663238902
       }
     },
     {
       "ward_id": "H/W",
       "ward_gid": 23,
-      "hvi": 63.24380097041453,
+      "hvi": 63.23547551936961,
       "rank": 10,
       "n_cells": 14,
       "percentile": 60.9,
@@ -351,14 +351,14 @@
       "LST_C_delta_city": 0.9968846921304007,
       "NDVI": 0.24482433409205975,
       "NDVI_delta_city": -0.12870531746997768,
-      "pop_density_km2": 62062.551590181654,
-      "pop_density_km2_delta_city": 14792.105644304,
-      "hospital_dist_m": 430.4976110065518,
-      "hospital_dist_m_delta_city": -722.9312101029293,
+      "pop_density_km2": 62062.55159017322,
+      "pop_density_km2_delta_city": 14792.105644295742,
+      "hospital_dist_m": 430.49761100632924,
+      "hospital_dist_m_delta_city": -716.2099009290641,
       "impervious_pct": 70.83884238825267,
       "impervious_pct_delta_city": 32.13135263955393,
       "top_driver": "impervious_pct",
-      "top_driver_contrib": 0.22619700022713124,
+      "top_driver_contrib": 0.22610545303503296,
       "neighbours": [
         "G/N",
         "H/E",
@@ -367,32 +367,32 @@
       ],
       "coolest_neighbour": {
         "ward_id": "K/W",
-        "hvi": 50.94133210487372
+        "hvi": 50.93498365035478
       },
       "hottest_neighbour": {
         "ward_id": "G/N",
-        "hvi": 71.22946257750868
+        "hvi": 71.22180473597962
       }
     },
     {
       "ward_id": "G/S",
       "ward_gid": 7,
-      "hvi": 61.179018947679715,
+      "hvi": 61.17155448907442,
       "rank": 11,
       "n_cells": 15,
       "percentile": 56.5,
       "LST_C": 33.32065334055732,
       "LST_C_delta_city": 0.935532109684587,
-      "NDVI": 0.20696512512408768,
-      "NDVI_delta_city": -0.16656452643794975,
-      "pop_density_km2": 57806.599029041005,
-      "pop_density_km2_delta_city": 10536.15308316335,
-      "hospital_dist_m": 572.4136343059686,
-      "hospital_dist_m_delta_city": -581.0151868035125,
+      "NDVI": 0.20696512512408766,
+      "NDVI_delta_city": -0.16656452643794978,
+      "pop_density_km2": 57806.599029038734,
+      "pop_density_km2_delta_city": 10536.153083161254,
+      "hospital_dist_m": 572.4136343058047,
+      "hospital_dist_m_delta_city": -574.2938776295886,
       "impervious_pct": 58.32660260047144,
       "impervious_pct_delta_city": 19.619112851772698,
       "top_driver": "NDVI",
-      "top_driver_contrib": 0.19737352636869482,
+      "top_driver_contrib": 0.19731296694412637,
       "neighbours": [
         "D",
         "E",
@@ -401,17 +401,17 @@
       ],
       "coolest_neighbour": {
         "ward_id": "D",
-        "hvi": 55.797257080201454
+        "hvi": 55.78815210471284
       },
       "hottest_neighbour": {
         "ward_id": "G/N",
-        "hvi": 71.22946257750868
+        "hvi": 71.22180473597962
       }
     },
     {
       "ward_id": "F/N",
       "ward_gid": 8,
-      "hvi": 58.442292388086294,
+      "hvi": 58.43698528896003,
       "rank": 12,
       "n_cells": 13,
       "percentile": 52.2,
@@ -419,14 +419,14 @@
       "LST_C_delta_city": 1.5142328638235085,
       "NDVI": 0.30882696312307495,
       "NDVI_delta_city": -0.06470268843896249,
-      "pop_density_km2": 59565.57164149919,
-      "pop_density_km2_delta_city": 12295.125695621537,
-      "hospital_dist_m": 650.9855217150294,
-      "hospital_dist_m_delta_city": -502.4432993944516,
+      "pop_density_km2": 59565.57164150029,
+      "pop_density_km2_delta_city": 12295.12569562281,
+      "hospital_dist_m": 650.9855217148277,
+      "hospital_dist_m_delta_city": -495.72199022056566,
       "impervious_pct": 55.056207574305226,
       "impervious_pct_delta_city": 16.348717825606485,
       "top_driver": "LST_C",
-      "top_driver_contrib": 0.12195384844810753,
+      "top_driver_contrib": 0.12196591878166746,
       "neighbours": [
         "F/S",
         "G/N",
@@ -435,17 +435,17 @@
       ],
       "coolest_neighbour": {
         "ward_id": "M/W",
-        "hvi": 63.526509711926536
+        "hvi": 63.43142485840672
       },
       "hottest_neighbour": {
         "ward_id": "L",
-        "hvi": 72.03093571074864
+        "hvi": 72.02536663238902
       }
     },
     {
       "ward_id": "A",
       "ward_gid": 1,
-      "hvi": 57.5582070342305,
+      "hvi": 57.54923826174824,
       "rank": 13,
       "n_cells": 20,
       "percentile": 47.8,
@@ -453,31 +453,31 @@
       "LST_C_delta_city": -0.38865144153110265,
       "NDVI": 0.1869773589180068,
       "NDVI_delta_city": -0.18655229264403064,
-      "pop_density_km2": 49630.168174380335,
-      "pop_density_km2_delta_city": 2359.72222850268,
-      "hospital_dist_m": 684.6834853734929,
-      "hospital_dist_m_delta_city": -468.7453357359882,
+      "pop_density_km2": 49630.168174383965,
+      "pop_density_km2_delta_city": 2359.7222285064854,
+      "hospital_dist_m": 684.6834853732088,
+      "hospital_dist_m_delta_city": -462.02402656218453,
       "impervious_pct": 61.92151832868401,
       "impervious_pct_delta_city": 23.214028579985268,
       "top_driver": "NDVI",
-      "top_driver_contrib": 0.22105837682691565,
+      "top_driver_contrib": 0.22099055026302444,
       "neighbours": [
         "B",
         "C"
       ],
       "coolest_neighbour": {
         "ward_id": "B",
-        "hvi": 70.55059882851127
+        "hvi": 70.54321695420163
       },
       "hottest_neighbour": {
         "ward_id": "C",
-        "hvi": 82.61368986954943
+        "hvi": 82.60513606188601
       }
     },
     {
       "ward_id": "D",
       "ward_gid": 4,
-      "hvi": 55.797257080201454,
+      "hvi": 55.78815210471284,
       "rank": 14,
       "n_cells": 12,
       "percentile": 43.5,
@@ -485,14 +485,14 @@
       "LST_C_delta_city": -0.03458311139699788,
       "NDVI": 0.19538074908220474,
       "NDVI_delta_city": -0.1781489024798327,
-      "pop_density_km2": 54433.27332640545,
-      "pop_density_km2_delta_city": 7162.827380527793,
-      "hospital_dist_m": 333.6579902957464,
-      "hospital_dist_m_delta_city": -819.7708308137346,
+      "pop_density_km2": 54433.273326407325,
+      "pop_density_km2_delta_city": 7162.827380529845,
+      "hospital_dist_m": 333.657990296092,
+      "hospital_dist_m_delta_city": -813.0495216393012,
       "impervious_pct": 55.97214278005122,
       "impervious_pct_delta_city": 17.26465303135248,
       "top_driver": "NDVI",
-      "top_driver_contrib": 0.21110063380906105,
+      "top_driver_contrib": 0.21103586254442022,
       "neighbours": [
         "C",
         "E",
@@ -500,17 +500,17 @@
       ],
       "coolest_neighbour": {
         "ward_id": "G/S",
-        "hvi": 61.179018947679715
+        "hvi": 61.17155448907442
       },
       "hottest_neighbour": {
         "ward_id": "C",
-        "hvi": 82.61368986954943
+        "hvi": 82.60513606188601
       }
     },
     {
       "ward_id": "K/W",
       "ward_gid": 14,
-      "hvi": 50.94133210487372,
+      "hvi": 50.93498365035478,
       "rank": 15,
       "n_cells": 32,
       "percentile": 39.1,
@@ -518,14 +518,14 @@
       "LST_C_delta_city": 0.24843741286156984,
       "NDVI": 0.293261282677952,
       "NDVI_delta_city": -0.08026836888408545,
-      "pop_density_km2": 49492.47542566933,
-      "pop_density_km2_delta_city": 2222.029479791672,
-      "hospital_dist_m": 661.1199031702002,
-      "hospital_dist_m_delta_city": -492.30891793928083,
+      "pop_density_km2": 49492.4754256683,
+      "pop_density_km2_delta_city": 2222.029479790821,
+      "hospital_dist_m": 661.1240059639862,
+      "hospital_dist_m_delta_city": -485.58350597140713,
       "impervious_pct": 48.316883897184304,
       "impervious_pct_delta_city": 9.609394148485563,
       "top_driver": "NDVI",
-      "top_driver_contrib": 0.09511539678538392,
+      "top_driver_contrib": 0.09508621286288482,
       "neighbours": [
         "H/E",
         "H/W",
@@ -535,32 +535,32 @@
       ],
       "coolest_neighbour": {
         "ward_id": "P/N",
-        "hvi": 38.148526572922954
+        "hvi": 38.147191947836006
       },
       "hottest_neighbour": {
         "ward_id": "H/E",
-        "hvi": 66.87038774178951
+        "hvi": 66.86616070123785
       }
     },
     {
       "ward_id": "R/S",
       "ward_gid": 22,
-      "hvi": 46.15310278285408,
+      "hvi": 46.14827782811945,
       "rank": 16,
       "n_cells": 17,
       "percentile": 34.8,
       "LST_C": 32.7035751794378,
       "LST_C_delta_city": 0.3184539485650646,
-      "NDVI": 0.41066200854885315,
-      "NDVI_delta_city": 0.03713235698681572,
-      "pop_density_km2": 54259.24294487766,
-      "pop_density_km2_delta_city": 6988.796999000006,
-      "hospital_dist_m": 573.0101255925757,
-      "hospital_dist_m_delta_city": -580.4186955169054,
+      "NDVI": 0.4106620085488531,
+      "NDVI_delta_city": 0.03713235698681566,
+      "pop_density_km2": 54259.24294487823,
+      "pop_density_km2_delta_city": 6988.796999000748,
+      "hospital_dist_m": 573.010125592514,
+      "hospital_dist_m_delta_city": -573.6973863428793,
       "impervious_pct": 46.62955053390481,
       "impervious_pct_delta_city": 7.922060785206071,
       "top_driver": "impervious_pct",
-      "top_driver_contrib": 0.055769403962928864,
+      "top_driver_contrib": 0.055746832786774114,
       "neighbours": [
         "P/N",
         "R/C",
@@ -568,17 +568,17 @@
       ],
       "coolest_neighbour": {
         "ward_id": "T",
-        "hvi": 27.671741019002358
+        "hvi": 27.67146884517128
       },
       "hottest_neighbour": {
         "ward_id": "P/N",
-        "hvi": 38.148526572922954
+        "hvi": 38.147191947836006
       }
     },
     {
       "ward_id": "M/E",
       "ward_gid": 16,
-      "hvi": 45.71715946543122,
+      "hvi": 45.296778880350246,
       "rank": 17,
       "n_cells": 42,
       "percentile": 30.4,
@@ -586,46 +586,46 @@
       "LST_C_delta_city": 0.3943275957076011,
       "NDVI": 0.4014951131169679,
       "NDVI_delta_city": 0.02796546155493046,
-      "pop_density_km2": 44170.478603089614,
-      "pop_density_km2_delta_city": -3099.9673427880407,
-      "hospital_dist_m": 1666.9971315061432,
-      "hospital_dist_m_delta_city": 513.5683103966621,
+      "pop_density_km2": 44170.47860308372,
+      "pop_density_km2_delta_city": -3099.9673427937596,
+      "hospital_dist_m": 1597.6158099639915,
+      "hospital_dist_m_delta_city": 450.9082980285982,
       "impervious_pct": 27.508359400287276,
       "impervious_pct_delta_city": -11.199130348411465,
       "top_driver": "hospital_dist_m",
-      "top_driver_contrib": 0.08234854606994635,
+      "top_driver_contrib": 0.07234348074185735,
       "neighbours": [
         "M/W",
         "N"
       ],
       "coolest_neighbour": {
         "ward_id": "N",
-        "hvi": 41.837661520422095
+        "hvi": 41.799128307175835
       },
       "hottest_neighbour": {
         "ward_id": "M/W",
-        "hvi": 63.526509711926536
+        "hvi": 63.43142485840672
       }
     },
     {
       "ward_id": "S",
       "ward_gid": 12,
-      "hvi": 41.95016206751886,
+      "hvi": 41.94688234318385,
       "rank": 18,
       "n_cells": 30,
       "percentile": 26.1,
-      "LST_C": 32.533555140896155,
-      "LST_C_delta_city": 0.14843391002342088,
-      "NDVI": 0.4122158155771409,
-      "NDVI_delta_city": 0.03868616401510344,
-      "pop_density_km2": 50620.95226705742,
-      "pop_density_km2_delta_city": 3350.506321179768,
-      "hospital_dist_m": 745.9105256786783,
-      "hospital_dist_m_delta_city": -407.5182954308028,
-      "impervious_pct": 32.647329199099644,
-      "impervious_pct_delta_city": -6.060160549599097,
+      "LST_C": 32.53355514089615,
+      "LST_C_delta_city": 0.14843391002341377,
+      "NDVI": 0.41221581557714077,
+      "NDVI_delta_city": 0.03868616401510333,
+      "pop_density_km2": 50620.9522670544,
+      "pop_density_km2_delta_city": 3350.506321176923,
+      "hospital_dist_m": 745.910525678834,
+      "hospital_dist_m_delta_city": -400.7969862565593,
+      "impervious_pct": 32.64732919909964,
+      "impervious_pct_delta_city": -6.060160549599104,
       "top_driver": "pop_density_km2",
-      "top_driver_contrib": 0.02302107210955414,
+      "top_driver_contrib": 0.023027654763959945,
       "neighbours": [
         "K/E",
         "L",
@@ -635,17 +635,17 @@
       ],
       "coolest_neighbour": {
         "ward_id": "T",
-        "hvi": 27.671741019002358
+        "hvi": 27.67146884517128
       },
       "hottest_neighbour": {
         "ward_id": "L",
-        "hvi": 72.03093571074864
+        "hvi": 72.02536663238902
       }
     },
     {
       "ward_id": "N",
       "ward_gid": 10,
-      "hvi": 41.837661520422095,
+      "hvi": 41.799128307175835,
       "rank": 19,
       "n_cells": 29,
       "percentile": 21.7,
@@ -653,14 +653,14 @@
       "LST_C_delta_city": 0.09768880118257783,
       "NDVI": 0.4487548537757084,
       "NDVI_delta_city": 0.07522520221367096,
-      "pop_density_km2": 51179.91957118307,
-      "pop_density_km2_delta_city": 3909.4736253054143,
-      "hospital_dist_m": 1117.7884393593197,
-      "hospital_dist_m_delta_city": -35.640381750161396,
+      "pop_density_km2": 51179.919571187165,
+      "pop_density_km2_delta_city": 3909.4736253096853,
+      "hospital_dist_m": 1111.6221599019777,
+      "hospital_dist_m_delta_city": -35.085352033415575,
       "impervious_pct": 29.939454417911282,
       "impervious_pct_delta_city": -8.768035330787459,
       "top_driver": "pop_density_km2",
-      "top_driver_contrib": 0.026861693610195962,
+      "top_driver_contrib": 0.02686937445347516,
       "neighbours": [
         "L",
         "M/E",
@@ -669,17 +669,17 @@
       ],
       "coolest_neighbour": {
         "ward_id": "S",
-        "hvi": 41.95016206751886
+        "hvi": 41.94688234318385
       },
       "hottest_neighbour": {
         "ward_id": "L",
-        "hvi": 72.03093571074864
+        "hvi": 72.02536663238902
       }
     },
     {
       "ward_id": "P/S",
       "ward_gid": 20,
-      "hvi": 40.66937637588956,
+      "hvi": 40.66590450153512,
       "rank": 20,
       "n_cells": 24,
       "percentile": 17.4,
@@ -687,14 +687,14 @@
       "LST_C_delta_city": 0.19932380069165134,
       "NDVI": 0.438711195443372,
       "NDVI_delta_city": 0.06518154388133457,
-      "pop_density_km2": 47566.96235106557,
-      "pop_density_km2_delta_city": 296.5164051879183,
-      "hospital_dist_m": 738.8902665786395,
-      "hospital_dist_m_delta_city": -414.53855453084157,
+      "pop_density_km2": 47566.96235106618,
+      "pop_density_km2_delta_city": 296.5164051886968,
+      "hospital_dist_m": 738.8902665787527,
+      "hospital_dist_m_delta_city": -407.81724535664057,
       "impervious_pct": 34.850254746211974,
       "impervious_pct_delta_city": -3.8572350024867674,
       "top_driver": "LST_C",
-      "top_driver_contrib": 0.016053214246236236,
+      "top_driver_contrib": 0.016054803106720163,
       "neighbours": [
         "K/E",
         "K/W",
@@ -704,17 +704,17 @@
       ],
       "coolest_neighbour": {
         "ward_id": "T",
-        "hvi": 27.671741019002358
+        "hvi": 27.67146884517128
       },
       "hottest_neighbour": {
         "ward_id": "K/E",
-        "hvi": 65.8207397146236
+        "hvi": 65.74840462473652
       }
     },
     {
       "ward_id": "P/N",
       "ward_gid": 21,
-      "hvi": 38.148526572922954,
+      "hvi": 38.147191947836006,
       "rank": 21,
       "n_cells": 53,
       "percentile": 13.0,
@@ -722,14 +722,14 @@
       "LST_C_delta_city": -0.3102715974902921,
       "NDVI": 0.4064370846427606,
       "NDVI_delta_city": 0.03290743308072319,
-      "pop_density_km2": 28443.25873777795,
-      "pop_density_km2_delta_city": -18827.187208099705,
-      "hospital_dist_m": 1648.481620214947,
-      "hospital_dist_m_delta_city": 495.05279910546597,
+      "pop_density_km2": 28443.258737777927,
+      "pop_density_km2_delta_city": -18827.187208099553,
+      "hospital_dist_m": 1648.4652945027922,
+      "hospital_dist_m_delta_city": 501.75778256739886,
       "impervious_pct": 23.717275249217423,
       "impervious_pct_delta_city": -14.990214499481318,
       "top_driver": "hospital_dist_m",
-      "top_driver_contrib": 0.0793796607168099,
+      "top_driver_contrib": 0.08050174423256999,
       "neighbours": [
         "K/W",
         "P/S",
@@ -739,17 +739,17 @@
       ],
       "coolest_neighbour": {
         "ward_id": "T",
-        "hvi": 27.671741019002358
+        "hvi": 27.67146884517128
       },
       "hottest_neighbour": {
         "ward_id": "K/W",
-        "hvi": 50.94133210487372
+        "hvi": 50.93498365035478
       }
     },
     {
       "ward_id": "R/N",
       "ward_gid": 15,
-      "hvi": 30.364675595115266,
+      "hvi": 30.361476663411743,
       "rank": 22,
       "n_cells": 19,
       "percentile": 8.7,
@@ -757,30 +757,30 @@
       "LST_C_delta_city": -1.3111052312277565,
       "NDVI": 0.5010486133442842,
       "NDVI_delta_city": 0.12751896178224675,
-      "pop_density_km2": 44425.28172755943,
-      "pop_density_km2_delta_city": -2845.1642183182266,
-      "hospital_dist_m": 725.5025839601723,
-      "hospital_dist_m_delta_city": -427.9262371493088,
+      "pop_density_km2": 44425.281727557835,
+      "pop_density_km2_delta_city": -2845.1642183196454,
+      "hospital_dist_m": 725.5025839599955,
+      "hospital_dist_m_delta_city": -421.2049279753978,
       "impervious_pct": 27.252108097774975,
       "impervious_pct_delta_city": -11.455381650923766,
       "top_driver": "pop_density_km2",
-      "top_driver_contrib": -0.01954890525631475,
+      "top_driver_contrib": -0.0195544950779924,
       "neighbours": [
         "R/C"
       ],
       "coolest_neighbour": {
         "ward_id": "R/C",
-        "hvi": 27.719437845141094
+        "hvi": 27.721305527822256
       },
       "hottest_neighbour": {
         "ward_id": "R/C",
-        "hvi": 27.719437845141094
+        "hvi": 27.721305527822256
       }
     },
     {
       "ward_id": "R/C",
       "ward_gid": 11,
-      "hvi": 27.719437845141094,
+      "hvi": 27.721305527822256,
       "rank": 23,
       "n_cells": 61,
       "percentile": 4.3,
@@ -788,14 +788,14 @@
       "LST_C_delta_city": -2.17930642511217,
       "NDVI": 0.5140578627526048,
       "NDVI_delta_city": 0.14052821119056735,
-      "pop_density_km2": 21887.589539889825,
-      "pop_density_km2_delta_city": -25382.85640598783,
-      "hospital_dist_m": 2327.7704855771476,
-      "hospital_dist_m_delta_city": 1174.3416644676665,
-      "impervious_pct": 14.93131333924647,
+      "pop_density_km2": 21887.589539888984,
+      "pop_density_km2_delta_city": -25382.856405988496,
+      "hospital_dist_m": 2327.7704855772013,
+      "hospital_dist_m_delta_city": 1181.062973641808,
+      "impervious_pct": 14.931313339246474,
       "impervious_pct_delta_city": -23.77617640945227,
       "top_driver": "hospital_dist_m",
-      "top_driver_contrib": 0.18830080964999832,
+      "top_driver_contrib": 0.18948909758843657,
       "neighbours": [
         "P/N",
         "R/N",
@@ -804,17 +804,17 @@
       ],
       "coolest_neighbour": {
         "ward_id": "T",
-        "hvi": 27.671741019002358
+        "hvi": 27.67146884517128
       },
       "hottest_neighbour": {
         "ward_id": "R/S",
-        "hvi": 46.15310278285408
+        "hvi": 46.14827782811945
       }
     },
     {
       "ward_id": "T",
       "ward_gid": 13,
-      "hvi": 27.671741019002358,
+      "hvi": 27.67146884517128,
       "rank": 24,
       "n_cells": 55,
       "percentile": 0.0,
@@ -822,14 +822,14 @@
       "LST_C_delta_city": -2.4774163810605465,
       "NDVI": 0.46017460701246,
       "NDVI_delta_city": 0.08664495545042256,
-      "pop_density_km2": 30322.288611259602,
-      "pop_density_km2_delta_city": -16948.157334618052,
-      "hospital_dist_m": 1752.0902666363684,
-      "hospital_dist_m_delta_city": 598.6614455268873,
+      "pop_density_km2": 30322.288611272706,
+      "pop_density_km2_delta_city": -16948.157334604773,
+      "hospital_dist_m": 1752.0902666362817,
+      "hospital_dist_m_delta_city": 605.3827547008884,
       "impervious_pct": 13.972580072719373,
       "impervious_pct_delta_city": -24.734909675979367,
       "top_driver": "hospital_dist_m",
-      "top_driver_contrib": 0.09599287695378789,
+      "top_driver_contrib": 0.09712727809098469,
       "neighbours": [
         "P/N",
         "P/S",
@@ -839,11 +839,11 @@
       ],
       "coolest_neighbour": {
         "ward_id": "R/C",
-        "hvi": 27.719437845141094
+        "hvi": 27.721305527822256
       },
       "hottest_neighbour": {
         "ward_id": "R/S",
-        "hvi": 46.15310278285408
+        "hvi": 46.14827782811945
       }
     }
   ]
