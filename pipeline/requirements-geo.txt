@@ -12,7 +12,7 @@
 
 geopandas==1.2.0
 shapely==2.2.0
-pandas==3.0.6
+pandas==3.1.0
 numpy==2.5.4
 scikit-learn==1.9.1
 scipy==1.18.1
