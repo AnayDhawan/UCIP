@@ -63,11 +63,14 @@ def normalise_worldcover_class(value: float | int | None) -> int | None:
 
 # Below this share of a cell's pixels, the dominant WorldCover class is not even
 # a majority, so the cell is genuinely mixed and its one class is a close call
-# (issue #168). Chosen on principle, not from the data: 0.5 is where "the
-# dominant class" stops meaning "most of the cell". It has NOT been checked
-# against the distribution of shares across the 541 cells, which needs an Earth
-# Engine run; stage 06 prints that distribution so the number can be tightened
-# once somebody has looked. It is deliberately not borrowed from
+# (issue #168). Chosen on principle: 0.5 is where "the dominant class" stops
+# meaning "most of the cell". Checked against the 2026-10-30 run: of 541 cells,
+# 106 (20%) fall below it; shares run min 0.234, p10 0.441, p25 0.532, median
+# 0.666, p75 0.794. The distribution has no gap or knee near 0.5 that would
+# justify a different cut, and a lower one would hide cells where the dominant
+# class is only a plurality. Kept at 0.5. The share alone cannot tell a 45/45
+# split from a 45/10/10/10/10/10/5 one; a margin over the runner-up would, but
+# the pipeline does not record the runner-up. It is deliberately not borrowed from
 # DOMINANCE_THRESHOLD in _hvi.py, which means something different: with seven
 # classes a 45% plurality is a mixed cell, whereas 45% of the total contribution
 # across five indicators is strong dominance.
