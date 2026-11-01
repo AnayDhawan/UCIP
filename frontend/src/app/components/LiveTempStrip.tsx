@@ -54,6 +54,18 @@ export default function LiveTempStrip() {
           <span className="text-foreground">
             {MUMBAI.name} now{" "}
             <span className="font-mono font-medium text-foreground">{tempC.toFixed(1)}°C</span> air
+            <span className="text-muted-foreground">
+              {" "}
+              ·{" "}
+              <a
+                href="https://open-meteo.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+              >
+                Open-Meteo
+              </a>
+            </span>
           </span>
         )}
         {status === "unavailable" && (
