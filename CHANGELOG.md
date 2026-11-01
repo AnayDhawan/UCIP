@@ -35,6 +35,16 @@ All notable changes to this project are documented here. Format based on
   `ts-client-v*` tag (#103). Nothing is published yet.
 
 ### Fixed
+- `/wards/{wardId}` and `/lookup` return the same ward keys as `/wards`, including
+  `contrib`, `dominant_factor`, `dominant_share` and `single_factor_dominated`,
+  from both the database and the snapshot (#204).
+- The footer and `/legal` credit the Esri basemap the map actually uses, not CARTO,
+  and Open-Meteo is credited beside the live temperature (#196).
+- `npm run dev` no longer throws when the optional PostHog variables are unset (#212).
+- The MCP server aborts API requests after 15 seconds and reports its real package
+  version; the TypeScript client README, data dictionary and several comments no
+  longer quote stale figures or point at files the repo does not have (#206, #225,
+  #222).
 - **Every `grid_id` is renumbered once**, on the first refresh after this
   change. Cells are now numbered in fishnet order; before, ties among the 189
   equal-area cells were ordered differently on different machines, so the
