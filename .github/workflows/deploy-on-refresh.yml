@@ -26,6 +26,7 @@ jobs:
   deploy:
     if: github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'automated/pipeline-refresh'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Fire the Vercel deploy hook
         env:

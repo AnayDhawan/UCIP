@@ -92,6 +92,7 @@ jobs:
     # Forks have no LIVE_URL, Supabase secrets or issues tab, so scheduled runs there only fail.
     if: github.repository == 'AnayDhawan/UCIP'
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
         with:
@@ -245,7 +246,7 @@ jobs:
 
       - name: Open a PR with the refreshed data
         if: steps.diff.outputs.material == 'true' || (github.event_name == 'workflow_dispatch' && inputs.force_pr)
-        uses: peter-evans/create-pull-request@v8
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           commit-message: "chore(pipeline): monthly automated data refresh"
           branch: automated/pipeline-refresh

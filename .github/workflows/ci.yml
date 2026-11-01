@@ -7,9 +7,13 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+permissions:
+  contents: read
+
 jobs:
   frontend:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: frontend
@@ -36,6 +40,7 @@ jobs:
   # its route handlers typecheck against these types.
   client-typescript:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
       matrix:
         node-version: ["18", "24"]
@@ -86,6 +91,7 @@ jobs:
   # artifact itself is current.
   client-python:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: client-typescript
     strategy:
       matrix:
@@ -142,6 +148,7 @@ jobs:
   # network, a few seconds of test time.
   pipeline-geospatial:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
     steps:
@@ -158,6 +165,7 @@ jobs:
 
   pipeline:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7

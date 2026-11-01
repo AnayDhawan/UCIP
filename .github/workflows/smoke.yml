@@ -27,11 +27,15 @@ concurrency:
   group: smoke
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   smoke:
     # Forks have no LIVE_URL, Supabase secrets or issues tab, so scheduled runs there only fail.
     if: github.repository == 'AnayDhawan/UCIP'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Check the live site responds
         env:
