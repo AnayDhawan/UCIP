@@ -10,8 +10,8 @@
 - [ ] Refactor / chore
 
 ## Checklist
-- [ ] Tests pass locally (`npm run lint && npm run build`)
-- [ ] Lint passes
+- [ ] Tests, lint and build pass locally (`cd frontend && npm run lint && npm test && npm run build`)
+- [ ] Generated clients regenerated if the API spec changed (see CONTRIBUTING.md)
 - [ ] Docs / README updated if behaviour changed
 - [ ] CHANGELOG updated under `## [Unreleased]` (for user-facing changes)
 - [ ] No secrets, credentials, or personal paths committed

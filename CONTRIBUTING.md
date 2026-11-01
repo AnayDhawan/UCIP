@@ -46,8 +46,15 @@ Open an issue using the [feature request template](.github/ISSUE_TEMPLATE/featur
 
 1. Fork the repo and create a branch: `git checkout -b feat/your-feature`.
 2. Make your change.
-3. Verify inside `frontend/`: `npm run lint && npx vitest run && npm run build` must pass
+3. Verify inside `frontend/`: `npm run lint && npm test && npm run build` must pass
    clean. Pipeline changes also need `python -m pytest` inside `pipeline/`. CI runs both.
+   CI also fails on stale generated files, so depending on what you changed:
+   - API routes or `frontend/src/lib/openapiSpec.ts`: run `npm run generate` in
+     `clients/typescript` and `python scripts/generate.py` in `clients/python`, and commit the
+     diffs (`clients/openapi.json`, `src/types.gen.ts`, `src/ucip/models.py`).
+   - `config/cities/*.json`: run `python pipeline/sync_city_config.py` and
+     `python pipeline/validate_cities.py --allow-missing-data` from the repo root.
+   - `mcp-server/`: run `npm ci && npx tsc -p tsconfig.json --noEmit && npm test` there.
 4. Open a PR against `main` using the template.
 
 ## Data and methodology changes

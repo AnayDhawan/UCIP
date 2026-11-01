@@ -1,0 +1,30 @@
+name: New city
+description: Propose adding a city to UCIP
+title: "[City]: "
+labels: ["city", "enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Read [docs/adding-a-city.md](https://github.com/AnayDhawan/UCIP/blob/main/docs/adding-a-city.md) first. It lists what a city config needs and what the pipeline expects.
+  - type: input
+    id: city
+    attributes:
+      label: City and country
+      placeholder: Nairobi, Kenya
+    validations:
+      required: true
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: Ward or neighbourhood boundaries
+      description: Where the administrative boundaries come from and under what licence.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why this city
+      description: Who would use the result, and whether you can help check the output locally.
+    validations:
+      required: false
