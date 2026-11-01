@@ -1,6 +1,6 @@
 # DESIGN.md: UCIP
 
-## Brand palette (from docs/brand/README.md, generated brand sheet)
+## Brand palette
 
 | Role | Value | Notes |
 |------|-------|-------|

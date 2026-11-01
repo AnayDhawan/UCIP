@@ -34,8 +34,8 @@ import {
  * the city, then the factor breakdown (F2) and the cited interventions (F3).
  *
  * The bottom two sections are lifted unchanged from the old WardPanel detail
- * view rather than rewritten, so they still render exactly as the pitch-deck
- * screenshots show them.
+ * view rather than rewritten, so they still render exactly as they did in
+ * the old panel.
  */
 
 /** How each indicator is written out in the comparison table. */

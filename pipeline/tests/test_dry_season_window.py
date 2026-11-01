@@ -35,7 +35,7 @@ def gee_layers(monkeypatch_session=None):
 def test_returns_the_previously_hardcoded_window_for_2026(gee_layers, monkeypatch):
     """The change must not move any published figure.
 
-    Every number in the deck, on the methodology page and in the HVI report comes
+    Every number on the dashboard, on the methodology page and in the HVI report comes
     from the 2025-11-01 to 2026-02-28 composite. A run made in 2026 has to keep
     producing exactly that, or the rolling window would silently invalidate all
     of them.

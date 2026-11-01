@@ -1,6 +1,6 @@
 -- UCIP initial schema — wards, grid cells, NBS recommendations, interventions, citations.
 -- Locked decision: Supabase + PostGIS from Day 0, GeoJSON snapshots are the demo-safe fallback
--- (see docs/methodology.md, ucip/TODO.md).
+-- (see docs/methodology.md).
 --
 -- Geometry storage: `geom_geojson jsonb` (raw GeoJSON), not a native PostGIS `geometry` column.
 -- Rationale: PostgREST inserts can't cast a GeoJSON payload into `geometry` without an RPC/trigger

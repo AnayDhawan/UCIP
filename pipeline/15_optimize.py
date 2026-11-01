@@ -21,8 +21,8 @@ What it does:
     index and the objective is recorded in the output rather than left implicit.
 
 Why this was cut from the original build, and what changed:
-    F9, a budget optimiser, was deliberately dropped, and docs/pitch-brief.md
-    carries a dated note saying not to reinstate it without real unit-cost data.
+    F9, a budget optimiser, was deliberately dropped: it should not come back
+    without real unit-cost data.
     That was the right call: an optimiser is the most authoritative-looking
     output a tool like this can produce, and one built on invented costs would
     launder a guess into a spending recommendation.

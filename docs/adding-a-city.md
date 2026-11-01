@@ -121,7 +121,7 @@ python pipeline/01_grid.py --city pune
 
 Output goes to `data/<slug>/`, so cities cannot overwrite each other. Mumbai is
 the exception and writes to `data/` directly, because the site, the committed
-snapshots and the deck all reference those paths.
+snapshots and the API all reference those paths.
 
 Only the default city and the default 1 km resolution write to
 `frontend/public/`. Standing up a second city, or running an experimental

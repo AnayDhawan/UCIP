@@ -109,7 +109,7 @@ class TestGridResolution:
 
     def test_the_default_resolution_keeps_every_existing_path(self):
         # The committed Mumbai outputs are named grid_1km*.geojson and the
-        # deck, docs and snapshots all reference them. Changing those names
+        # API, docs and snapshots all reference them. Changing those names
         # would be a breaking change dressed up as a refactor.
         city = _city.load_city("mumbai")
         assert city.data_dir == _city.DATA_DIR

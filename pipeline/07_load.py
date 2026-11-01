@@ -75,7 +75,7 @@ CELLS_PATH = _CITY.out("cells_nbs.geojson")
 WARDS_PATH = _CITY.out("wards_hvi.geojson")
 REC_PATH = _CITY.out("nbs_recommendations.json")
 
-# Demo-safe snapshot names — these are what the frontend + pitch deck reference.
+# Demo-safe snapshot names — these are what the frontend and the API reference.
 SNAP_CELLS = _CITY.out("snapshot_cells.geojson")
 SNAP_WARDS = _CITY.out("snapshot_wards.geojson")
 SNAP_RECS = _CITY.out("snapshot_nbs_recommendations.json")
