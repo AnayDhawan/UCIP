@@ -23,8 +23,14 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
+import { createRequire } from "node:module";
 import { pathToFileURL } from "node:url";
 import { UcipClient, UcipError, type Ward } from "./client.js";
+
+// One source of truth for the version: ../package.json resolves from both src/ and dist/.
+const { version: SERVER_VERSION } = createRequire(import.meta.url)("../package.json") as {
+  version: string;
+};
 
 /**
  * What every ranked response must say. No figure is written here: the interval
@@ -207,7 +213,7 @@ export async function callTool(name: string, args: Record<string, unknown>): Pro
 
 async function main(): Promise<void> {
   const server = new Server(
-    { name: "ucip", version: "0.1.0" },
+    { name: "ucip", version: SERVER_VERSION },
     { capabilities: { tools: {} } }
   );
 

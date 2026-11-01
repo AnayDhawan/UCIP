@@ -111,6 +111,27 @@ jobs:
           fi
       - run: python -m pytest tests/ -q
 
+  # The MCP server (issue #206). It is the part of the project an assistant
+  # talks to directly, and its tests are the only check on the caveat text it
+  # attaches to every answer, so it gets the same compile-and-test gate as the
+  # clients.
+  mcp-server:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: mcp-server
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: mcp-server/package-lock.json
+      - run: npm ci
+      - run: npx tsc -p tsconfig.json --noEmit
+      - run: npm test
+
   # The geospatial stages (issue #207). The job below installs only
   # requirements-dev.txt, so every test that needs geopandas skips there and
   # stages 01, 03, 04, 05 and 06 were exercised only by the live refresh against

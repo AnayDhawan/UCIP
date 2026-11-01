@@ -9,12 +9,22 @@ answer rather than invented after it.
 
 ## Install
 
+The package is not on npm yet, so run it from a clone of the repository:
+
+```bash
+cd mcp-server
+npm ci
+npm run build
+```
+
+Then point your MCP client at the built file, using the absolute path to your clone:
+
 ```json
 {
   "mcpServers": {
     "ucip": {
-      "command": "npx",
-      "args": ["-y", "ucip-mcp"]
+      "command": "node",
+      "args": ["/absolute/path/to/UCIP/mcp-server/dist/index.js"]
     }
   }
 }
