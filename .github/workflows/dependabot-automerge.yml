@@ -39,7 +39,12 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Mark the PR auto-mergeable
-        if: steps.meta.outputs.update-type == 'version-update:semver-patch'
+        # mcp-server stays manual until CI covers it with more than a type-check
+        # and its unit tests (issue #221). Dependabot branch names carry the
+        # directory, for example dependabot/npm_and_yarn/mcp-server/patch-abc.
+        if: >-
+          steps.meta.outputs.update-type == 'version-update:semver-patch' &&
+          !contains(github.event.pull_request.head.ref, '/mcp-server/')
         run: gh pr edit "$PR_URL" --add-label auto-merge
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}

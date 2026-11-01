@@ -24,6 +24,38 @@ updates:
         update-types: ["patch"]
       minor:
         update-types: ["minor"]
+  # The two published clients and the MCP server (issue #221). Same groups as
+  # above, so patch bumps stay separate from minor ones.
+  - package-ecosystem: "npm"
+    directory: "/mcp-server"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      patch:
+        update-types: ["patch"]
+      minor:
+        update-types: ["minor"]
+  - package-ecosystem: "npm"
+    directory: "/clients/typescript"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      patch:
+        update-types: ["patch"]
+      minor:
+        update-types: ["minor"]
+  - package-ecosystem: "pip"
+    directory: "/clients/python"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      patch:
+        update-types: ["patch"]
+      minor:
+        update-types: ["minor"]
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
