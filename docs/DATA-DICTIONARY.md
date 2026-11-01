@@ -12,7 +12,7 @@ The pipeline (see `pipeline/README.md`) writes to **three places** from the same
 |---|---|---|
 | `data/` | repo root | The canonical dataset. The automated refresh PR commits it; `docs/api.md`'s release work reads it. |
 | `frontend/public/` | mirror of the files the browser fetches | The site, at runtime. Every browser-fetched output is copied here by its stage (`_publish.py`); see pipeline/README.md's "Frontend sync" table. |
-| Supabase | `wards`, `grid_cells`, `nbs_recommendations`, `interventions`, `methodology_refs` (migrations `0001`-`0006`) | The API's live source when configured; falls back to the committed snapshots when it is not. |
+| Supabase | `wards`, `grid_cells`, `nbs_recommendations`, `interventions`, `methodology_refs` (migrations `0001`-`0010`) | The API's live source when configured; falls back to the committed snapshots when it is not. |
 
 The public API (`/api/v1/*`) serves the same numbers from the database or the committed `frontend/public/` snapshots, carrying a `source` field of `database` or `snapshot`.
 
@@ -47,7 +47,7 @@ Carried through to the published cells so a reader can see them, but never stand
 
 | Column | Meaning | Notes |
 |---|---|---|
-| `grid_id` | Cell identifier | Numeric in the committed GeoJSON (`01_grid.py`); the database stores it as text `cell_0001`. |
+| `grid_id` | Cell identifier | String of the form `cell_NNNN` in the committed GeoJSON (`01_grid.py`) and in the database (text). |
 | `ward_id`, `ward_gid` | Containing ward | Datameet BMC boundaries (`ward_gid` is the source id; `ward_id` is the split-ward code used everywhere in the UI/API). |
 | `area_m2` | Cell area | Database only. |
 | `worldcover_share` | Fraction of the cell's WorldCover pixels in `worldcover_class` | 0 to 1. Added for #168; absent from data produced before it. |
