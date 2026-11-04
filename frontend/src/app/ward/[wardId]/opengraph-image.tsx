@@ -41,17 +41,17 @@ export default async function Image({ params }: { params: Promise<{ wardId: stri
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div style={{ fontSize: 52, fontWeight: 700, letterSpacing: 6, color: TEAL }}>UCIP</div>
+            <div style={{ fontSize: 52, letterSpacing: 6, color: TEAL }}>UCIP</div>
             <div style={{ fontSize: 34, color: MUTED }}>{`${ACTIVE_CITY.name} heat vulnerability`}</div>
           </div>
 
           <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
             <div style={{ display: "flex", flexDirection: "column" }}>
               <div style={{ fontSize: 44, color: MUTED }}>Ward</div>
-              <div style={{ display: "flex", fontSize: 220, fontWeight: 700, lineHeight: 1 }}>{ward_id}</div>
+              <div style={{ display: "flex", fontSize: 220, lineHeight: 1 }}>{ward_id}</div>
             </div>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-              <div style={{ display: "flex", fontSize: 150, fontWeight: 700, lineHeight: 1 }}>
+              <div style={{ display: "flex", fontSize: 150, lineHeight: 1 }}>
                 {HVI?.toFixed(1) ?? "n/a"}
               </div>
               <div style={{ display: "flex", alignItems: "center", fontSize: 30, color: MUTED }}>
