@@ -9,7 +9,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Feature, FeatureCollection, Geometry, Polygon, MultiPolygon } from "geojson";
-import { flattenPositions, boundsOf } from "./geometry";
+import { flattenPositions, boundsOf, centroidOf } from "./geometry";
 
 const wardsGeo = JSON.parse(
   readFileSync(join(process.cwd(), "public", "wards_hvi.geojson"), "utf8")
@@ -181,6 +181,73 @@ describe("boundsOf", () => {
       expect(Number.isFinite(maxLng)).toBe(true);
       expect(minLat).toBeGreaterThanOrEqual(MUMBAI_LAT[0]);
       expect(maxLat).toBeLessThanOrEqual(MUMBAI_LAT[1]);
+    }
+  });
+});
+
+describe("centroidOf", () => {
+  it("returns the middle of a rectangle as [lat, lng]", () => {
+    const rect: Polygon = {
+      type: "Polygon",
+      coordinates: [
+        [
+          [72.8, 19.0],
+          [72.9, 19.0],
+          [72.9, 19.2],
+          [72.8, 19.2],
+          [72.8, 19.0],
+        ],
+      ],
+    };
+    const [lat, lng] = centroidOf(rect)!;
+    expect(lat).toBeCloseTo(19.1, 9);
+    expect(lng).toBeCloseTo(72.85, 9);
+  });
+
+  it("uses the largest part of a MultiPolygon, not the average of all parts", () => {
+    const multi: MultiPolygon = {
+      type: "MultiPolygon",
+      coordinates: [
+        [
+          [
+            [72.8, 19.0],
+            [72.82, 19.0],
+            [72.82, 19.02],
+            [72.8, 19.02],
+            [72.8, 19.0],
+          ],
+        ],
+        [
+          [
+            [72.9, 19.1],
+            [73.0, 19.1],
+            [73.0, 19.3],
+            [72.9, 19.3],
+            [72.9, 19.1],
+          ],
+        ],
+      ],
+    };
+    const [lat, lng] = centroidOf(multi)!;
+    expect(lat).toBeCloseTo(19.2, 9);
+    expect(lng).toBeCloseTo(72.95, 9);
+  });
+
+  it("returns null for geometry types with no area and for empty polygons", () => {
+    expect(centroidOf({ type: "Point", coordinates: [72.8, 19.0] })).toBeNull();
+    expect(centroidOf({ type: "Polygon", coordinates: [] })).toBeNull();
+  });
+
+  it("falls inside the bounding box of every real ward", () => {
+    for (const feature of wardsGeo.features as Feature<Polygon | MultiPolygon>[]) {
+      const centroid = centroidOf(feature.geometry);
+      expect(centroid).not.toBeNull();
+      const [lat, lng] = centroid!;
+      const [[minLat, minLng], [maxLat, maxLng]] = boundsOf(feature.geometry)!;
+      expect(lat).toBeGreaterThanOrEqual(minLat);
+      expect(lat).toBeLessThanOrEqual(maxLat);
+      expect(lng).toBeGreaterThanOrEqual(minLng);
+      expect(lng).toBeLessThanOrEqual(maxLng);
     }
   });
 });

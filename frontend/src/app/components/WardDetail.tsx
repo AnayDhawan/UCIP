@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import CoefficientSparkline from "./CoefficientSparkline";
 import Citation from "./Citation";
+import WardWeather from "./WardWeather";
 import { matchCitationFromText } from "@/lib/citations";
 import { areasForWard } from "@/lib/wardAreas";
 import { hviColor } from "@/lib/hvi";
@@ -191,6 +192,9 @@ export default function WardDetail({
       <p className="mt-1.5 text-[11px] text-muted-foreground">
         Red pushes this ward&apos;s score up, green pushes it down, compared to the city average.
       </p>
+
+      <Separator className="my-4" />
+      <WardWeather wardId={ward.ward_id} />
 
       {recs.length > 0 && (
         <>

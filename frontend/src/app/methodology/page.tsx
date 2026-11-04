@@ -115,9 +115,10 @@ export default function MethodologyPage() {
           document the process and its limits.
         </p>
         <p className="mt-3 text-sm text-muted-foreground">
-          UCIP is a citable, versioned heat vulnerability index, not a forecast or a warning
-          service. It covers the 24 wards in the BMC boundary file it was built on, on a 1 km grid.
-          BMC has since split K/E (the K North ward office opened in 2026) and reportedly P North,
+          UCIP is a citable, versioned heat vulnerability index. Its score is not a forecast, and
+          UCIP is not a warning service; the weather panel on each ward shows Open-Meteo&apos;s
+          forecast, labelled as such. It covers the 24 wards in the BMC boundary file it was built
+          on, on a 1 km grid. BMC has since split K/E (the K North ward office opened in 2026) and reportedly P North,
           and no open boundary file for the new wards exists yet, so the index still uses 24. The
           pipeline runs from a per-city config, but no second city has been run end to end.
         </p>
