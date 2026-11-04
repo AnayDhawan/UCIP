@@ -50,7 +50,7 @@ export default function Hero() {
           <p className="hero-text-shadow pointer-events-auto mx-auto mt-6 w-fit max-w-xl text-lg leading-relaxed text-foreground md:mx-0">
             Satellite and population data, scored ward by ward.
             <br />
-            Every number sourced.
+            Weather for every ward. Every number sourced.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3 md:justify-start">
             <Link
