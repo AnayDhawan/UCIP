@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ACTIVE_CITY } from "@/lib/city";
 import type { PointForecast } from "@/lib/weather";
 import { wardSlug } from "@/lib/wardSlug";
 
@@ -37,10 +38,13 @@ export default function WardWeather({ wardId }: { wardId: string }) {
   // A result for a ward the reader has since left counts as still loading.
   const current = result?.slug === slug ? result : null;
   const forecast = current?.forecast ?? null;
+  // "2026-11-04T10:00" is local time in the city's timezone. The response can be a
+  // few minutes old (it is cached), so the panel says when the reading was taken.
+  const readingTime = forecast?.observedAt.match(/T(\d{2}:\d{2})/)?.[1];
 
   return (
     <div>
-      <p className="kicker">Weather in this ward</p>
+      <p className="kicker">Weather at this ward&apos;s centre</p>
       {!current && <p className="mt-2 text-xs text-muted-foreground">Loading weather.</p>}
       {current && !forecast && (
         <p className="mt-2 text-xs text-muted-foreground">Weather unavailable right now.</p>
@@ -48,9 +52,14 @@ export default function WardWeather({ wardId }: { wardId: string }) {
       {forecast && (
         <>
           <p className="mt-2 text-sm text-foreground">
-            <span className="font-mono font-medium">{forecast.temperatureC.toFixed(1)}°C</span> now, feels
-            like <span className="font-mono font-medium">{forecast.apparentC.toFixed(1)}°C</span>
+            <span className="font-mono font-medium">{forecast.temperatureC.toFixed(1)}°C</span>, feels like{" "}
+            <span className="font-mono font-medium">{forecast.apparentC.toFixed(1)}°C</span>
           </p>
+          {readingTime && (
+            <p className="mt-0.5 text-[11px] text-muted-foreground">
+              Reading from {readingTime} {ACTIVE_CITY.name} time
+            </p>
+          )}
           <ul className="mt-2.5 grid grid-cols-7 gap-1 text-center">
             {forecast.days.map((day) => {
               const name = weekday(day.date);

@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
+import { checkRateLimit } from "@/lib/rateLimit";
 import { GET } from "./route";
+
+// No Upstash store in tests, so the real limiter passes everything; the 429 case forces a refusal.
+vi.mock("@/lib/rateLimit", () => ({ checkRateLimit: vi.fn(async () => null) }));
 
 const ctx = (wardId: string) => ({ params: Promise.resolve({ wardId }) });
 const req = new Request("https://uciplatform.vercel.app/api/weather/F-N");
@@ -33,7 +37,7 @@ describe("GET /api/weather/{wardId}", () => {
     const res = await GET(req, ctx("F-N"));
 
     expect(res.status).toBe(200);
-    expect(res.headers.get("cache-control")).toContain("s-maxage=1800");
+    expect(res.headers.get("cache-control")).toBe("public, s-maxage=1800, stale-while-revalidate=600");
     expect((await res.json()).temperatureC).toBe(32.1);
     const url = new URL(fetchMock.mock.calls[0][0] as string);
     expect(Number(url.searchParams.get("latitude"))).toBeGreaterThan(18.8);
@@ -57,7 +61,25 @@ describe("GET /api/weather/{wardId}", () => {
     const res = await GET(req, ctx("F-N"));
 
     expect(res.status).toBe(502);
-    expect(res.headers.get("cache-control")).toBeNull();
+    expect(res.headers.get("cache-control")).toBe("public, s-maxage=30");
     expect(await res.json()).toEqual({ error: "Weather is unavailable right now." });
+  });
+
+  it("returns 429 without calling Open-Meteo when the client is over the limit", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    vi.mocked(checkRateLimit).mockResolvedValueOnce({
+      ok: false,
+      limit: 120,
+      remaining: 0,
+      retryAfterSeconds: 12,
+    });
+
+    const res = await GET(req, ctx("F-N"));
+
+    expect(res.status).toBe(429);
+    expect(res.headers.get("retry-after")).toBe("12");
+    expect(res.headers.get("cache-control")).toBe("no-store");
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

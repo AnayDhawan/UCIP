@@ -72,7 +72,8 @@ export type PointForecast = {
  * not a forecast, and the ward weather panel labels the source.
  *
  * Same rule as fetchCityTemp: null on any failure or malformed body, never a
- * stale or invented number.
+ * fallback or invented number. This function does not cache; a caller that does
+ * should show `observedAt` so the reading's age is visible.
  */
 export async function fetchPointForecast(
   lat: number,

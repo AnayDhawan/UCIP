@@ -25,6 +25,9 @@ describe("WardWeather", () => {
 
     expect(await screen.findByText("32.1°C")).toBeInTheDocument();
     expect(screen.getByText("37.4°C")).toBeInTheDocument();
+    // The reading's own time, not "now": the response may come from a cache.
+    expect(screen.getByText("Reading from 10:00 Mumbai time")).toBeInTheDocument();
+    expect(screen.queryByText(/now/)).toBeNull();
     expect(screen.getByLabelText("Wed: high 33, low 25 degrees")).toBeInTheDocument();
     expect(screen.getByLabelText("Thu: high 35, low 26 degrees")).toBeInTheDocument();
     expect(WEATHER_LABEL).toBe("Forecast by Open-Meteo. UCIP's heat score is not a forecast.");
