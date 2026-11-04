@@ -15,6 +15,7 @@ const LEGAL_LINKS = [
   { href: "/legal#license", label: "License" },
   { href: "/legal#data-sources", label: "Data sources" },
   { href: "/legal#disclaimers", label: "Disclaimers" },
+  { href: "/legal#privacy", label: "Privacy" },
 ];
 
 export default function SiteFooter() {
