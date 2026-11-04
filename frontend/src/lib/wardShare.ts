@@ -7,6 +7,7 @@
  * build with no env vars set still emits real URLs.
  */
 
+import { ACTIVE_CITY } from "./city";
 import { wardSlug } from "./wardSlug";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://uciplatform.vercel.app";
@@ -16,9 +17,9 @@ export function wardPageUrl(wardId: string): string {
 }
 
 /** One line for a share message or the native share sheet. */
-export function wardShareText(wardId: string, rank: number | null, totalWards: number, city: string): string {
+export function wardShareText(wardId: string, rank: number | null, totalWards: number): string {
   const place = rank === null ? "" : `, priority ${rank} of ${totalWards}`;
-  return `Heat vulnerability in ${city} ward ${wardId}${place} (UCIP)`;
+  return `Heat vulnerability in ${ACTIVE_CITY.name} ward ${wardId}${place} (UCIP)`;
 }
 
 export function whatsappHref(text: string, url: string): string {

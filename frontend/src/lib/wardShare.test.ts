@@ -10,13 +10,13 @@ describe("wardPageUrl", () => {
 
 describe("wardShareText", () => {
   it("names the ward, city and priority", () => {
-    expect(wardShareText("F/N", 12, 24, "Mumbai")).toBe(
+    expect(wardShareText("F/N", 12, 24)).toBe(
       "Heat vulnerability in Mumbai ward F/N, priority 12 of 24 (UCIP)"
     );
   });
 
   it("leaves the priority out when the ward has no rank", () => {
-    expect(wardShareText("A", null, 24, "Mumbai")).toBe("Heat vulnerability in Mumbai ward A (UCIP)");
+    expect(wardShareText("A", null, 24)).toBe("Heat vulnerability in Mumbai ward A (UCIP)");
   });
 });
 

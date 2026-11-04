@@ -3,7 +3,6 @@
 import { Check, Code2, Link2, MessageCircle, Printer, Share2, X } from "lucide-react";
 import { useState, useSyncExternalStore } from "react";
 import { Badge } from "@/components/ui/badge";
-import { ACTIVE_CITY } from "@/lib/city";
 import { hviColor } from "@/lib/hvi";
 import { FACTOR_LABELS, INDICATOR_KEYS, type WardProps } from "@/lib/wardTypes";
 import { intervalWidth, rankRangeLabel, type WardInterval } from "@/lib/rankUncertainty";
@@ -43,7 +42,7 @@ export default function WardDetailHeader({
   const [linkCopied, setLinkCopied] = useState(false);
   const nativeShare = useSyncExternalStore(noopSubscribe, canNativeShare, () => false);
   const pageUrl = wardPageUrl(ward.ward_id);
-  const shareText = wardShareText(ward.ward_id, ward.rank, totalWards, ACTIVE_CITY.name);
+  const shareText = wardShareText(ward.ward_id, ward.rank, totalWards);
 
   async function copyEmbed() {
     const src = `${window.location.origin}/embed/ward/${wardSlug(ward.ward_id)}`;
