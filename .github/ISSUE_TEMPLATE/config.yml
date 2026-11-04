@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: API questions
+    url: https://github.com/AnayDhawan/UCIP/blob/main/docs/api.md
+    about: Endpoints, parameters and response shapes are documented here.
+  - name: Adding a city
+    url: https://github.com/AnayDhawan/UCIP/blob/main/docs/adding-a-city.md
+    about: What a city config needs before you open a "New city" issue.

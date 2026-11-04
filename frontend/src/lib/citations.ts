@@ -182,6 +182,7 @@ export const SOURCES: SourceEntry[] = [
   { name: "Datameet Municipal Spatial Data", use: "BMC ward boundaries; slum-cluster polygons (context, not scored)" },
   { name: "Census of India 2011, via OpenCity", use: "Ward under-7 share (context, not scored)" },
   { name: "NOAA Global Summary of the Day", use: "Weather-station check of the satellite temperature layer" },
-  { name: "CARTO / OpenStreetMap", use: "Basemap tiles on the dashboard" },
+  { name: "Esri World Light Gray Canvas", use: "Basemap tiles on the dashboard" },
+  { name: "Open-Meteo", use: "Live air temperature on the home page (CC BY 4.0, https://open-meteo.com/)" },
   { name: "Natural Earth 1:10m physical", use: "Regional coastline behind the landing-page model (public domain)" },
 ];

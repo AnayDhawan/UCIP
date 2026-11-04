@@ -27,17 +27,23 @@ concurrency:
   group: smoke
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   smoke:
     # Forks have no LIVE_URL, Supabase secrets or issues tab, so scheduled runs there only fail.
     if: github.repository == 'AnayDhawan/UCIP'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Check the live site responds
         env:
           LIVE_URL: ${{ vars.LIVE_URL }}
         run: |
           set -uo pipefail
+          # The API paths below contain '?', which the shell would otherwise try to glob.
+          set -f
 
           if [ -z "${LIVE_URL:-}" ]; then
             echo "::error::LIVE_URL repo variable is not set. Set it under Settings > Secrets and variables > Actions > Variables."
@@ -47,7 +53,11 @@ jobs:
           # One page per major surface, plus a data file. The data file matters
           # on its own: the dashboard reads its GeoJSON from /public at runtime,
           # so the HTML can render fine while the map silently has nothing to draw.
-          PATHS="/ /dashboard /methodology /simulate /wards_hvi.geojson /nbs_recommendations.json"
+          #
+          # The API and an embed card ship in the same deploy as the pages, and
+          # clients and the MCP server depend on them (issue #209). A broken API
+          # route would otherwise pass this job.
+          PATHS="/ /dashboard /methodology /simulate /wards_hvi.geojson /nbs_recommendations.json /api/v1/meta /api/v1/wards?limit=24 /api/v1/wards/C /embed/ward/C"
 
           failed=0
           for path in $PATHS; do
@@ -60,5 +70,21 @@ jobs:
               failed=1
             fi
           done
+
+          # Status codes alone do not catch an API that answers 200 with the wrong
+          # data. All 24 wards must come back. A snapshot fallback is intentional
+          # behaviour, so it is surfaced as a warning rather than a failure.
+          wards=$(curl -sS --max-time 30 --retry 2 --retry-delay 5 "${LIVE_URL}/api/v1/wards" || echo "")
+          count=$(printf '%s' "$wards" | jq -r '.count // empty' 2>/dev/null || echo "")
+          source=$(printf '%s' "$wards" | jq -r '.source // empty' 2>/dev/null || echo "")
+          if [ "$count" = "24" ]; then
+            echo "ok    /api/v1/wards returned 24 wards (source: ${source:-unknown})"
+          else
+            echo "::error::/api/v1/wards returned count '${count:-none}', expected 24"
+            failed=1
+          fi
+          if [ "$source" = "snapshot" ]; then
+            echo "::warning::/api/v1/wards is served from the committed snapshot, not the database"
+          fi
 
           exit $failed

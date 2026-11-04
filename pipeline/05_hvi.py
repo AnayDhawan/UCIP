@@ -37,7 +37,7 @@ Notes:
     WardChoropleth.tsx) and server-side by page.tsx, so it must land in
     frontend/public/ as well as data/ on every refresh. See _publish.py.
 
-    Every number in the pitch deck and on the methodology page traces back to
+    Every number on the dashboard, the methodology page and the API traces back to
     this stage's output. Changing the indicator set, the directions, or the
     rescaling changes all of them at once.
 

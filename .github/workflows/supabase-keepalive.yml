@@ -38,11 +38,15 @@ concurrency:
   group: supabase-keepalive
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   ping:
     # Forks have no LIVE_URL, Supabase secrets or issues tab, so scheduled runs there only fail.
     if: github.repository == 'AnayDhawan/UCIP'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Read one row from Supabase
         env:

@@ -31,15 +31,21 @@ jobs:
     name: Label patch bumps
     if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Dependabot metadata
         id: meta
-        uses: dependabot/fetch-metadata@v3
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Mark the PR auto-mergeable
-        if: steps.meta.outputs.update-type == 'version-update:semver-patch'
+        # mcp-server stays manual until CI covers it with more than a type-check
+        # and its unit tests (issue #221). Dependabot branch names carry the
+        # directory, for example dependabot/npm_and_yarn/mcp-server/patch-abc.
+        if: >-
+          steps.meta.outputs.update-type == 'version-update:semver-patch' &&
+          !contains(github.event.pull_request.head.ref, '/mcp-server/')
         run: gh pr edit "$PR_URL" --add-label auto-merge
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
@@ -56,6 +62,7 @@ jobs:
       github.event.workflow_run.event == 'pull_request' &&
       github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Merge if the PR is a labelled patch bump and every check passed
         env:

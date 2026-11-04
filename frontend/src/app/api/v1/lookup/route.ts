@@ -18,6 +18,7 @@
 
 import type { FeatureCollection, Geometry, Polygon, MultiPolygon, Position } from "geojson";
 import type { NbsRec, WardProps } from "@/lib/wardTypes";
+import { WARD_COLUMNS, fromSnapshot, type WardRow } from "../_ward";
 import {
   errorResponse,
   intervalFields,
@@ -105,17 +106,26 @@ export async function GET(request: Request) {
     const { data, error } = await db.rpc("ward_at", { lat, lon });
     if (!error && Array.isArray(data)) {
       if (data.length === 0) return notFound();
-      const ward = data[0] as { ward_id: string; rank?: number | null };
-      const { data: recs } = await db
-        .from("nbs_recommendations")
-        .select("intervention,rationale,citation,priority")
-        .eq("ward_id", ward.ward_id)
-        .order("priority", { ascending: true })
-        .limit(1);
+      const hit = data[0] as { ward_id: string; rank?: number | null };
+      // ward_at() only decides which ward contains the point. The ward object
+      // itself comes from the same column list as /wards, so the three routes
+      // return the same keys (issue #204).
+      const [wardResult, recsResult] = await Promise.all([
+        db.from("wards").select(WARD_COLUMNS).eq("ward_id", hit.ward_id).maybeSingle(),
+        db
+          .from("nbs_recommendations")
+          .select("intervention,rationale,citation,priority")
+          .eq("ward_id", hit.ward_id)
+          .order("priority", { ascending: true })
+          .limit(1),
+      ]);
+      const ward: Partial<WardRow> & { ward_id: string } =
+        !wardResult.error && wardResult.data ? (wardResult.data as unknown as WardRow) : hit;
+      const recs = recsResult.data;
       return jsonResponse({
         source: "database",
         query: { lat, lon },
-        ward: { ...ward, ...intervalFields(intervals, ward.ward_id, ward.rank) },
+        ward: { ...ward, ...intervalFields(intervals, ward.ward_id, ward.rank ?? hit.rank) },
         top_recommendation: recs?.[0] ?? null,
       });
     }
@@ -142,10 +152,7 @@ export async function GET(request: Request) {
       source: "snapshot",
       query: { lat, lon },
       ward: {
-        ward_id: p.ward_id,
-        hvi: p.HVI,
-        rank: p.rank,
-        n_cells: p.n_cells,
+        ...fromSnapshot(p),
         ...intervalFields(intervals, p.ward_id, p.rank),
       },
       top_recommendation: top

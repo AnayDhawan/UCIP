@@ -48,6 +48,7 @@ permissions:
 jobs:
   lighthouse:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: frontend

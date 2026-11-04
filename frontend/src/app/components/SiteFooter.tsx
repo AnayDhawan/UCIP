@@ -95,7 +95,7 @@ export default function SiteFooter() {
           </p>
           <p className="mt-2">
             Data: Landsat (USGS), WorldPop, ESA WorldCover via Google Earth Engine; OpenStreetMap
-            contributors; Datameet ward boundaries. Basemap by CARTO.
+            contributors; Datameet ward boundaries. Basemap: Esri, HERE, Garmin, FAO, NOAA, USGS. Live air temperature: Open-Meteo.
           </p>
           <p className="mt-4">
             © {new Date().getFullYear()} UCIP. Code released under the Apache License 2.0.

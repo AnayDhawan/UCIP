@@ -26,7 +26,7 @@ Notes:
     The mean LST this prints is for the small test bbox, NOT for Mumbai. The
     city-wide figure across all cells comes from stage 05 and is roughly 1.2 C
     lower. Quoting this number as a city figure has caused a real error in a
-    deck before.
+    published figure before.
 
 Prereqs:
     1. An approved Earth Engine account (code.earthengine.google.com/register)

@@ -16,7 +16,7 @@ npm install @ucip/client
 import { UcipClient } from "@ucip/client";
 
 const wards = await new UcipClient().allWards();
-console.log(wards[0]); // { ward_id: "C", hvi: 73.56, rank: 1, ... }
+console.log(wards[0]); // { ward_id: "C", hvi: 82.61, rank: 1, ... } (scores move slightly on each refresh)
 ```
 
 ## What you can ask it

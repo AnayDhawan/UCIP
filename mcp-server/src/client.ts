@@ -12,6 +12,9 @@
 
 const DEFAULT_BASE_URL = "https://uciplatform.vercel.app";
 
+// A hung API should fail the tool call, not stall the assistant's conversation.
+const DEFAULT_TIMEOUT_MS = 15_000;
+
 export class UcipError extends Error {
   readonly status: number;
   constructor(message: string, status: number) {
@@ -50,8 +53,12 @@ export type Meta = Record<string, unknown>;
 export class UcipClient {
   private readonly baseUrl: string;
   private readonly fetchImpl: typeof globalThis.fetch;
+  private readonly timeoutMs: number;
 
-  constructor(options: { baseUrl?: string; fetch?: typeof globalThis.fetch } = {}) {
+  constructor(
+    options: { baseUrl?: string; fetch?: typeof globalThis.fetch; timeoutMs?: number } = {}
+  ) {
+    this.timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
     this.baseUrl = (options.baseUrl ?? process.env.UCIP_BASE_URL ?? DEFAULT_BASE_URL).replace(/\/+$/, "");
     this.fetchImpl = options.fetch ?? globalThis.fetch;
   }
@@ -64,6 +71,7 @@ export class UcipClient {
 
     const response = await this.fetchImpl(url.toString(), {
       headers: { accept: "application/json" },
+      signal: AbortSignal.timeout(this.timeoutMs),
     });
 
     if (!response.ok) {

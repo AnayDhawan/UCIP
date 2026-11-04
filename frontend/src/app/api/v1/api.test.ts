@@ -227,6 +227,19 @@ describe("GET /api/v1/lookup", () => {
     expect(json.query).toEqual({ lat: 19.076, lon: 72.877 });
   });
 
+  it("returns the same ward keys as /wards and /wards/{id} (issue #204)", async () => {
+    const lookup = await body(await getLookup(req("/api/v1/lookup?lat=19.0176&lon=72.8562")));
+    const one = await body(await getWard(req("/api/v1/wards/F%2FN"), { params: Promise.resolve({ wardId: "F%2FN" }) }));
+    const list = await body(await getWards(req("/api/v1/wards")));
+    const listed = list.wards.find((w: Json) => w.ward_id === "F/N");
+
+    const keys = (ward: Json) => Object.keys(ward).sort();
+    expect(keys(lookup.ward)).toEqual(keys(listed));
+    expect(keys(one.ward)).toEqual(keys(listed));
+    expect(keys(listed)).toContain("single_factor_dominated");
+    expect(keys(lookup.ward)).toContain("contrib");
+  });
+
   it("resolves a second, independently checked coordinate", async () => {
     const json = await body(await getLookup(req("/api/v1/lookup?lat=19.0176&lon=72.8562")));
     expect(json.ward.ward_id).toBe("F/N");

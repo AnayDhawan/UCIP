@@ -1,0 +1,44 @@
+name: Data correction
+description: A ward boundary, hospital, cell value or other data point looks wrong
+title: "[Data]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        UCIP depends on outside reports about the data. A source link is what lets us check a claim, so please include one.
+  - type: input
+    id: record
+    attributes:
+      label: Which ward or cell?
+      description: A ward code such as `F/N` or a grid cell id such as `cell_0315`. Say "all" or "n/a" if it is not tied to one record.
+    validations:
+      required: true
+  - type: input
+    id: field
+    attributes:
+      label: Which field or layer?
+      description: For example a hospital location, a ward boundary, `hvi`, `ndvi`, population.
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: What the data says now
+      description: The value or location as it appears on the site, in the API or in the committed files.
+    validations:
+      required: true
+  - type: textarea
+    id: claimed
+    attributes:
+      label: What you think it should be
+      description: The corrected value or location, and why.
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Source link
+      description: A document, dataset, map or official page that supports the correction.
+    validations:
+      required: true

@@ -13,7 +13,7 @@ Deliberately additive:
     Reads cells_hvi.geojson + wards_hvi.geojson + bmc_wards.geojson, writes only
     ward_profiles.json. It does NOT recompute HVI, PCA weights or ranks; those
     are read straight out of wards_hvi.geojson so the figures already published
-    in the pitch deck cannot drift. No Earth Engine calls.
+    on the methodology page and in the API cannot drift. No Earth Engine calls.
 
 Indicator units, verified against data/cells_hvi.geojson (541 cells):
     LST_C             degrees Celsius     26.24 to 39.95

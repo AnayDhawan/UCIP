@@ -84,7 +84,7 @@ class CityConfig:
 
         The default city writes to data/ directly and every other city to
         data/<slug>/. That asymmetry is deliberate rather than sloppy: the
-        frontend, the committed snapshots, the deck and the methodology page all
+        frontend, the committed snapshots, the API and the methodology page all
         reference data/wards_hvi.geojson by that exact path, so moving Mumbai
         under data/mumbai/ would be a breaking change for no benefit while it is
         the only published city.

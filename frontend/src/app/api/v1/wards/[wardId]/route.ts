@@ -10,6 +10,7 @@
 
 import type { FeatureCollection, Geometry } from "geojson";
 import type { NbsRec, WardProps } from "@/lib/wardTypes";
+import { WARD_COLUMNS, fromSnapshot } from "../../_ward";
 import {
   errorResponse,
   intervalFields,
@@ -50,7 +51,7 @@ export async function GET(
   const db = supabase();
   if (db) {
     const [wardResult, recsResult] = await Promise.all([
-      db.from("wards").select("ward_id,hvi,rank,n_cells,contrib").eq("ward_id", wardId).maybeSingle(),
+      db.from("wards").select(WARD_COLUMNS).eq("ward_id", wardId).maybeSingle(),
       db
         .from("nbs_recommendations")
         .select("intervention,rationale,citation,priority,cell_count")
@@ -82,21 +83,11 @@ export async function GET(
     }
 
     const p = feature.properties;
-    const contrib: Record<string, number> = {};
-    for (const [key, value] of Object.entries(p)) {
-      if (key.startsWith("contrib_") && typeof value === "number") {
-        contrib[key.slice("contrib_".length)] = value;
-      }
-    }
 
     return jsonResponse({
       source: "snapshot",
       ward: {
-        ward_id: p.ward_id,
-        hvi: p.HVI,
-        rank: p.rank,
-        n_cells: p.n_cells,
-        contrib: Object.keys(contrib).length ? contrib : null,
+        ...fromSnapshot(p),
         ...intervalFields(intervals, wardId, p.rank),
       },
       recommendations: recs
