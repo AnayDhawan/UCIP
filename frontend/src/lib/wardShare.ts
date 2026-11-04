@@ -14,3 +14,13 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://uciplatform.vercel
 export function wardPageUrl(wardId: string): string {
   return `${SITE_URL}/ward/${wardSlug(wardId)}`;
 }
+
+/** One line for a share message or the native share sheet. */
+export function wardShareText(wardId: string, rank: number | null, totalWards: number, city: string): string {
+  const place = rank === null ? "" : `, priority ${rank} of ${totalWards}`;
+  return `Heat vulnerability in ${city} ward ${wardId}${place} (UCIP)`;
+}
+
+export function whatsappHref(text: string, url: string): string {
+  return `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`;
+}
