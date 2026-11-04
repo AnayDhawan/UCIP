@@ -8,13 +8,14 @@ const baseHeaders = [
   { key: "Permissions-Policy", value: "geolocation=(self), camera=(), microphone=()" },
 ];
 
-// The full policy ships as Report-Only first: it lists every third party the
-// site talks to (PostHog, Vercel Analytics, Esri tiles, Open-Meteo, Supabase),
-// and enforcing it before the console is clean would break the page. Next.js
-// needs 'unsafe-inline' for its bootstrap scripts without a nonce setup, and
-// dev mode needs 'unsafe-eval'.
+// The policy lists every third party the site talks to (PostHog, Vercel
+// Analytics, Esri tiles, Open-Meteo, Supabase). It ran Report-Only first; on
+// 2026-11-04 a Playwright pass over eleven production pages, including the
+// dashboard with a ward open and an embed card, recorded no violations, so it
+// now enforces. Next.js needs 'unsafe-inline' for its bootstrap scripts without
+// a nonce setup, and dev mode needs 'unsafe-eval'.
 const isDev = process.env.NODE_ENV !== "production";
-const cspReportOnly = [
+const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://va.vercel-scripts.com https://*.posthog.com`,
   "style-src 'self' 'unsafe-inline'",
@@ -36,8 +37,7 @@ const nextConfig: NextConfig = {
         source: "/((?!embed/).*)",
         headers: [
           ...baseHeaders,
-          { key: "Content-Security-Policy", value: "frame-ancestors 'self'" },
-          { key: "Content-Security-Policy-Report-Only", value: cspReportOnly },
+          { key: "Content-Security-Policy", value: `${csp}; frame-ancestors 'self'` },
         ],
       },
       {
@@ -46,7 +46,7 @@ const nextConfig: NextConfig = {
         source: "/embed/:path*",
         headers: [
           ...baseHeaders,
-          { key: "Content-Security-Policy-Report-Only", value: cspReportOnly },
+          { key: "Content-Security-Policy", value: csp },
         ],
       },
     ];
