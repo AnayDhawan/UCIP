@@ -80,19 +80,31 @@ export default function LegalPage() {
             ward&apos;s centre, so your browser does not contact Open-Meteo for it.
           </li>
           <li>
+            <strong className="text-foreground">Esri</strong>: the dashboard map loads its basemap
+            tiles from services.arcgisonline.com directly from your browser, so Esri sees your IP
+            address and the part of the map you are viewing.
+          </li>
+          <li>
             <strong className="text-foreground">Location</strong>: only if you use find my ward
             and allow it, your browser&apos;s coordinates are sent to UCIP&apos;s own{" "}
-            <code>/api/v1/lookup</code> to find the ward you are in. UCIP does not store them.
+            <code>/api/v1/lookup</code>, which looks the ward up in UCIP&apos;s database. UCIP
+            does not save them, but like any request URL they can appear in hosting logs.
           </li>
           <li>
-            <strong className="text-foreground">API requests</strong> are counted per IP address
-            over a one-minute window to apply the rate limit.
+            <strong className="text-foreground">API requests</strong>: when rate limiting is
+            switched on, API requests are counted per IP address over a one-minute window.
           </li>
           <li>
-            <strong className="text-foreground">Stored on your device</strong>: the wards you
-            track (<code>ucip-tracked-wards</code>), whether you closed the dashboard hint (
-            <code>ucip-dashboard-hint-dismissed</code>) and your light or dark theme, in your
-            browser&apos;s local storage. They are never sent anywhere.
+            <strong className="text-foreground">Tracked wards</strong> are kept in your
+            browser&apos;s local storage (<code>ucip-tracked-wards</code>) and also copied into
+            the dashboard address (<code>?wards=</code>). That makes them part of the page URLs
+            PostHog records, and part of the link if you share it.
+          </li>
+          <li>
+            <strong className="text-foreground">Stored on your device only</strong>: whether you
+            closed the dashboard hint (<code>ucip-dashboard-hint-dismissed</code>) and your light
+            or dark theme, in your browser&apos;s local storage, and offline copies of the pages
+            and files you opened, kept in cache storage by the site&apos;s service worker.
           </li>
         </ul>
       </main>
