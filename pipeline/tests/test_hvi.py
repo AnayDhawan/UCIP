@@ -2,7 +2,7 @@
 
 The flag these cover is one a planner acts on: a ward scoring high because of
 one indicator needs a different intervention from one scoring high across all
-seven. Getting the share wrong would produce a confident, wrong label rather
+five. Getting the share wrong would produce a confident, wrong label rather
 than a visible failure, which is why the arithmetic is pinned here.
 """
 
@@ -23,8 +23,6 @@ FACTORS = [
     "LST_C",
     "NDVI",
     "pop_density_km2",
-    "child_pct",
-    "slum_pct",
     "hospital_dist_m",
     "impervious_pct",
 ]
@@ -33,8 +31,8 @@ FACTORS = [
 def test_an_even_spread_is_not_dominated():
     result = factor_dominance({f: 1.0 for f in FACTORS})
     assert result["single_factor_dominated"] is False
-    # Seven equal factors, so each holds a seventh.
-    assert result["dominant_share"] == round(1 / 7, 4)
+    # Five equal factors, so each holds a fifth.
+    assert result["dominant_share"] == round(1 / 5, 4)
 
 
 def test_one_factor_carrying_everything_is_flagged():
@@ -62,7 +60,7 @@ def test_a_strongly_negative_contribution_counts_as_driving_the_score():
 def test_the_threshold_is_inclusive_at_the_boundary():
     # Exactly half from one factor, half spread across the rest.
     contributions = {f: 0.0 for f in FACTORS}
-    contributions["slum_pct"] = 5.0
+    contributions["impervious_pct"] = 5.0
     contributions["LST_C"] = 2.5
     contributions["NDVI"] = 2.5
     result = factor_dominance(contributions)
@@ -74,7 +72,7 @@ def test_just_under_the_threshold_is_not_flagged():
     # Three factors, not two: with only two the larger always holds at least
     # half, so a two-factor fixture cannot express "just under".
     contributions = {f: 0.0 for f in FACTORS}
-    contributions["slum_pct"] = 4.9
+    contributions["impervious_pct"] = 4.9
     contributions["LST_C"] = 3.0
     contributions["NDVI"] = 2.1
     result = factor_dominance(contributions)
@@ -122,7 +120,7 @@ def test_the_result_is_deterministic_on_a_tie():
 
 
 def test_the_threshold_sits_above_an_even_split():
-    """A threshold at or below 1/7 would flag every ward and mean nothing."""
+    """A threshold at or below 1/5 would flag every ward and mean nothing."""
     assert DOMINANCE_THRESHOLD > 1 / len(FACTORS)
 
 
