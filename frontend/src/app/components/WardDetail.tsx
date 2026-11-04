@@ -1,11 +1,9 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import CoefficientSparkline from "./CoefficientSparkline";
-import Citation from "./Citation";
+import WardRecommendations from "./WardRecommendations";
 import WardWeather from "./WardWeather";
-import { matchCitationFromText } from "@/lib/citations";
 import { areasForWard } from "@/lib/wardAreas";
 import { hviColor } from "@/lib/hvi";
 import {
@@ -199,27 +197,7 @@ export default function WardDetail({
       {recs.length > 0 && (
         <>
           <Separator className="my-4" />
-          <p className="kicker">Recommended interventions</p>
-          <div className="mt-2 space-y-2">
-            {recs.map((rec) => {
-              const cited = matchCitationFromText(rec.citation);
-              return (
-                <Card key={rec.intervention + rec.priority} size="sm">
-                  <CardContent className="text-xs">
-                    <span className="font-medium text-foreground">{rec.intervention}</span>
-                    <p className="mt-0.5 text-muted-foreground">{rec.rationale}</p>
-                    {cited ? (
-                      <div className="mt-1.5">
-                        <Citation mode="chip" entry={cited} />
-                      </div>
-                    ) : (
-                      <p className="mt-0.5 italic text-muted-foreground">{rec.citation}</p>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+          <WardRecommendations recs={recs} />
         </>
       )}
     </div>
