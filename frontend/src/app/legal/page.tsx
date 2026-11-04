@@ -56,6 +56,57 @@ export default function LegalPage() {
             assessments of specific sites.
           </li>
         </ul>
+
+        <h2 id="privacy" className="mt-8 text-lg font-semibold text-foreground">
+          Privacy
+        </h2>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          UCIP has no accounts. This is what leaves your browser, or stays in it:
+        </p>
+        <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed text-muted-foreground">
+          <li>
+            <strong className="text-foreground">PostHog</strong> receives page views, interaction
+            events and errors the site runs into, to show which pages are used and what breaks.
+            It keeps a random visitor id in a cookie and local storage so repeat visits count once.
+          </li>
+          <li>
+            <strong className="text-foreground">Vercel Analytics</strong> receives page views, for
+            the same reason.
+          </li>
+          <li>
+            <strong className="text-foreground">Open-Meteo</strong>: the home page asks
+            api.open-meteo.com for Mumbai&apos;s current temperature directly from your browser, so
+            Open-Meteo sees your IP address. Ward weather is fetched by UCIP&apos;s server for the
+            ward&apos;s centre, so your browser does not contact Open-Meteo for it.
+          </li>
+          <li>
+            <strong className="text-foreground">Esri</strong>: the dashboard map loads its basemap
+            tiles from services.arcgisonline.com directly from your browser, so Esri sees your IP
+            address and the part of the map you are viewing.
+          </li>
+          <li>
+            <strong className="text-foreground">Location</strong>: only if you use find my ward
+            and allow it, your browser&apos;s coordinates are sent to UCIP&apos;s own{" "}
+            <code>/api/v1/lookup</code>, which looks the ward up in UCIP&apos;s database. UCIP
+            does not save them, but like any request URL they can appear in hosting logs.
+          </li>
+          <li>
+            <strong className="text-foreground">API requests</strong>: when rate limiting is
+            switched on, API requests are counted per IP address over a one-minute window.
+          </li>
+          <li>
+            <strong className="text-foreground">Tracked wards</strong> are kept in your
+            browser&apos;s local storage (<code>ucip-tracked-wards</code>) and also copied into
+            the dashboard address (<code>?wards=</code>). That makes them part of the page URLs
+            PostHog records, and part of the link if you share it.
+          </li>
+          <li>
+            <strong className="text-foreground">Stored on your device only</strong>: whether you
+            closed the dashboard hint (<code>ucip-dashboard-hint-dismissed</code>) and your light
+            or dark theme, in your browser&apos;s local storage, and offline copies of the pages
+            and files you opened, kept in cache storage by the site&apos;s service worker.
+          </li>
+        </ul>
       </main>
       <SiteFooter />
     </div>
