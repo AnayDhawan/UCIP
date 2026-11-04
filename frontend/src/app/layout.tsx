@@ -4,6 +4,7 @@ import "./globals.css";
 import ThemeProvider from "./components/ThemeProvider";
 import { cn } from "@/lib/utils";
 import { Analytics } from "@vercel/analytics/next";
+import ServiceWorker from "./components/ServiceWorker";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -76,6 +77,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <ThemeProvider>{children}</ThemeProvider>
         <Analytics />
+        <ServiceWorker />
       </body>
     </html>
   );
