@@ -1,12 +1,20 @@
 "use client";
 
-import { Check, Code2, Printer, X } from "lucide-react";
-import { useState } from "react";
+import { Check, Code2, Link2, MessageCircle, Printer, Share2, X } from "lucide-react";
+import { useState, useSyncExternalStore } from "react";
 import { Badge } from "@/components/ui/badge";
 import { hviColor } from "@/lib/hvi";
 import { FACTOR_LABELS, INDICATOR_KEYS, type WardProps } from "@/lib/wardTypes";
 import { intervalWidth, rankRangeLabel, type WardInterval } from "@/lib/rankUncertainty";
 import { wardSlug } from "@/lib/wardSlug";
+import { wardPageUrl, wardShareText, whatsappHref } from "@/lib/wardShare";
+
+const ACTION =
+  "shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground print:hidden";
+
+// navigator.share exists on phones and some desktops; false while rendering on the server.
+const noopSubscribe = () => () => {};
+const canNativeShare = () => typeof navigator.share === "function";
 
 /**
  * The identity strip at the top of a ward surface: rank badge, ward code, HVI,
@@ -31,6 +39,10 @@ export default function WardDetailHeader({
   interval?: WardInterval;
 }) {
   const [copied, setCopied] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const nativeShare = useSyncExternalStore(noopSubscribe, canNativeShare, () => false);
+  const pageUrl = wardPageUrl(ward.ward_id);
+  const shareText = wardShareText(ward.ward_id, ward.rank, totalWards);
 
   async function copyEmbed() {
     const src = `${window.location.origin}/embed/ward/${wardSlug(ward.ward_id)}`;
@@ -40,6 +52,24 @@ export default function WardDetailHeader({
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
       // The URL remains directly accessible when clipboard permission is denied.
+    }
+  }
+
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(pageUrl);
+      setLinkCopied(true);
+      window.setTimeout(() => setLinkCopied(false), 2000);
+    } catch {
+      // The page stays reachable from the WhatsApp link when clipboard permission is denied.
+    }
+  }
+
+  async function shareNatively() {
+    try {
+      await navigator.share({ title: `UCIP ward ${ward.ward_id}`, text: shareText, url: pageUrl });
+    } catch {
+      // Closing the share sheet rejects; nothing to report.
     }
   }
 
@@ -64,7 +94,7 @@ export default function WardDetailHeader({
           onClick={copyEmbed}
           aria-label={`Copy embed code for ward ${ward.ward_id}`}
           title="Copy embed code"
-          className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground print:hidden"
+          className={ACTION}
         >
           {copied ? <Check className="h-4 w-4" /> : <Code2 className="h-4 w-4" />}
         </button>
@@ -72,7 +102,7 @@ export default function WardDetailHeader({
           onClick={() => window.print()}
           aria-label={`Print ward ${ward.ward_id} brief`}
           title="Print ward brief"
-          className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground print:hidden"
+          className={ACTION}
         >
           <Printer className="h-4 w-4" />
         </button>
@@ -84,9 +114,42 @@ export default function WardDetailHeader({
           <X className="h-4 w-4" />
         </button>
       </div>
-      <p className="mt-1 text-xs text-muted-foreground">
-        Priority {ward.rank} of {totalWards} &middot; {ward.n_cells ?? "n/a"} grid cells
-      </p>
+      {/* Share actions sit on this row because the identity row above is already full. */}
+      <div className="mt-1 flex items-center justify-between gap-2">
+        <p className="text-xs text-muted-foreground">
+          Priority {ward.rank} of {totalWards} &middot; {ward.n_cells ?? "n/a"} grid cells
+        </p>
+        <div className="-my-1 flex shrink-0 items-center gap-1">
+          <a
+            href={whatsappHref(shareText, pageUrl)}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Share ward ${ward.ward_id} on WhatsApp`}
+            title="Share on WhatsApp"
+            className={ACTION}
+          >
+            <MessageCircle className="h-4 w-4" />
+          </a>
+          <button
+            onClick={copyLink}
+            aria-label={`Copy link to ward ${ward.ward_id} page`}
+            title="Copy link"
+            className={ACTION}
+          >
+            {linkCopied ? <Check className="h-4 w-4" /> : <Link2 className="h-4 w-4" />}
+          </button>
+          {nativeShare && (
+            <button
+              onClick={shareNatively}
+              aria-label={`Share ward ${ward.ward_id}`}
+              title="Share"
+              className={ACTION}
+            >
+              <Share2 className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      </div>
       {interval && (
         <p className="mt-1 text-xs text-muted-foreground">
           Rank is uncertain: likely {rankRangeLabel(interval)} (95% range, {intervalWidth(interval)} places

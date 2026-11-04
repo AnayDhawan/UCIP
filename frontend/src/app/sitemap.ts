@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { wardPageUrl } from "@/lib/wardShare";
+import { wardFeatures } from "@/lib/wardSnapshot";
 
 // Falls back to the production domain (see layout.tsx's siteUrl for why), so a
 // deploy with no env vars set still emits real URLs instead of localhost ones.
@@ -36,9 +38,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/legal", priority: 0.2 },
   ];
 
-  return routes.map(({ path, priority, dataPage }) => ({
+  const pages = routes.map(({ path, priority, dataPage }) => ({
     url: `${siteUrl}${path}`,
     ...(dataPage && refreshed ? { lastModified: refreshed } : {}),
     priority,
   }));
+
+  // The ward pages show scores from the same pipeline run as the dashboard.
+  const wardPages = wardFeatures.map(({ properties }) => ({
+    url: wardPageUrl(properties.ward_id),
+    ...(refreshed ? { lastModified: refreshed } : {}),
+    priority: 0.5,
+  }));
+
+  return [...pages, ...wardPages];
 }

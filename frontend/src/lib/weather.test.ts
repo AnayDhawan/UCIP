@@ -14,7 +14,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { fetchCityTemp } from "./weather";
+import { fetchCityTemp, fetchPointForecast } from "./weather";
 import { MUMBAI } from "./city";
 
 const okResponse = (body: unknown) =>
@@ -182,5 +182,93 @@ describe("fetchCityTemp request shape", () => {
 
     const init = fetchMock.mock.calls[0][1] as RequestInit;
     expect(init.signal).toBeInstanceOf(AbortSignal);
+  });
+});
+
+const FORECAST_BODY = {
+  current: { time: "2026-11-04T10:00", temperature_2m: 32.1, apparent_temperature: 37.4 },
+  daily: {
+    time: ["2026-11-04", "2026-11-05", "2026-11-06", "2026-11-07", "2026-11-08", "2026-11-09", "2026-11-10"],
+    temperature_2m_max: [33, 34, 33.5, 32, 31, 32, 33],
+    temperature_2m_min: [25, 25.5, 26, 24, 24, 25, 25],
+    precipitation_probability_max: [0, 5, null, 20, 40, 10, 0],
+  },
+};
+
+describe("fetchPointForecast", () => {
+  it("parses current conditions and seven daily rows", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => okResponse(FORECAST_BODY)));
+
+    const result = await fetchPointForecast(19.07, 72.88, "Asia/Kolkata");
+    expect(result).toMatchObject({
+      temperatureC: 32.1,
+      apparentC: 37.4,
+      observedAt: "2026-11-04T10:00",
+    });
+    expect(result!.days).toHaveLength(7);
+    expect(result!.days[0]).toEqual({ date: "2026-11-04", maxC: 33, minC: 25, rainChancePct: 0 });
+  });
+
+  it("keeps a missing rain probability as null instead of inventing a number", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => okResponse(FORECAST_BODY)));
+
+    const result = await fetchPointForecast(19.07, 72.88, "Asia/Kolkata");
+    expect(result!.days[2].rainChancePct).toBeNull();
+  });
+
+  it("asks for the point, the fields, seven days and the city timezone", async () => {
+    const fetchMock = vi.fn<typeof fetch>(async () => okResponse(FORECAST_BODY));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await fetchPointForecast(19.07, 72.88, "Asia/Kolkata");
+
+    const url = new URL(fetchMock.mock.calls[0][0] as string);
+    expect(url.origin + url.pathname).toBe("https://api.open-meteo.com/v1/forecast");
+    expect(url.searchParams.get("latitude")).toBe("19.07");
+    expect(url.searchParams.get("longitude")).toBe("72.88");
+    expect(url.searchParams.get("current")).toBe("temperature_2m,apparent_temperature");
+    expect(url.searchParams.get("daily")).toBe(
+      "temperature_2m_max,temperature_2m_min,precipitation_probability_max"
+    );
+    expect(url.searchParams.get("forecast_days")).toBe("7");
+    expect(url.searchParams.get("timezone")).toBe("Asia/Kolkata");
+    expect((fetchMock.mock.calls[0][1] as RequestInit).signal).toBeInstanceOf(AbortSignal);
+  });
+
+  it("returns null on a network error, a non-OK status, or a body that is not JSON", async () => {
+    const failures = [
+      async () => {
+        throw new TypeError("Failed to fetch");
+      },
+      async () => ({ ok: false, status: 503, json: async () => ({}) }) as unknown as Response,
+      async () =>
+        ({
+          ok: true,
+          json: async () => {
+            throw new SyntaxError("Unexpected token < in JSON");
+          },
+        }) as unknown as Response,
+    ];
+
+    for (const impl of failures) {
+      vi.stubGlobal("fetch", vi.fn(impl));
+      expect(await fetchPointForecast(19.07, 72.88, "Asia/Kolkata")).toBeNull();
+    }
+  });
+
+  it("returns null on a malformed body rather than partial or fabricated numbers", async () => {
+    const bodies = [
+      {},
+      { ...FORECAST_BODY, current: { time: "x", temperature_2m: 30 } },
+      { ...FORECAST_BODY, current: { time: "x", temperature_2m: "30", apparent_temperature: 35 } },
+      { current: FORECAST_BODY.current },
+      { ...FORECAST_BODY, daily: { ...FORECAST_BODY.daily, temperature_2m_max: [33, null] } },
+      { ...FORECAST_BODY, daily: { ...FORECAST_BODY.daily, time: [] } },
+    ];
+
+    for (const body of bodies) {
+      vi.stubGlobal("fetch", vi.fn(async () => okResponse(body)));
+      expect(await fetchPointForecast(19.07, 72.88, "Asia/Kolkata")).toBeNull();
+    }
   });
 });

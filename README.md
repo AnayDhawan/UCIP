@@ -16,7 +16,7 @@
 
 UCIP scores each of Mumbai's 24 BMC wards for heat vulnerability on a 0 to 100 scale, explains each score factor by factor, and suggests cooling interventions that pass an ecological check. Every scored input comes from free, open, global data, so the same pipeline can be pointed at another city.
 
-It is a citable, versioned dataset with a dashboard and an API. It is not a forecast and not a warning service: for heatwave warnings, use the [India Meteorological Department](https://mausam.imd.gov.in/).
+It is a citable, versioned dataset with a dashboard and an API. The score is not a forecast and UCIP is not a warning service: for heatwave warnings, use the [India Meteorological Department](https://mausam.imd.gov.in/). The ward weather panel shows Open-Meteo's forecast, labelled as such.
 
 <div align="center">
 <img src="docs/media/demo.gif" alt="UCIP dashboard overview" width="720">

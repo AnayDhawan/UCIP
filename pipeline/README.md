@@ -130,13 +130,15 @@ input actually changes:
 | `14_timeseries.py` | Once a year | One value per dry season. |
 | `15_optimize.py` | With 05 | The worked budget scenario. |
 
-**The one genuinely fast-changing number in the product, live air temperature, is
-intentionally not a pipeline stage at all.** `frontend/src/lib/weather.ts` fetches it
-client-side from Open-Meteo on every page load: no server, no cron, no committed
-snapshot, no staleness possible. That pattern (fetch live at request time, show an
-honest "unavailable" state on failure, never fabricate or cache a stale number) is the
-template for any future value that is actually fast-changing: extend `weather.ts`'s
-approach for it, rather than adding another scheduled pipeline stage and
+**The fast-changing numbers in the product, live air temperature and the ward weather
+forecast, are intentionally not pipeline stages at all.** `frontend/src/lib/weather.ts`
+fetches them from Open-Meteo at request time: the home page strip calls it from the
+browser on every page load, and the ward weather panel goes through the
+`/api/weather/{ward}` route, whose responses are cacheable at the CDN for 30 minutes and
+carry the reading time. There is no cron and no committed snapshot. That pattern (fetch
+live at request time, show an honest "unavailable" state on failure, never fabricate a
+number) is the template for any future value that is actually fast-changing: extend
+`weather.ts`'s approach for it, rather than adding another scheduled pipeline stage and
 labeling it "daily" for effect.
 
 ## Change diffing (issue #61)

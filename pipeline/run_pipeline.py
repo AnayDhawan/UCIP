@@ -15,10 +15,11 @@ Cadence (issue #57 — see pipeline/README.md's "Refresh cadence" section for th
     (Landsat LST/NDVI), WorldPop demographics, or ESA WorldCover land cover — all of
     which change on a monthly-or-slower real-world cadence. Running this chain more
     often than monthly would re-fetch the same underlying composite and burn GEE quota
-    for a cosmetic "last updated" timestamp, not a real data change. The one genuinely
-    fast-changing signal in this product, live air temperature, is intentionally NOT a
-    pipeline stage: it is fetched client-side per page load in
-    frontend/src/lib/weather.ts, which needs no cron at all.
+    for a cosmetic "last updated" timestamp, not a real data change. The fast-changing
+    signals in this product, live air temperature and the ward weather forecast, are
+    intentionally NOT pipeline stages: they are fetched live from Open-Meteo by
+    frontend/src/lib/weather.ts (from the browser for the home page strip, through the
+    /api/weather route for the ward panel), which needs no cron at all.
 
     00_gee_spike.py is a one-time go/no-go development gate (see its own docstring),
     not a stage of the data refresh — it queries a tiny fixed test bbox and writes

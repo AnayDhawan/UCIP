@@ -47,3 +47,43 @@ export function boundsOf(geometry: Geometry): [[number, number], [number, number
     [Math.max(...lats), Math.max(...lngs)],
   ];
 }
+
+/** Area and centroid of one closed ring, shoelace formula on raw [lng, lat] pairs. */
+function ringCentroid(ring: Position[]): { area: number; lng: number; lat: number } | null {
+  let twiceArea = 0;
+  let cx = 0;
+  let cy = 0;
+  for (let i = 0; i < ring.length; i++) {
+    const [x0, y0] = ring[i];
+    const [x1, y1] = ring[(i + 1) % ring.length];
+    const cross = x0 * y1 - x1 * y0;
+    twiceArea += cross;
+    cx += (x0 + x1) * cross;
+    cy += (y0 + y1) * cross;
+  }
+  if (twiceArea === 0) return null;
+  return { area: Math.abs(twiceArea) / 2, lng: cx / (3 * twiceArea), lat: cy / (3 * twiceArea) };
+}
+
+/**
+ * Area-weighted centroid of a Polygon or MultiPolygon as [lat, lng], the order
+ * the weather API and Leaflet take. For a MultiPolygon it is the centroid of the
+ * largest part's outer ring: a ward's islands and holes are ignored, so the
+ * point sits in the main body of the ward, not between its pieces.
+ *
+ * Planar on degrees, which is accurate enough at the scale of one ward. Returns
+ * null for any other geometry type and for a polygon with no usable ring.
+ */
+export function centroidOf(geometry: Geometry): [number, number] | null {
+  let outerRings: Position[][];
+  if (geometry.type === "Polygon") outerRings = geometry.coordinates.slice(0, 1);
+  else if (geometry.type === "MultiPolygon") outerRings = geometry.coordinates.map((p) => p[0] ?? []);
+  else return null;
+
+  let largest: ReturnType<typeof ringCentroid> = null;
+  for (const ring of outerRings) {
+    const c = ringCentroid(ring);
+    if (c && (!largest || c.area > largest.area)) largest = c;
+  }
+  return largest ? [largest.lat, largest.lng] : null;
+}

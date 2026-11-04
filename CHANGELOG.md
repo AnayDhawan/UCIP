@@ -33,6 +33,15 @@ All notable changes to this project are documented here. Format based on
   empty fails at stage 04 (#207).
 - `publish-ts-client.yml` publishes the TypeScript client to npm from a
   `ts-client-v*` tag (#103). Nothing is published yet.
+- Every ward has its own page at `/ward/{slug}` (for example `/ward/F-N`) with its
+  score, rank range, factor bars and recommendations, listed in the sitemap, and a
+  1200x630 share card so a shared link previews with the ward's own numbers. The
+  ward header gets a WhatsApp link, a copy-link button and, where the browser has
+  one, the native share sheet.
+- A ward weather panel on the dashboard and the ward pages shows Open-Meteo's
+  current conditions and 7-day forecast at the ward's centre, through a new
+  `/api/weather/{ward}` route outside `/api/v1`. The panel says the forecast is
+  Open-Meteo's and that UCIP's heat score is not a forecast.
 
 ### Fixed
 - `/wards/{wardId}` and `/lookup` return the same ward keys as `/wards`, including
