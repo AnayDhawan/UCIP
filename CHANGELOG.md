@@ -23,8 +23,10 @@ All notable changes to this project are documented here. Format based on
   the lower class code. `plantable` still follows `worldcover_class` (#168).
   Needs migration `0010_worldcover_share.sql`.
 - Security headers on every route (`X-Content-Type-Options`, `Referrer-Policy`,
-  `Permissions-Policy`, `frame-ancestors 'self'`) except `/embed/ward/*`, which
-  stays frameable, and a full `Content-Security-Policy-Report-Only` (#200).
+  `Permissions-Policy`) and an enforced `Content-Security-Policy` that lists every
+  third party the site talks to. The policy ran report-only first and is enforced
+  in production (#200, #255). `frame-ancestors 'self'` is set on everything except
+  `/embed/*`, which stays frameable.
 - Automated accessibility checks: an axe-core suite over the layer switcher,
   ward dialog and mobile ward sheet, and a Lighthouse accessibility assertion
   that now fails the build, on five routes (#223).
